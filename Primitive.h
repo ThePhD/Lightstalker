@@ -42,6 +42,18 @@ struct TPrimitive {
 		RTriangle<T> triangle;
 	};
 
+	TPrimitive( const RSphere<T>& sphere ) : id( PrimitiveId::Sphere ), sphere( sphere ) {
+
+	}
+
+	TPrimitive( const RPlane<T>& plane ) : id( PrimitiveId::Plane ), plane( plane ) {
+
+	}
+
+	TPrimitive( const RTriangle<T>& triangle ) : id( PrimitiveId::Triangle ), triangle( triangle ) {
+
+	}
+
 	TPrimitive( sphere_arg_t, T radius, const Fur::RVector3<T>& position ) : id( PrimitiveId::Sphere ), sphere( { radius, position } ) {
 
 	}

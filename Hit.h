@@ -14,13 +14,21 @@ struct RHit {
 
 template <typename T>
 Fur::optional<RHit<T>> intersect( const Fur::TRay3<T>& ray, const RPlane<T>& target ) {
-	return nullopt;
+	T denom = ray.direction.Dot( target.normal );
+	if ( denom <= 0 )
+		return nullopt;
+
+	RHit<T> hit;
+	hit.distance0 = ( target.normal.Dot( ray.origin ) + target.distance ) / denom;
+	hit.contact = ray.At( hit.distance0 );
+	hit.normal = target.normal;
+	return hit;
 }
 
 template <typename T>
 Fur::optional<RHit<T>> intersect( const Fur::TRay3<T>& ray, const RSphere<T>& target ) {
-	Fur::TVector3<T> ray2sphere = target.position - ray.Origin;
-	T dist = ray2sphere.Dot( ray.Direction );
+	Fur::TVector3<T> ray2sphere = target.position - ray.origin;
+	T dist = ray2sphere.Dot( ray.direction );
 	T ray2spheresquared = ray2sphere.Dot( ray2sphere );
 	T radiussquared = target.radius * target.radius;
 
@@ -40,7 +48,7 @@ Fur::optional<RHit<T>> intersect( const Fur::TRay3<T>& ray, const RSphere<T>& ta
 	RHit<T> hit;
 	if ( ray2spheresquared > radiussquared )
 		hit.distance0 = dist - q;
-	else
+	else 
 		hit.distance0 = dist + q;
 
 	hit.contact = ray.At( hit.distance0 );
