@@ -1,4 +1,5 @@
 #define FURROVINEDLL
+#define _SCL_SECURE_NO_WARNINGS
 
 #include "Scene.h"
 #include "Pixel.h"
@@ -11,6 +12,7 @@
 #include <Furrovine++/Graphics/Image2D.h>
 #include <Furrovine++/buffer2d_view.h>
 #include <Furrovine++/Stopwatch.h>
+#include <Furrovine++/Colors.h>
 #include <iostream>
 
 class Tracer {
@@ -27,11 +29,11 @@ public:
 
 	void Trace( real x, real y, Camera& camera, Scene& scene ) {
 		Ray ray = camera.Compute( x, y, realwidth, realheight );
-		Ray ray2( Vec3( 0, 0, -20 ), Vec3( 0, 0, 1 ) );
-		auto hit = scene.Intersect( ray2 );
+		auto hit = scene.Intersect( ray );                                                                                                                                                                            
 		if ( !hit )
 			return;
 		Primitive& primitive = hit->first;
+		Hit& targethit = hit->second;
 		switch ( primitive.id ) {
 		case PrimitiveId::Sphere:
 			//std::cout << "Sphere Hit\n";
@@ -68,22 +70,48 @@ class TracerTracker {
 int main( ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
+	using namespace Furrovine::Input;
+	using namespace Furrovine::Pipeline;
 
 	Image2D image( 800, 600, SurfaceFormat::Red32Green32Blue32Alpha32 );
+	Image2D wbmp = WBMPLoader( )( "test.wbmp" );
+	buffer_view<Pixel> imagepixels = image.View<Pixel>( );
+	std::fill_n( imagepixels.data( ), imagepixels.size( ), Pixel{ 1.0f, 1.0f, 1.0f, 1.0f } );
 	ImageOutput output( image );
-	Camera camera( Vec3( 0, 0, -20 ), Vec3( 0, 0, 0 ) );
+	Camera camera( Vec3( 0, 0, -200 ), Vec3( 0, 0, 0 ) );
 	Tracer tracer( 800, 600 );
 	Scene scene;
 	scene.Add( sphere_arg, 1.0f, Vec3( 0, 0, 0 ) );
-	
-	Stopwatch stopwatch;
+	//scene.Add( plane_arg, 0.0f, Vec3::Up );
+	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
 	Window window( windowdriver, WindowDescription( "Lightstalker" ) );
 	GraphicsDevice graphics( window );
+	MessageQueue messagequeue;
+	window.Show( );
 
-	for ( real y = 0; y < 600; ++y ) {
-		for ( real x = 0; x < 800; ++x ) {
-			tracer.Trace( x, y, camera, scene );
+	while ( true ) {
+		windowdriver.Push( window, messagequeue );
+		optional<MessageData> opmessage;
+		while ( opmessage = messagequeue.pop( ) ) {
+			MessageData& message = opmessage.value();
+			switch ( message.header.id ) {
+			case MessageId::Keyboard: 
+				{ KeyboardEvent& keyboard = message.as<KeyboardEvent>( );
+				if ( keyboard.Key == Key::R
+					&& keyboard.Down ) {
+					
+				}}
+				break;
+			}
+		}
+		
+		continue;
+		
+		for ( real y = 0; y < 600; ++y ) {
+			for ( real x = 0; x < 800; ++x ) {
+				tracer.Trace( x, y, camera, scene );
+			}
 		}
 	}
 }

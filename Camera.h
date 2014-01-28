@@ -13,14 +13,13 @@ public:
 		direction = target - position;
 		forward = direction;
 		forward.Normalize( );
-		up = Vec3::UnitY;
-		right = Vec3::Cross( forward, up );
-		up = Vec3::Cross( right, forward );
+		right = Vec3::Normalize( Vec3::Cross( forward == Vec3::Up || -forward == Vec3::Up ? Vec3::Right : Vec3::Up, forward ) );
+		up = Vec3::Normalize( Vec3::Cross( forward, right ) );
 	}
 
 	Ray Compute( real x, real y, real width, real height ) {
-		real normalized_i = ( x / width ) - real( 0.5 );
-		real normalized_j = ( y / height ) - real( 0.5 );
+		real normalized_i = ( x / width ) - static_cast<real>( 0.5 );
+		real normalized_j = ( y / height ) - static_cast<real>( 0.5 );
 		Vec3 image_point = normalized_i * right +
 			normalized_j * up +
 			position + direction;

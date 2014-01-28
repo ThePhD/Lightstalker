@@ -50,8 +50,5 @@
     <ClInclude Include="ImageOutput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

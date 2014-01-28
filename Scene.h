@@ -1,7 +1,5 @@
 #include "Primitive.h"
-#include "Hit.h"
 #include "Material.h"
-#include "Ray.h"
 #include <Furrovine++/optional.h>
 #include <vector>
 
