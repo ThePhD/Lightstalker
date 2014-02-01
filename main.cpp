@@ -2,7 +2,6 @@
 #define _SCL_SECURE_NO_WARNINGS
 
 #include "Scene.h"
-#include "Pixel.h"
 #include "Sample.h"
 #include "Camera.h"
 #include "ImageOutput.h"
@@ -27,69 +26,62 @@ public:
 		
 	}
 
-	void Trace( real x, real y, Camera& camera, Scene& scene ) {
-		Ray ray = camera.Compute( x, y, realwidth, realheight );
-		auto hit = scene.Intersect( ray );                                                                                                                                                                            
-		if ( !hit )
+	Ray Generate( real x, real y, const Camera& camera ) {
+		return camera.Compute( x, y, realwidth, realheight );
+	}
+
+	void Evaluate( real x, real y, Scene& scene, const Camera& camera, Output& output ) {
+		Ray ray = Generate( x, y, camera );
+		Fur::optional<std::pair<Primitive&, Hit>> intersection = scene.Intersect( ray );
+		if ( !intersection )
 			return;
-		Primitive& primitive = hit->first;
-		Hit& targethit = hit->second;
-		switch ( primitive.id ) {
-		case PrimitiveId::Sphere:
-			//std::cout << "Sphere Hit\n";
-			break;
-		default:
-			break;
-		}
+		const Primitive& primitive = intersection->first;
+		const Hit& hit = intersection->second;
+		rgba pixel = scene.Shade( ray, primitive, hit );
+		output.Set( x, y, pixel );
 	}
 };
 
-class TracerTracker {
-	std::size_t width;
-	std::size_t height;
-	std::size_t area;
-	std::vector<Fur::uint32> collision;
-	std::vector<Pixel> diffuse;
-	std::vector<Pixel> specular;
-	std::vector<Pixel> ambient;
-	Fur::buffer2d_view<Fur::uint32> collisionview;
-	Fur::buffer2d_view<Pixel> diffuseview;
-	Fur::buffer2d_view<Pixel> specularview;
-	Fur::buffer2d_view<Pixel> ambientview;
-
-	TracerTracker( std::size_t w, std::size_t h )
-		: width( w ), height( h ), area( width * height ),
-		collision( area, false ),
-		diffuse( area, Pixel{ 0, 0, 0, 0 } ), specular( area, Pixel{ 0, 0, 0, 0 } ), ambient( area, Pixel{ 0, 0, 0, 0 } ),
-		collisionview( collision, width, height ),
-		diffuseview( diffuse, width, height ), specularview( specular, width, height ), ambientview( ambient, width, height ) {
-
-	}
-};
+#include <Furrovine++/RVector.h>
 
 int main( ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Input;
-	using namespace Furrovine::Pipeline;
+	
+	RVector<float, 3> arf;
+	arf.x = 1.0f;
+	arf.y = 2.0f;
+	arf.z = 3.0f;
+	RVector<float, 3> arf2 = arf;
+	RVector<float, 2> woof;
+	woof.x = 1.0f;
+	woof.y = 2.0f;
+	RVector<float, 2> woof2 = woof;
+	RVector<float, 3> crossarf = arf.cross( arf2 );
+	float crosswoof = woof.cross( woof2 );
 
-	Image2D image( 800, 600, SurfaceFormat::Red32Green32Blue32Alpha32 );
-	Image2D wbmp = WBMPLoader( )( "test.wbmp" );
-	buffer_view<Pixel> imagepixels = image.View<Pixel>( );
-	std::fill_n( imagepixels.data( ), imagepixels.size( ), Pixel{ 1.0f, 1.0f, 1.0f, 1.0f } );
-	ImageOutput output( image );
-	Camera camera( Vec3( 0, 0, -200 ), Vec3( 0, 0, 0 ) );
 	Tracer tracer( 800, 600 );
+	Image2D image( 800, 600, SurfaceFormat::Red8Green8Blue8Alpha8Normalized );
+	std::fill_n( image.data( ), image.size( ), 0 );
+	ImageOutput output( image );
 	Scene scene;
-	scene.Add( sphere_arg, 1.0f, Vec3( 0, 0, 0 ) );
-	//scene.Add( plane_arg, 0.0f, Vec3::Up );
+	scene.Add( sphere_arg, 10.0f, Vec3( 0, 0, 0 ) );
+	scene.Add( plane_arg, 0.0f, Vec3::Up );
+	Camera camera( Vec3( 0, 0, -15 ), Vec3( 0, 0, 0 ) );
+
 	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
 	Window window( windowdriver, WindowDescription( "Lightstalker" ) );
 	GraphicsDevice graphics( window );
 	MessageQueue messagequeue;
 	window.Show( );
+	
+	real x = 0;
+	real y = 0;
 
+	bool quit = false;
+	bool timerbreak = false;
 	while ( true ) {
 		windowdriver.Push( window, messagequeue );
 		optional<MessageData> opmessage;
@@ -100,18 +92,47 @@ int main( ) {
 				{ KeyboardEvent& keyboard = message.as<KeyboardEvent>( );
 				if ( keyboard.Key == Key::R
 					&& keyboard.Down ) {
-					
+					// Reload with FileSystemWatcher
+				}
+				if ( ( keyboard.Key == Key::Escape
+					|| keyboard.Key == Key::Q )
+					&& keyboard.Down ) {
+					quit = true;
+					break;
+				}
+				if ( keyboard.Key == Key::S
+					&& keyboard.Down ) {
+					output.Save( );
+					break;
 				}}
 				break;
 			}
 		}
-		
-		continue;
-		
-		for ( real y = 0; y < 600; ++y ) {
-			for ( real x = 0; x < 800; ++x ) {
-				tracer.Trace( x, y, camera, scene );
+
+		if ( quit ) {
+			break;
+		}
+
+		stopwatch.Start( );
+		timerbreak = false;
+		for ( ; y < 600 && !timerbreak; ) {
+			for ( ; x < 800 && !timerbreak; ++x ) {
+				tracer.Evaluate( x, y, scene, camera, output );
+				timerbreak = stopwatch.ElapsedMilliseconds( ) > 64;
+			}
+			if ( x == 800 ) {
+				++y;
+				x = 0;
 			}
 		}
+		timerbreak = false;
+		
+		if ( !graphics.Ready( ) ) {
+			continue;
+		}
+
+		graphics.Clear( Colors::Black );
+		graphics.RenderImage( image );
+		graphics.Present( );
 	}
 }

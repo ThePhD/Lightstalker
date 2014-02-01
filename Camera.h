@@ -17,9 +17,11 @@ public:
 		up = Vec3::Normalize( Vec3::Cross( forward, right ) );
 	}
 
-	Ray Compute( real x, real y, real width, real height ) {
+	Ray Compute( real x, real y, real width, real height ) const {
 		real normalized_i = ( x / width ) - static_cast<real>( 0.5 );
 		real normalized_j = ( y / height ) - static_cast<real>( 0.5 );
+		normalized_i *= width;
+		normalized_j *= height;
 		Vec3 image_point = normalized_i * right +
 			normalized_j * up +
 			position + direction;

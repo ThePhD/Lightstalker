@@ -83,9 +83,10 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ImageOutput.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Output.h" />
-    <ClInclude Include="Pixel.h" />
+    <ClInclude Include="rgba.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="real.h" />

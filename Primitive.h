@@ -24,6 +24,7 @@ enum class PrimitiveId {
 
 template <typename T>
 struct TPrimitive {
+	std::size_t material;
 	PrimitiveId id;
 	union {
 		Fur::RSphere<T> sphere;
