@@ -49,16 +49,16 @@ int main( ) {
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Input;
 	
-	RVector<float, 3> arf;
+	RVector3<float> arf;
 	arf.x = 1.0f;
 	arf.y = 2.0f;
 	arf.z = 3.0f;
-	RVector<float, 3> arf2 = arf;
-	RVector<float, 2> woof;
+	RVector3<float> arf2 = arf;
+	RVector2<float> woof;
 	woof.x = 1.0f;
 	woof.y = 2.0f;
-	RVector<float, 2> woof2 = woof;
-	RVector<float, 3> crossarf = arf.cross( arf2 );
+	RVector2<float> woof2 = woof;
+	RVector3<float> crossarf = arf.cross( arf2 );
 	float crosswoof = woof.cross( woof2 );
 
 	Tracer tracer( 800, 600 );

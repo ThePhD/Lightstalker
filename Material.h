@@ -4,10 +4,23 @@
 
 template <typename T>
 struct RMaterial {
-	Fur::RRgba<T> Diffuse;
-	Fur::RRgba<T> Specular;
-	Fur::RRgba<T> Emission;
-	Fur::RRgba<T> Transmission;
+	Fur::RRgba<T> diffuse;
+	Fur::RRgba<T> specular;
+	Fur::RRgba<T> emission;
+	Fur::RRgba<T> transmission;
 };
 
-typedef RMaterial<real> Material;
+
+template <typename T>
+struct TMaterial : RMaterial<T> {
+
+	TMaterial( ) {
+		diffuse = Colors::White;
+		specular = Colors::Transparent;
+		emission = Colors::Transparent;
+		transmission = Colors::Transparent;
+	}
+
+};
+
+typedef TMaterial<real> Material;

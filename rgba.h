@@ -3,4 +3,4 @@
 #include "real.h"
 #include <Furrovine++/Rgba.h>
 
-typedef Fur::RRgba<real> rgba;
+typedef Fur::TRgba<real> rgba;

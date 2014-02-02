@@ -23,7 +23,6 @@ public:
 		pointlights.reserve( 8 );
 		directionallights.reserve( 8 );
 		Material basicmat;
-		static_assert( std::is_pod<Material>::value, "Fuck!" );
 		materials.push_back( basicmat );
 	}
 
@@ -78,9 +77,9 @@ public:
 		rgba color{ };
 		Material& material = materials[ primitive.material ];
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
-			//color += ambientlights[ a ];
+			color += ambientlights[ a ];
 		}
-		color = material.Diffuse;
+		color += material.Diffuse;
 		return color;
 	}
 };

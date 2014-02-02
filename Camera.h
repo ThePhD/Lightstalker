@@ -12,9 +12,9 @@ public:
 	Camera ( Vec3 pos, Vec3 lookat ) : position( pos ), target( lookat ) {
 		direction = target - position;
 		forward = direction;
-		forward.Normalize( );
-		right = Vec3::Normalize( Vec3::Cross( forward == Vec3::Up || -forward == Vec3::Up ? Vec3::Right : Vec3::Up, forward ) );
-		up = Vec3::Normalize( Vec3::Cross( forward, right ) );
+		forward.normalize( );
+		right = normalize( cross( forward == Vec3::Up || -forward == Vec3::Up ? Vec3::Right : Vec3::Up, forward ) );
+		up = normalize( cross( forward, right ) );
 	}
 
 	Ray Compute( real x, real y, real width, real height ) const {
@@ -26,7 +26,7 @@ public:
 			normalized_j * up +
 			position + direction;
 		Vec3 raydir = image_point - position;
-		raydir.Normalize( );
+		raydir.normalize( );
 		return Ray( position, raydir );
 	}
 };
