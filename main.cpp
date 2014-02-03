@@ -42,24 +42,10 @@ public:
 	}
 };
 
-#include <Furrovine++/RVector.h>
-
 int main( ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Input;
-	
-	RVector3<float> arf;
-	arf.x = 1.0f;
-	arf.y = 2.0f;
-	arf.z = 3.0f;
-	RVector3<float> arf2 = arf;
-	RVector2<float> woof;
-	woof.x = 1.0f;
-	woof.y = 2.0f;
-	RVector2<float> woof2 = woof;
-	RVector3<float> crossarf = arf.cross( arf2 );
-	float crosswoof = woof.cross( woof2 );
 
 	Tracer tracer( 800, 600 );
 	Image2D image( 800, 600, SurfaceFormat::Red8Green8Blue8Alpha8Normalized );
@@ -93,6 +79,9 @@ int main( ) {
 				if ( keyboard.Key == Key::R
 					&& keyboard.Down ) {
 					// Reload with FileSystemWatcher
+					x = 0;
+					y = 0;
+					std::fill_n( image.data( ), image.size( ), 0 );
 				}
 				if ( ( keyboard.Key == Key::Escape
 					|| keyboard.Key == Key::Q )

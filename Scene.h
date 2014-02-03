@@ -79,7 +79,7 @@ public:
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
 			color += ambientlights[ a ];
 		}
-		color += material.Diffuse;
+		color += material.diffuse;
 		return color;
 	}
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rgba.h"
+#include <Furrovine++/Colors.h>
 
 template <typename T>
 struct RMaterial {
@@ -12,13 +13,13 @@ struct RMaterial {
 
 
 template <typename T>
-struct TMaterial : RMaterial<T> {
+struct TMaterial : public RMaterial<T> {
 
 	TMaterial( ) {
-		diffuse = Colors::White;
-		specular = Colors::Transparent;
-		emission = Colors::Transparent;
-		transmission = Colors::Transparent;
+		diffuse = Fur::Colors::White;
+		specular = Fur::Colors::Transparent;
+		emission = Fur::Colors::Transparent;
+		transmission = Fur::Colors::Transparent;
 	}
 
 };
