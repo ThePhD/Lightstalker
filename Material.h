@@ -22,6 +22,13 @@ struct TMaterial : public RMaterial<T> {
 		transmission = Fur::Colors::Transparent;
 	}
 
+	TMaterial( const Fur::RRgba<T>& diffusecolor, const Fur::RRgba<T>& specularcolor, const Fur::RRgba<T>& emissioncolor, const Fur::RRgba<T>& transmissioncolor ) {
+		diffuse = diffusecolor;
+		specular = specularcolor;
+		emission = emissioncolor;
+		transmission = transmissioncolor;
+	}
+
 };
 
 typedef TMaterial<real> Material;

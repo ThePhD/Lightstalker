@@ -47,18 +47,6 @@ int main( ) {
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Input;
 
-	half h;
-	half hf0 = 0.0f;
-	half hf1 = 1.0f;
-	half hf2 = 2.0f;
-	half hf3 = 3.0f;
-	half hf4 = -124.0625;
-	auto vf0 = Fur::detail::crunch_half( hf0.bits( ) );
-	auto vf1 = Fur::detail::crunch_half( hf1.bits( ) );
-	auto vf2 = Fur::detail::crunch_half( hf2.bits( ) );
-	auto vf3 = Fur::detail::crunch_half( hf3.bits( ) );
-	auto vf4 = Fur::detail::crunch_half( hf4.bits( ) );
-	
 	Tracer tracer( 800, 600 );
 	Image2D image( 800, 600, SurfaceFormat::Red8Green8Blue8Alpha8Normalized );
 	std::fill_n( image.data( ), image.size( ), 0 );
@@ -66,22 +54,26 @@ int main( ) {
 	Scene scene;
 	scene.Add( sphere_arg, 10.0f, Vec3( 0, 0, 0 ) );
 	scene.Add( plane_arg, 0.0f, Vec3( 0, 1, 0 ) );
-	scene.AddAmbientLight( 1.02f, 0.02f, 0.02f, 1.0f );
+	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 1.0f );
 	scene.AddDirectionalLight( Vec3::Down );
 	Camera camera( Vec3( 0, 0, -15 ), Vec3( 0, 0, 0 ) );
 
 	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
 	Window window( windowdriver, WindowDescription( "Lightstalker" ) );
+	bool displaywindow = true;
 	GraphicsDevice graphics( window );
 	MessageQueue messagequeue;
-	window.Show( );
 	
 	real x = 0;
 	real y = 0;
 
 	bool quit = false;
 	bool timerbreak = false;
+	
+	if ( displaywindow )
+		window.Show( );
+
 	while ( true ) {
 		windowdriver.Push( window, messagequeue );
 		optional<MessageData> opmessage;
@@ -121,7 +113,7 @@ int main( ) {
 		for ( ; y < 600 && !timerbreak; ) {
 			for ( ; x < 800 && !timerbreak; ++x ) {
 				tracer.Evaluate( x, y, scene, camera, output );
-				timerbreak = stopwatch.ElapsedMilliseconds( ) > 64;
+				timerbreak = stopwatch.ElapsedMilliseconds( ) > 64 && displaywindow;
 			}
 			if ( x == 800 ) {
 				++y;
@@ -129,6 +121,9 @@ int main( ) {
 			}
 		}
 		
+		if ( !displaywindow )
+			continue;
+
 		if ( !graphics.Ready( ) ) {
 			continue;
 		}
