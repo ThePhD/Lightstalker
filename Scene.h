@@ -70,16 +70,31 @@ public:
 				t0 = hit->distance0;
 			}
 		}
+		if ( closesthit )
+			normalize( closesthit->second.normal );
 		return closesthit;
 	}
 
-	rgba Shade( const Ray& ray, const Primitive& primitive, const Hit& hit ) {
+	rgba Shade ( const Ray& ray, const Primitive& primitive, const Hit& hit ) {
 		rgba color{ };
 		Material& material = materials[ primitive.material ];
+		auto diffusedirectional = [ &] ( const Vec3& direction ) {
+			float brightness = angle( direction, hit.normal );
+			color += material.diffuse * brightness;
+			//color += material.specular * brightness;
+		};
+
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
 			color += ambientlights[ a ];
 		}
-		color += material.diffuse;
+		//for ( std::size_t p = 0; p < directionallights.size( ); ++p ) {
+		//	diffusedirectional( directionallights[ p ].direction );
+		//}
+		for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
+			Vec3 direction = pointlights[ p ].position - hit.contact;
+			// Same as directional, just distance is recalculated every time
+			diffusedirectional( direction );
+		}
 		return color;
 	}
 };

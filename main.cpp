@@ -30,7 +30,7 @@ public:
 		return camera.Compute( x, y, realwidth, realheight );
 	}
 
-	void Evaluate( real x, real y, Scene& scene, const Camera& camera, Output& output ) {
+	void Evaluate( real x, real y, Scene& scene, const Camera& camera, Output& output, std::size_t depth = 0 ) {
 		Ray ray = Generate( x, y, camera );
 		Fur::optional<std::pair<Primitive&, Hit>> intersection = scene.Intersect( ray );
 		if ( !intersection )
@@ -47,13 +47,27 @@ int main( ) {
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Input;
 
+	half h;
+	half hf0 = 0.0f;
+	half hf1 = 1.0f;
+	half hf2 = 2.0f;
+	half hf3 = 3.0f;
+	half hf4 = -124.0625;
+	auto vf0 = Fur::detail::crunch_half( hf0.bits( ) );
+	auto vf1 = Fur::detail::crunch_half( hf1.bits( ) );
+	auto vf2 = Fur::detail::crunch_half( hf2.bits( ) );
+	auto vf3 = Fur::detail::crunch_half( hf3.bits( ) );
+	auto vf4 = Fur::detail::crunch_half( hf4.bits( ) );
+	
 	Tracer tracer( 800, 600 );
 	Image2D image( 800, 600, SurfaceFormat::Red8Green8Blue8Alpha8Normalized );
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
 	Scene scene;
 	scene.Add( sphere_arg, 10.0f, Vec3( 0, 0, 0 ) );
-	scene.Add( plane_arg, 0.0f, Vec3::Up );
+	scene.Add( plane_arg, 0.0f, Vec3( 0, 1, 0 ) );
+	scene.AddAmbientLight( 1.02f, 0.02f, 0.02f, 1.0f );
+	scene.AddDirectionalLight( Vec3::Down );
 	Camera camera( Vec3( 0, 0, -15 ), Vec3( 0, 0, 0 ) );
 
 	Stopwatch stopwatch;                
@@ -114,7 +128,6 @@ int main( ) {
 				x = 0;
 			}
 		}
-		timerbreak = false;
 		
 		if ( !graphics.Ready( ) ) {
 			continue;

@@ -7,7 +7,7 @@
 #include <Furrovine++/Pipeline/PNGSaver.h>
 #include <Furrovine++/Strings.h>
 
-class ImageOutput : public Output {
+  class ImageOutput : public Output {
 private:
 	Fur::Graphics::Image2D* image;
 	Fur::buffer2d_view<Fur::ByteColor> imagepixels;
@@ -22,13 +22,14 @@ public:
 	void Save( ) {
 		Fur::Pipeline::PNGSaver saver{ };
 		saver( *image, outputname );
-	}
+	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
 	virtual void Set( real x, real y, const rgba& pixel ) override {
 		std::size_t ix = static_cast<std::size_t>( x );
 		std::size_t iy = static_cast<std::size_t>( y );
 		Fur::ByteColor& datapixel = imagepixels( ix, iy );
-		datapixel = pixel;
+		rgba clampedpixel = color_clamp( pixel );
+		datapixel = clampedpixel;
 	}
 
 };
