@@ -18,15 +18,15 @@ public:
 	}
 
 	Ray Compute( real x, real y, real width, real height ) const {
-		real normalized_i = ( x / width ) - static_cast<real>( 0.5 );
-		real normalized_j = ( y / height ) - static_cast<real>( 0.5 );
-		normalized_i *= width;
-		normalized_j *= height;
-		Vec3 image_point = normalized_i * right +
-			normalized_j * up +
+		real normalizedi = ( x / width ) - static_cast<real>( 0.5 );
+		real normalizedj = ( y / height ) - static_cast<real>( 0.5 );
+		normalizedi *= width;
+		normalizedj *= height;
+		Vec3 imageplanepoint = normalizedi * right +
+			normalizedj * up +
 			position + direction;
-		Vec3 raydir = image_point - position;
+		Vec3 raydir = imageplanepoint - position;
 		raydir.normalize( );
-		return Ray( image_point, raydir );
+		return Ray( position, raydir );
 	}
 };
