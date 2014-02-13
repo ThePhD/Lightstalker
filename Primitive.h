@@ -4,7 +4,7 @@
 #include "Ray.h"
 #include <Furrovine++/unreachable.h>
 #include <Furrovine++/optional.h>
-#include <Furrovine++/RHit.h>
+#include <Furrovine++/THit.h>
 
 struct sphere_arg_t { };
 const auto sphere_arg = sphere_arg_t{ };
@@ -68,7 +68,7 @@ struct TPrimitive {
 };
 
 template <typename T>
-Fur::optional<Fur::RHit<T>> intersect( const Fur::TRay3<T>& ray, const TPrimitive<T>& target ) {
+Fur::optional<Fur::THit<T>> intersect( const Fur::TRay3<T>& ray, const TPrimitive<T>& target ) {
 	switch ( target.id ) {
 	case PrimitiveId::Plane:
 		return Fur::intersect( ray, target.plane );
@@ -86,4 +86,4 @@ typedef Fur::RPlane<real> Plane;
 typedef Fur::RTriangle<real> Triangle;
 typedef Fur::RSphere<real> Sphere;
 typedef TPrimitive<real> Primitive;
-typedef Fur::RHit<real> Hit;
+typedef Fur::THit<real> Hit;

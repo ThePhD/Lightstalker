@@ -9,7 +9,7 @@ private:
 
 public:
 
-	Camera ( Vec3 pos, Vec3 lookat ) : position( pos ), target( lookat ) {
+	Camera( Vec3 pos, Vec3 lookat ) : position( pos ), target( lookat ) {
 		direction = target - position;
 		forward = direction;
 		forward.normalize( );
@@ -27,6 +27,6 @@ public:
 			position + direction;
 		Vec3 raydir = image_point - position;
 		raydir.normalize( );
-		return Ray( position, raydir );
+		return Ray( image_point, raydir );
 	}
 };

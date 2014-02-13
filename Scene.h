@@ -78,8 +78,9 @@ public:
 	rgba Shade ( const Ray& ray, const Primitive& primitive, const Hit& hit ) {
 		rgba color{ };
 		Material& material = materials[ primitive.material ];
-		auto diffusedirectional = [ &] ( const Vec3& direction ) {
-			float brightness = angle( direction, hit.normal );
+		auto diffusedirectional = [ & ] ( const Vec3& direction ) {
+			real brightness = angle( direction, hit.normal );
+			brightness /= Fur::Mathema<real>::Pi;
 			color += material.diffuse * brightness;
 			//color += material.specular * brightness;
 		};
@@ -87,9 +88,9 @@ public:
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
 			color += ambientlights[ a ];
 		}
-		//for ( std::size_t p = 0; p < directionallights.size( ); ++p ) {
-		//	diffusedirectional( directionallights[ p ].direction );
-		//}
+		for ( std::size_t p = 0; p < directionallights.size( ); ++p ) {
+			diffusedirectional( directionallights[ p ].direction );
+		}
 		for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
 			Vec3 direction = pointlights[ p ].position - hit.contact;
 			// Same as directional, just distance is recalculated every time

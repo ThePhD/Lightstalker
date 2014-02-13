@@ -52,16 +52,15 @@ int main( ) {
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
 	Scene scene;
-	scene.Add( sphere_arg, 10.0f, Vec3( 0, 0, 0 ) );
-	scene.Add( plane_arg, 0.0f, Vec3( 0, 1, 0 ) );
+	scene.Add( sphere_arg, 5.0f, Vec3( 0, 0, 0 ) );
+	//scene.Add( plane_arg, 0.0f, Vec3( 0, 1, 0 ) );
 	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 1.0f );
 	scene.AddDirectionalLight( Vec3::Down );
-	Camera camera( Vec3( 0, 0, -15 ), Vec3( 0, 0, 0 ) );
+	Camera camera( Vec3( 0, 0, -20 ), Vec3(0, 0, -5) );
 
 	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
 	Window window( windowdriver, WindowDescription( "Lightstalker" ) );
-	bool displaywindow = true;
 	GraphicsDevice graphics( window );
 	MessageQueue messagequeue;
 	
@@ -70,6 +69,8 @@ int main( ) {
 
 	bool quit = false;
 	bool timerbreak = false;
+	bool displaywindow = true;
+	TimeSpan computationallimit = TimeSpan::FromMilliseconds( 500 );
 	
 	if ( displaywindow )
 		window.Show( );
@@ -113,7 +114,7 @@ int main( ) {
 		for ( ; y < 600 && !timerbreak; ) {
 			for ( ; x < 800 && !timerbreak; ++x ) {
 				tracer.Evaluate( x, y, scene, camera, output );
-				timerbreak = stopwatch.ElapsedMilliseconds( ) > 64 && displaywindow;
+				timerbreak = ( stopwatch.ElapsedTime() > computationallimit ) && displaywindow;
 			}
 			if ( x == 800 ) {
 				++y;
@@ -121,10 +122,7 @@ int main( ) {
 			}
 		}
 		
-		if ( !displaywindow )
-			continue;
-
-		if ( !graphics.Ready( ) ) {
+		if ( !displaywindow || !graphics.Ready( ) ) {
 			continue;
 		}
 
