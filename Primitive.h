@@ -4,7 +4,12 @@
 #include "Ray.h"
 #include <Furrovine++/unreachable.h>
 #include <Furrovine++/optional.h>
-#include <Furrovine++/THit.h>
+#include <Furrovine++/THit3.h>
+#include <Furrovine++/RSphere.h>
+#include <Furrovine++/RTriangle3.h>
+#include <Furrovine++/RDisk3.h>
+#include <Furrovine++/RPlane.h>
+#include <Furrovine++/intersect3.h>
 
 struct sphere_arg_t { };
 const auto sphere_arg = sphere_arg_t{ };
@@ -29,8 +34,8 @@ struct TPrimitive {
 	union {
 		Fur::RSphere<T> sphere;
 		Fur::RPlane<T> plane;
-		Fur::RTriangle<T> triangle;
-		Fur::RDisk<T> disk;
+		Fur::RTriangle3<T> triangle;
+		Fur::RDisk3<T> disk;
 	};
 
 	TPrimitive( const Fur::RSphere<T>& sphere ) : id( PrimitiveId::Sphere ), sphere( sphere ) {
@@ -41,11 +46,11 @@ struct TPrimitive {
 
 	}
 
-	TPrimitive( const Fur::RTriangle<T>& triangle ) : id( PrimitiveId::Triangle ), triangle( triangle ) {
+	TPrimitive( const Fur::RTriangle3<T>& triangle ) : id( PrimitiveId::Triangle ), triangle( triangle ) {
 
 	}
 
-	TPrimitive( const Fur::RDisk<T>& disk ) : id( PrimitiveId::Disk ), disk( disk ) {
+	TPrimitive( const Fur::RDisk3<T>& disk ) : id( PrimitiveId::Disk ), disk( disk ) {
 
 	}
 
@@ -68,7 +73,7 @@ struct TPrimitive {
 };
 
 template <typename T>
-Fur::optional<Fur::THit<T>> intersect( const Fur::TRay3<T>& ray, const TPrimitive<T>& target ) {
+Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimitive<T>& target ) {
 	switch ( target.id ) {
 	case PrimitiveId::Plane:
 		return Fur::intersect( ray, target.plane );
@@ -83,7 +88,8 @@ Fur::optional<Fur::THit<T>> intersect( const Fur::TRay3<T>& ray, const TPrimitiv
 }
 
 typedef Fur::RPlane<real> Plane;
-typedef Fur::RTriangle<real> Triangle;
+typedef Fur::RTriangle3<real> Triangle;
 typedef Fur::RSphere<real> Sphere;
+typedef Fur::RDisk3<real> Disk;
 typedef TPrimitive<real> Primitive;
-typedef Fur::THit<real> Hit;
+typedef Fur::THit3<real> Hit;

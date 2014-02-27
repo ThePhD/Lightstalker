@@ -70,8 +70,6 @@ public:
 				t0 = hit->distance0;
 			}
 		}
-		if ( closesthit )
-			normalize( closesthit->second.normal );
 		return closesthit;
 	}
 
@@ -86,7 +84,7 @@ public:
 		};
 
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
-			color += ambientlights[ a ];
+			color += ambientlights[ a ] * material.diffuse;
 		}
 		for ( std::size_t p = 0; p < directionallights.size( ); ++p ) {
 			diffusedirectional( directionallights[ p ].direction );

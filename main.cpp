@@ -9,7 +9,6 @@
 #include <Furrovine++/WindowDriver.h>
 #include <Furrovine++/Graphics/GraphicsDevice.h>
 #include <Furrovine++/Graphics/Image2D.h>
-#include <Furrovine++/buffer2d_view.h>
 #include <Furrovine++/Stopwatch.h>
 #include <Furrovine++/Colors.h>
 #include <iostream>
@@ -52,11 +51,11 @@ int main( ) {
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
 	Scene scene;
-	scene.Add( sphere_arg, 5.0f, Vec3( 0, 0, 0 ) );
-	//scene.Add( plane_arg, 0.0f, Vec3( 0, 1, 0 ) );
+	scene.Add( sphere_arg, 50.0f, Vec3::Zero );
+	scene.Add( plane_arg, 40.0f, Vec3::Up );
 	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 1.0f );
 	scene.AddDirectionalLight( Vec3::Down );
-	Camera camera( Vec3( 0, 0, -20 ), Vec3(0, 0, -5) );
+	Camera camera( Vec3( 0, 60, -300 ), Vec3::Zero, 500.0f );
 
 	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
