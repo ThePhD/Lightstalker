@@ -59,7 +59,7 @@ int main( ) {
 
 	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
-	Window window( windowdriver, WindowDescription( "Lightstalker" ) );
+	Window window( windowdriver, WindowDescription( "Lightstalker", Size2ui( 800, 600 ) ) );
 	GraphicsDevice graphics( window );
 	MessageQueue messagequeue;
 	

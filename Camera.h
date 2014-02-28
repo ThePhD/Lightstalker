@@ -14,16 +14,15 @@ public:
 	Camera( Vec3 pos, Vec3 lookat, float nearplane = 1.0f, Vec3 referenceup = Vec3::Up ) 
 	: position( pos ), target( lookat ), referenceup( referenceup ), nearplane( nearplane ) {
 		direction = position.unnormalized_direction_to( target );
-		forward = direction;
-		forward.normalize( );
+		forward = normalize( direction );
 		bool forwardisup = forward == referenceup || -forward == referenceup;
 		right = normalize( cross( referenceup, forward ) );
 		up = normalize( cross( forward, right ) );
 	}
 
 	Ray Compute( real x, real y, real width, real height ) const {
-		x -= width / 2;
-		y -= height / 2;
+		x = ( width / 2 ) - x;
+		y = ( height / 2 ) - y;
 		Vec3 dir = x * right + y * up + nearplane * forward;
 		dir.normalize( );
 
