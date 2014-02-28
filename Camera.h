@@ -2,8 +2,6 @@
 
 #include "real.h"
 #include "Ray.h"
-#include <Furrovine++/Graphics/Camera3D.h>
-#include <Furrovine++/Viewport.h>
 
 class Camera {
 private:
@@ -13,8 +11,9 @@ private:
 
 public:
 
-	Camera( Vec3 pos, Vec3 lookat, float nearplane = 1.0f, Vec3 referenceup = Vec3::Up ) : position( pos ), target( lookat ), referenceup( referenceup ), nearplane( nearplane ) {
-		direction = target - position;
+	Camera( Vec3 pos, Vec3 lookat, float nearplane = 1.0f, Vec3 referenceup = Vec3::Up ) 
+	: position( pos ), target( lookat ), referenceup( referenceup ), nearplane( nearplane ) {
+		direction = position.unnormalized_direction_to( target );
 		forward = direction;
 		forward.normalize( );
 		bool forwardisup = forward == referenceup || -forward == referenceup;

@@ -51,11 +51,11 @@ int main( ) {
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
 	Scene scene;
-	scene.Add( sphere_arg, 50.0f, Vec3::Zero );
-	scene.Add( plane_arg, 40.0f, Vec3::Up );
+	scene.Add( { Colors::Red, Colors::White, Colors::Transparent, Colors::Transparent }, sphere_arg, 50.0f, Vec3( 0, 50, 0 ) );
+	scene.Add( { Colors::Green, Colors::White, Colors::Transparent, Colors::Transparent }, plane_arg, -1.0f, Vec3::Up );
 	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 1.0f );
 	scene.AddDirectionalLight( Vec3::Down );
-	Camera camera( Vec3( 0, 60, -300 ), Vec3::Zero, 500.0f );
+	Camera camera( Vec3( 0, 0, -300 ), Vec3::Zero, 500.0f );
 
 	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
@@ -125,7 +125,7 @@ int main( ) {
 			continue;
 		}
 
-		graphics.Clear( Colors::Black );
+		graphics.Clear( Colors::PastelGrey );
 		graphics.RenderImage( image );
 		graphics.Present( );
 	}

@@ -18,23 +18,17 @@ public:
 
 	Scene( ) {
 		primitives.reserve( 9182 );
-		materials.reserve( 1024 );
+		materials.reserve( 9182 );
 		ambientlights.reserve( 2 );
 		pointlights.reserve( 8 );
 		directionallights.reserve( 8 );
-		Material basicmat;
-		materials.push_back( basicmat );
 	}
 
 	template <typename... Tn>
-	void Add( Tn&&... argn ) {
+	void Add( Material material, Tn&&... argn ) {
 		primitives.emplace_back( std::forward<Tn>( argn )... );
+		materials.push_back( material );
 		primitives.back( ).material = materials.size( ) - 1;
-	}
-
-	template <typename... Tn>
-	void AddMaterial( Tn&&... argn ) {
-		materials.emplace_back( std::forward<Tn>( argn )... );
 	}
 
 	template <typename... Tn>
