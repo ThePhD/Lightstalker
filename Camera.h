@@ -21,11 +21,12 @@ public:
 	}
 
 	Ray Compute( real x, real y, real width, real height ) const {
-		x = ( width / 2 ) - x;
-		y = ( height / 2 ) - y;
+		real halfwidth = ( width / 2 );
+		real halfheight = ( height / 2 );
+		x = halfwidth - x;
+		y = halfheight - y;
 		Vec3 dir = x * right + y * up + nearplane * forward;
 		dir.normalize( );
-
 		return Ray( position, dir );
 	}
 
