@@ -5,6 +5,7 @@
 #include "Sample.h"
 #include "Camera.h"
 #include "ImageOutput.h"
+#include <Furrovine++/Sampling.h>
 #include <Furrovine++/Graphics/Window.h>
 #include <Furrovine++/WindowDriver.h>
 #include <Furrovine++/Graphics/GraphicsDevice.h>
@@ -18,7 +19,7 @@ private:
 	real realwidth;
 	real realheight;
 	real realarea;
-
+	
 public:
 	Tracer( real w, real h ) 
 	: realwidth( w ), realheight( h ), realarea( w * h ) {
@@ -51,26 +52,32 @@ int main( ) {
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
 	Scene scene;
-	scene.Add( { Colors::Red, Colors::White, Colors::Transparent, Colors::Transparent }, sphere_arg, 50.0f, Vec3( 0, 50, 0 ) );
-	scene.Add( { Colors::Green, Colors::White, Colors::Transparent, Colors::Transparent }, plane_arg, -1.0f, Vec3::Up );
+	scene.Add( Material{ Colors::Red, Colors::White, 32, Colors::Transparent, rgba( 0.5f, 0.5f, 0.5f, 1.0f ) },
+		sphere_arg, 50.0f, Vec3( 0, 60, 0 ) );
+	scene.Add( Material{ Colors::BlueBell, Colors::Transparent, 0, Colors::Transparent, Colors::Transparent }, 
+		plane_arg, -1.0f, Vec3::Up );
 	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 1.0f );
-	scene.AddDirectionalLight( Vec3::Down );
-	Camera camera( Vec3( 0, 0, -300 ), Vec3::Zero, 500.0f );
+	scene.AddDirectionalLight( normalize( Vec3( 0, -1, 0 ) ) );
+	Camera camera( Vec3( 0, 30, -300 ), Vec3( 0, 0, 0), 500.0f );
 
 	Stopwatch stopwatch;                
 	WindowDriver windowdriver;
 	Window window( windowdriver, WindowDescription( "Lightstalker", Size2ui( 800, 600 ) ) );
 	GraphicsDevice graphics( window );
 	MessageQueue messagequeue;
-	
+
 	real x = 0;
 	real y = 0;
+	real width = 800;
+	real height = 600;
 
 	bool quit = false;
 	bool timerbreak = false;
 	bool displaywindow = true;
 	TimeSpan computationallimit = TimeSpan::FromMilliseconds( 500 );
 	
+	std::vector<Vec2> multisamples = Sampling::grid<real>( 2, 2 );
+
 	if ( displaywindow )
 		window.Show( );
 
@@ -110,9 +117,26 @@ int main( ) {
 
 		stopwatch.Start( );
 		timerbreak = false;
+		std::vector<rgba> samples( 4 );
 		for ( ; y < 600 && !timerbreak; ) {
 			for ( ; x < 800 && !timerbreak; ++x ) {
-				tracer.Evaluate( x, y, scene, camera, output );
+				samples.clear();
+				rgba pixel{ };
+				Ray ray = camera.Compute( x, y, width, height );
+				Fur::optional<std::pair<Primitive&, Hit>> intersection = scene.Intersect( ray );
+				if ( !intersection )
+					continue;
+				const Primitive& primitive = intersection->first;
+				const Hit& hit = intersection->second;
+				samples.push_back( scene.Shade( ray, primitive, hit ) );
+				
+				for ( std::size_t s = 0; s < samples.size( ); ++s ) {
+					pixel += samples[ s ];
+				}
+				
+				pixel /= static_cast<real>( samples.size( ) );
+				output.Set( x, y, pixel );
+				
 				timerbreak = ( stopwatch.ElapsedTime() > computationallimit ) && displaywindow;
 			}
 			if ( x == 800 ) {

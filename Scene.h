@@ -3,6 +3,7 @@
 #include "Material.h"
 #include "Light.h"
 #include <Furrovine++/optional.h>
+#include <Furrovine++/reference_equals.h>
 #include <vector>
 
 class Scene {
@@ -51,11 +52,13 @@ public:
 		//spotlights.emplace_back( std::forward<Tn>( argn )... );
 	}
 
-	Fur::optional<std::pair<Primitive&, Hit>> Intersect( const Ray& ray ) {
+	Fur::optional<std::pair<Primitive&, Hit>> Intersect( const Ray& ray, Fur::optional<const Primitive&> ignore = nullopt ) {
 		Fur::optional<std::pair<Primitive&, Hit>> closesthit = nullopt;
 		real t0 = std::numeric_limits<real>::max( );
 		for ( std::size_t p = 0; p < primitives.size( ); ++p ) {
 			Primitive& prim = primitives[ p ];
+			if ( ignore && Fur::reference_equals( ignore.value( ), prim ) )
+				continue;
 			auto hit = intersect( ray, prim );
 			if ( !hit )
 				continue;
@@ -68,31 +71,62 @@ public:
 	}
 
 	rgba Shade ( const Ray& ray, const Primitive& primitive, const Hit& hit ) {
+		using namespace Fur::Colors;
 		rgba color{ };
 		Material& material = materials[ primitive.material ];
-		auto diffusedirectional = [ & ] ( const Vec3& direction ) {
-			real anglepi = angle( direction, hit.normal );
-			real brightness = anglepi / Fur::pi<real>();
-			color += material.diffuse * brightness;
+		Vec3 viewerray = -ray.direction;
+		auto shadowdirectional = [ &] ( const Vec3& directiontolight ) -> bool {
+			Vec3 surfacecontact = hit.contact;
+			Ray shadowray( surfacecontact, directiontolight );
+			auto shadowhit = Intersect( shadowray, primitive );
+			if ( !shadowhit )
+				return false;
+			
+			Primitive& shadowprimitive = shadowhit->first;
+			Material& shadowmaterial = materials[ shadowprimitive.material ];
+			if ( length_squared( shadowmaterial.transmission ) == static_cast<real>( 0 ) ) {
+				// No transmission: full black
+				color = Black;
+				return true;
+			}
+			
+			rgba shadowinfluence = lerp_components( rgba( Black ),
+				shadowmaterial.diffuse,
+				shadowmaterial.transmission );
+			color += shadowinfluence;
+			return false;
 		};
-		auto speculardirectional = [ & ] ( const Vec3& direction ) {
-			real anglepi = angle( direction, hit.normal );
-			real brightness = anglepi / Fur::pi<real>();
-			color += material.diffuse * brightness;
+		auto diffusedirectional = [ &] ( const Vec3& directiontolight ) {
+	
+			real brightness = dot( hit.normal, directiontolight );
+			real clampedbrightness = Fur::clamp( brightness, static_cast<real>( 0 ), static_cast<real>( 1 ) );
+			color += material.diffuse * clampedbrightness;
+		};
+		auto speculardirectional = [ & ] ( const Vec3& directiontolight ) {
+			Vec3 halfway = ( 2 * dot( hit.normal, directiontolight ) * hit.normal ) - directiontolight;
+			real normaldothalfway = dot( viewerray, halfway );
+			if ( normaldothalfway < 0 )
+				return;
+			real brightness = std::pow( normaldothalfway, material.specularpower );
+			real clampedbrightness = Fur::clamp( brightness, static_cast<real>( 0 ), static_cast<real>( 1 ) );
+			color += material.specular * clampedbrightness;
 		};
 
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
 			color += ambientlights[ a ];
 		}
 		for ( std::size_t d = 0; d < directionallights.size( ); ++d ) {
-			Vec3 direction = directionallights[ d ].direction;
+			Vec3 direction = -directionallights[ d ].direction;
+			if ( shadowdirectional( direction ) )
+				continue;
 			diffusedirectional( direction );
 			speculardirectional( direction );
 		}
 		for ( std::size_t d = 0; d < pointlights.size( ); ++d ) {
-			Vec3 direction = pointlights[ d ].position - hit.contact;
+			Vec3 direction = hit.contact.direction_to( pointlights[ d ].position );
 			// Same as directional, just distance is recalculated every time
 			diffusedirectional( direction );
+			speculardirectional( direction );
 		}
 		return color;
 	}
