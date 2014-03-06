@@ -52,8 +52,11 @@ public:
 		//spotlights.emplace_back( std::forward<Tn>( argn )... );
 	}
 
-	Fur::optional<std::pair<Primitive&, Hit>> Intersect( const Ray& ray, Fur::optional<const Primitive&> ignore = nullopt ) {
-		Fur::optional<std::pair<Primitive&, Hit>> closesthit = nullopt;
+	template <typename TRange>
+	Fur::optional<std::pair<Primitive&, Hit>> Intersect( const Ray& ray, TRange&& hits, Fur::optional<const Primitive&> ignore = Fur::nullopt ) {
+		Fur::optional<std::pair<Primitive&, Hit>> closesthit = Fur::nullopt;
+		hits.clear( );
+
 		real t0 = std::numeric_limits<real>::max( );
 		for ( std::size_t p = 0; p < primitives.size( ); ++p ) {
 			Primitive& prim = primitives[ p ];
@@ -62,15 +65,18 @@ public:
 			auto hit = intersect( ray, prim );
 			if ( !hit )
 				continue;
+			hits.emplace_back( prim, hit.value( ) );
 			if ( hit->distance0 < t0 ) {
 				closesthit = std::pair<Primitive&, Hit>( prim, hit.value( ) );
 				t0 = hit->distance0;
 			}
 		}
+		
 		return closesthit;
 	}
 
-	rgba Shade ( const Ray& ray, const Primitive& primitive, const Hit& hit ) {
+	template <typename TRange>
+	rgba Shade ( const Ray& ray, const Primitive& primitive, const Hit& hit, TRange&& hits ) {
 		using namespace Fur::Colors;
 		rgba color{ };
 		Material& material = materials[ primitive.material ];
@@ -78,7 +84,7 @@ public:
 		auto shadowdirectional = [ &] ( const Vec3& directiontolight ) -> bool {
 			Vec3 surfacecontact = hit.contact;
 			Ray shadowray( surfacecontact, directiontolight );
-			auto shadowhit = Intersect( shadowray, primitive );
+			auto shadowhit = Intersect( shadowray, hits, primitive );
 			if ( !shadowhit )
 				return false;
 			
@@ -125,6 +131,8 @@ public:
 		for ( std::size_t d = 0; d < pointlights.size( ); ++d ) {
 			Vec3 direction = hit.contact.direction_to( pointlights[ d ].position );
 			// Same as directional, just distance is recalculated every time
+			if ( shadowdirectional( direction ) )
+				continue;
 			diffusedirectional( direction );
 			speculardirectional( direction );
 		}

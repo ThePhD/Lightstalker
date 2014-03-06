@@ -14,40 +14,11 @@
 #include <Furrovine++/Colors.h>
 #include <iostream>
 
-class Tracer {
-private:
-	real realwidth;
-	real realheight;
-	real realarea;
-	
-public:
-	Tracer( real w, real h ) 
-	: realwidth( w ), realheight( h ), realarea( w * h ) {
-		
-	}
-
-	Ray Generate( real x, real y, const Camera& camera ) {
-		return camera.Compute( x, y, realwidth, realheight );
-	}
-
-	void Evaluate( real x, real y, Scene& scene, const Camera& camera, Output& output, std::size_t depth = 0 ) {
-		Ray ray = Generate( x, y, camera );
-		Fur::optional<std::pair<Primitive&, Hit>> intersection = scene.Intersect( ray );
-		if ( !intersection )
-			return;
-		const Primitive& primitive = intersection->first;
-		const Hit& hit = intersection->second;
-		rgba pixel = scene.Shade( ray, primitive, hit );
-		output.Set( x, y, pixel );
-	}
-};
-
 int main( ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Input;
 
-	Tracer tracer( 800, 600 );
 	Image2D image( 800, 600, SurfaceFormat::Red8Green8Blue8Alpha8Normalized );
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
@@ -77,6 +48,8 @@ int main( ) {
 	TimeSpan computationallimit = TimeSpan::FromMilliseconds( 500 );
 	
 	std::vector<Vec2> multisamples = Sampling::grid<real>( 2, 2 );
+	std::vector<std::pair<Primitive&, Hit>> hits;
+	hits.reserve( 1024 );
 
 	if ( displaywindow )
 		window.Show( );
@@ -123,12 +96,12 @@ int main( ) {
 				samples.clear();
 				rgba pixel{ };
 				Ray ray = camera.Compute( x, y, width, height );
-				Fur::optional<std::pair<Primitive&, Hit>> intersection = scene.Intersect( ray );
+				Fur::optional<std::pair<Primitive&, Hit>> intersection = scene.Intersect( ray, hits );
 				if ( !intersection )
 					continue;
 				const Primitive& primitive = intersection->first;
 				const Hit& hit = intersection->second;
-				samples.push_back( scene.Shade( ray, primitive, hit ) );
+				samples.push_back( scene.Shade( ray, primitive, hit, hits ) );
 				
 				for ( std::size_t s = 0; s < samples.size( ); ++s ) {
 					pixel += samples[ s ];
