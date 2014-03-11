@@ -1,10 +1,10 @@
 #pragma once
 
 #include "real.h"
-#include "rgba.h"
+#include "RealRgba.h"
 
 struct Output {
-	virtual void Set( real x, real y, const rgba& pixel ) { }
+	virtual void Set( real x, real y, const RealRgba& pixel ) { }
 	virtual ~Output () { };
 };
 

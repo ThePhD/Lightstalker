@@ -50,7 +50,13 @@
     <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rgba.h">
+    <ClInclude Include="RayShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RealRgba.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

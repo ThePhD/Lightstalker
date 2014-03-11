@@ -24,12 +24,12 @@ public:
 		saver( *image, outputname );
 	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
-	virtual void Set( real x, real y, const rgba& pixel ) override {
+	virtual void Set( real x, real y, const RealRgba& pixel ) override {
 		std::size_t ix = static_cast<std::size_t>( x );
 		std::size_t iy = static_cast<std::size_t>( y );
 		
 		Fur::ByteColor& datapixel = imagepixels( ix, iy );
-		rgba clampedpixel = Fur::clamp( pixel );
+		RealRgba clampedpixel = Fur::clamp( pixel );
 		datapixel = clampedpixel;
 	}
 

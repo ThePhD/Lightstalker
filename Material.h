@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rgba.h"
+#include "RealRgba.h"
 #include <Furrovine++/Colors.h>
 
 template <typename T>

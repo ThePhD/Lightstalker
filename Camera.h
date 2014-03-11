@@ -23,7 +23,7 @@ public:
 	Ray Compute( real x, real y, real width, real height ) const {
 		real halfwidth = ( width / 2 );
 		real halfheight = ( height / 2 );
-		x = halfwidth - x;
+		x -= halfwidth;
 		y = halfheight - y;
 		Vec3 dir = x * right + y * up + nearplane * forward;
 		dir.normalize( );

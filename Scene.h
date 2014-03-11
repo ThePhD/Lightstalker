@@ -1,7 +1,9 @@
 #include "Primitive.h"
-#include "rgba.h"
+#include "RealRgba.h"
 #include "Material.h"
 #include "Light.h"
+#include "Trace.h"
+#include "RayShader.h"
 #include <Furrovine++/optional.h>
 #include <Furrovine++/reference_equals.h>
 #include <vector>
@@ -52,10 +54,21 @@ public:
 		//spotlights.emplace_back( std::forward<Tn>( argn )... );
 	}
 
-	template <typename TRange>
-	Fur::optional<std::pair<Primitive&, Hit>> Intersect( const Ray& ray, TRange&& hits, Fur::optional<const Primitive&> ignore = Fur::nullopt ) {
-		Fur::optional<std::pair<Primitive&, Hit>> closesthit = Fur::nullopt;
-		hits.clear( );
+	Primitive& PrimitiveAt( std::size_t idx ) {
+		return primitives[ idx ];
+	}
+
+	Material& MaterialOf( Primitive& primitive ) {
+		return MaterialAt( primitive.material );
+	}
+
+	Material& MaterialAt( std::size_t idx ) {
+		return materials[ idx ];
+	}
+
+	void Intersect( const Ray& ray, Trace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) {
+		trace.closesthit = Fur::nullopt;
+		trace.hits.clear( );
 
 		real t0 = std::numeric_limits<real>::max( );
 		for ( std::size_t p = 0; p < primitives.size( ); ++p ) {
@@ -65,77 +78,61 @@ public:
 			auto hit = intersect( ray, prim );
 			if ( !hit )
 				continue;
-			hits.emplace_back( prim, hit.value( ) );
+			trace.hits.emplace_back( PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) } );
 			if ( hit->distance0 < t0 ) {
-				closesthit = std::pair<Primitive&, Hit>( prim, hit.value( ) );
+				trace.closesthit = PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) };
 				t0 = hit->distance0;
 			}
 		}
-		
-		return closesthit;
 	}
 
-	template <typename TRange>
-	rgba Shade ( const Ray& ray, const Primitive& primitive, const Hit& hit, TRange&& hits ) {
+	RealRgba Lighting( const Ray& ray, RayShader& rayshader, Trace& trace, Trace& shadowtrace ) {
 		using namespace Fur::Colors;
-		rgba color{ };
-		Material& material = materials[ primitive.material ];
-		Vec3 viewerray = -ray.direction;
-		auto shadowdirectional = [ &] ( const Vec3& directiontolight ) -> bool {
-			Vec3 surfacecontact = hit.contact;
-			Ray shadowray( surfacecontact, directiontolight );
-			auto shadowhit = Intersect( shadowray, hits, primitive );
-			if ( !shadowhit )
-				return false;
-			
-			Primitive& shadowprimitive = shadowhit->first;
-			Material& shadowmaterial = materials[ shadowprimitive.material ];
-			if ( length_squared( shadowmaterial.transmission ) == static_cast<real>( 0 ) ) {
-				// No transmission: full black
-				color = Black;
-				return true;
-			}
-			
-			rgba shadowinfluence = lerp_components( rgba( Black ),
-				shadowmaterial.diffuse,
-				shadowmaterial.transmission );
-			color += shadowinfluence;
-			return false;
-		};
-		auto diffusedirectional = [ &] ( const Vec3& directiontolight ) {
-	
-			real brightness = dot( hit.normal, directiontolight );
-			real clampedbrightness = Fur::clamp( brightness, static_cast<real>( 0 ), static_cast<real>( 1 ) );
-			color += material.diffuse * clampedbrightness;
-		};
-		auto speculardirectional = [ & ] ( const Vec3& directiontolight ) {
-			Vec3 halfway = ( 2 * dot( hit.normal, directiontolight ) * hit.normal ) - directiontolight;
-			real normaldothalfway = dot( viewerray, halfway );
-			if ( normaldothalfway < 0 )
-				return;
-			real brightness = std::pow( normaldothalfway, material.specularpower );
-			real clampedbrightness = Fur::clamp( brightness, static_cast<real>( 0 ), static_cast<real>( 1 ) );
-			color += material.specular * clampedbrightness;
-		};
+
+		if ( !trace.closesthit )
+			return RealRgba{ };
+		/*Ray shadowray( surfacecontact, directiontolight );
+		Intersect( shadowray, shadowtrace, primitive );
+		if ( !shadowtrace.closesthit )
+		return false;
+
+		Primitive& shadowprimitive = shadowtrace.closesthit->first;
+		Material& shadowmaterial = materials[ shadowprimitive.material ];
+		if ( length_squared( shadowmaterial.transmission ) == static_cast<real>( 0 ) ) {
+		// No transmission: full black
+		color = Black;
+		}
+
+		RealRgba shadowinfluence = lerp_components( RealRgba( Black ),
+		shadowmaterial.diffuse,
+		shadowmaterial.transmission );
+		color += shadowinfluence;
+
+		*/
+		Primitive& primitive = trace.closesthit->first;
+		Material& material = trace.closesthit->second;
+		Hit& hit = trace.closesthit->third;
+		const Vec3& surfacecontact = hit.contact;
+		
+		RealRgba color{ };
+		RealRgba shadowcolor{ };
+		RealRgba shadowpower{ };
+		RealRgba ambient{ };
+		RealRgba directional{ };
+		RealRgba point{ }; 
 
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
-			color += ambientlights[ a ];
+			ambient += rayshader( ray, trace, ambientlights[ a ] );
 		}
 		for ( std::size_t d = 0; d < directionallights.size( ); ++d ) {
-			Vec3 direction = -directionallights[ d ].direction;
-			if ( shadowdirectional( direction ) )
-				continue;
-			diffusedirectional( direction );
-			speculardirectional( direction );
+			directional += rayshader( ray, trace, directionallights[ d ] );
 		}
-		for ( std::size_t d = 0; d < pointlights.size( ); ++d ) {
-			Vec3 direction = hit.contact.direction_to( pointlights[ d ].position );
-			// Same as directional, just distance is recalculated every time
-			if ( shadowdirectional( direction ) )
-				continue;
-			diffusedirectional( direction );
-			speculardirectional( direction );
+		for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
+			point += rayshader( ray, trace, pointlights[ p ] );
 		}
+
+		color = ambient + point + directional;
 		return color;
 	}
+
 };

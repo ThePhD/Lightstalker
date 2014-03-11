@@ -2,6 +2,7 @@
 
 #include "real.h"
 #include "Ray.h"
+#include "Material.h"
 #include <Furrovine++/unreachable.h>
 #include <Furrovine++/optional.h>
 #include <Furrovine++/THit3.h>
@@ -10,6 +11,7 @@
 #include <Furrovine++/RDisk3.h>
 #include <Furrovine++/RPlane.h>
 #include <Furrovine++/intersect3.h>
+#include <Furrovine++/triple.h>
 
 struct sphere_arg_t { };
 const auto sphere_arg = sphere_arg_t{ };
@@ -91,5 +93,7 @@ typedef Fur::RPlane<real> Plane;
 typedef Fur::RTriangle3<real> Triangle;
 typedef Fur::RSphere<real> Sphere;
 typedef Fur::RDisk3<real> Disk;
-typedef TPrimitive<real> Primitive;
 typedef Fur::THit3<real> Hit;
+typedef TPrimitive<real> Primitive;
+
+typedef Fur::triple<Primitive&, Material&, Hit> PrimitiveHit;
