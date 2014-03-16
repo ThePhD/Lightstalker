@@ -86,53 +86,67 @@ public:
 		}
 	}
 
+	std::pair<RealRgba, RealRgba> Shading( const Ray& ray, RayShader& rayshader, Trace& trace ) {
+		/*Intersect( shadowray, shadowtrace, primitive );
+		if ( !shadowtrace.closesthit )
+			return false;
+
+		Primitive& shadowprimitive = shadowtrace.closesthit->first;
+		Material& shadowmaterial = materials[ shadowprimitive.material ];
+		if ( length_squared( shadowmaterial.transmission ) == static_cast<real>( 0 ) ) {
+			// No transmission: full black
+			color = Black;
+		}
+
+		RealRgba shadowinfluence = lerp_components( RealRgba( Black ),
+			shadowmaterial.diffuse,
+			shadowmaterial.transmission );
+		color += shadowinfluence;*/
+		return{ };
+	}
+
 	RealRgba Lighting( const Ray& ray, RayShader& rayshader, Trace& trace, Trace& shadowtrace ) {
 		using namespace Fur::Colors;
 
 		if ( !trace.closesthit )
 			return RealRgba{ };
-		/*Ray shadowray( surfacecontact, directiontolight );
-		Intersect( shadowray, shadowtrace, primitive );
-		if ( !shadowtrace.closesthit )
-		return false;
-
-		Primitive& shadowprimitive = shadowtrace.closesthit->first;
-		Material& shadowmaterial = materials[ shadowprimitive.material ];
-		if ( length_squared( shadowmaterial.transmission ) == static_cast<real>( 0 ) ) {
-		// No transmission: full black
-		color = Black;
-		}
-
-		RealRgba shadowinfluence = lerp_components( RealRgba( Black ),
-		shadowmaterial.diffuse,
-		shadowmaterial.transmission );
-		color += shadowinfluence;
-
-		*/
-		Primitive& primitive = trace.closesthit->first;
-		Material& material = trace.closesthit->second;
-		Hit& hit = trace.closesthit->third;
-		const Vec3& surfacecontact = hit.contact;
 		
 		RealRgba color{ };
 		RealRgba shadowcolor{ };
 		RealRgba shadowpower{ };
 		RealRgba ambient{ };
 		RealRgba directional{ };
-		RealRgba point{ }; 
+		RealRgba point{ };
 
+		Primitive& primitive = trace.closesthit->first;
+		Material& material = trace.closesthit->second;
+		Hit& hit = trace.closesthit->third;
+		const Vec3& surfacecontact = hit.contact;
+		
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
 			ambient += rayshader( ray, trace, ambientlights[ a ] );
 		}
 		for ( std::size_t d = 0; d < directionallights.size( ); ++d ) {
+			Ray shadowray( surfacecontact, -directionallights[ d ].direction );
+			Intersect( shadowray, shadowtrace, primitive );
+			if ( shadowtrace.closesthit ) {
+				continue;
+			}
 			directional += rayshader( ray, trace, directionallights[ d ] );
 		}
 		for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
+			Vec3 dir = surfacecontact.direction_to( pointlights[ p ].position );
+			Ray shadowray( surfacecontact, dir );
+			Intersect( shadowray, shadowtrace, primitive );
+			if ( shadowtrace.closesthit ) {
+				continue;
+			}
 			point += rayshader( ray, trace, pointlights[ p ] );
 		}
 
 		color = ambient + point + directional;
-		return color;
+		
+		return color.lerp( shadowcolor, shadowpower );
 	}
 
 };

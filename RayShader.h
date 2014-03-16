@@ -5,21 +5,7 @@
 #include "Trace.h"
 #include <vector>
 
-class RayShader {
-private:
-	
-	RealRgba Shadow( const Vec3& directiontolight ) {
-
-	}
-
-	RealRgba Diffuse( const Vec3& directiontolight ) {
-
-	}
-
-	RealRgba Specular( const Vec3& directiontolight ) {
-
-	}
-
+struct RayShader {
 public:
 
 	RealRgba operator()( const Ray& ray, Trace& trace, const PointLight& pointlight ) {

@@ -31,7 +31,7 @@ int main( ) {
 		plane_arg, -1.0f, Vec3::Up );
 	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 1.0f );
 	scene.AddDirectionalLight( normalize( Vec3( 0, -1, 0 ) ) );
-	scene.AddDirectionalLight( normalize( Vec3( -1, 0, 0 ) ) );
+	scene.AddDirectionalLight( normalize( Vec3( -1, -1, 0 ) ) );
 	Camera camera( Vec3( 0, 30, -300 ), Vec3( 0, 0, 0 ), 500.0f );
 
 	Fur::Stopwatch stopwatch;
@@ -51,10 +51,10 @@ int main( ) {
 	Fur::TimeSpan computationallimit = Fur::TimeSpan::FromMilliseconds( 500 );
 	RayShader shader;
 	Trace trace, shadowtrace;
+	trace.hits.reserve( 1024 );
+	shadowtrace.hits.reserve( 1024 );
 	std::vector<Vec2> multisamples = Fur::Sampling::grid<real>( 2, 2 );
-	std::vector<std::pair<Primitive&, Hit>> hits;
-	hits.reserve( 1024 );
-
+	
 	if ( displaywindow )
 		window.Show( );
 
