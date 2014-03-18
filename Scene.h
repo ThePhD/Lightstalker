@@ -76,8 +76,9 @@ public:
 		return materials[ idx ];
 	}
 
-	void Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
-		trace.closesthit = Fur::nullopt;
+	Fur::optional<PrimitiveHit> Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
+		Fur::optional<PrimitiveHit> closesthit;
+		closesthit = Fur::nullopt;
 		trace.hits.clear( );
 		trace.orderedhits.clear( );
 
@@ -91,14 +92,14 @@ public:
 				continue;
 			trace.hits.emplace_back( PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) } );
 			if ( hit->distance0 < t0 ) {
-				trace.closesthit = trace.hits.back();
+				closesthit = trace.hits.back();
 				t0 = hit->distance0;
 			}
 		}
 
 		trace.hits.emplace_back( PrimitiveHit{ vacuum, vacuummaterial, vacuumhit } );
 		if ( trace.hits.size( ) == 1 )
-			trace.closesthit = trace.hits.back( );
+			closesthit = trace.hits.back( );
 
 		for ( std::size_t h = 0; h < trace.hits.size( ); ++h ) {
 			trace.orderedhits.emplace_back( std::addressof( trace.hits[ h ] ) );
@@ -107,20 +108,23 @@ public:
 		[ ] ( PrimitiveHit* left, PrimitiveHit* right ) {
 			return left->third.distance0 < right->third.distance0;
 		} );
+
+		return closesthit;
 	}
 
 	RealRgba Shading( const Ray& shadowray, const Primitive& primitive, RayShader& rayshader, RayTrace& shadowtrace ) const {
 		const static RealRgba transparent = RealRgba( Fur::Colors::Transparent );
 		RealRgba shadow{ static_cast<real>( 1 ), static_cast<real>( 1 ), static_cast<real>( 1 ), static_cast<real>( 1 ) };
-		Intersect( shadowray, shadowtrace, primitive );
-		if ( !shadowtrace.closesthit || shadowtrace.closesthit->first.id == PrimitiveId::Vacuum )
+		auto shadwophit = Intersect( shadowray, shadowtrace, primitive );
+		if ( !shadwophit || shadwophit->first.id == PrimitiveId::Vacuum )
 			return shadow;
 		for ( std::size_t s = 0; s < shadowtrace.orderedhits.size( ); ++s ) {
 			PrimitiveHit& shadowphit = *shadowtrace.orderedhits[ s ];
 			const Primitive& shadowprimitive = shadowphit.first;
 			const Material& shadowmaterial = shadowphit.second;
 			Hit& shadowhit = shadowphit.third;
-			if ( shadowmaterial.transparency.length_squared( ) == static_cast<real>( 0 ) ) {
+			RealRgba shadowopacity = static_cast<real>( 1 ) - shadowmaterial.transparency;
+			if ( shadowopacity.length_squared( ) == static_cast<real>( 0 ) ) {
 				shadow = { 0, 0, 0, 0 };
 				break;
 			}

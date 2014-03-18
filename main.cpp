@@ -28,15 +28,17 @@ int main( ) {
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
 	Scene scene( WhiteSmoke );
-	scene.Add( Material{ Red, White, 32, White },
+	scene.Add( Material{ Red, White, 32, RealRgba( White ), RealRgba( White ) },
 		sphere_arg, 50.0f, Vec3( 0, 60, 0 ) );
-	scene.Add( Material{ DarkGreen, White, 32, White },
-		sphere_arg, 30.0f, Vec3( 90, 40, -10 ) );
 	scene.Add( Material{ LightBlue, White, 32 },
 		sphere_arg, 30.0f, Vec3( -90, 40, -10 ) );
-	scene.Add( Material{ BlueViolet, Transparent },
+	scene.Add( Material{ YellowOrange, White, 32 },
+		sphere_arg, 80.0f, Vec3( 0, 70, 130 ) );
+	/*scene.Add( Material{ DarkGreen, White, 32, White },
+		sphere_arg, 30.0f, Vec3( 90, 40, -10 ) );
+	*//*scene.Add( Material{ BlueViolet, Transparent },
 		plane_arg, -1.0f, Vec3::Up );
-	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 1.0f );
+	*/scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 0.04f );
 	scene.AddDirectionalLight( DirectionalLight( normalize( Vec3( 0, -1, 0 ) ), RealRgba( White ) ) );
 	//scene.AddDirectionalLight( DirectionalLight( normalize( Vec3( -1, -1, 0 ) ), RealRgba( White ) ) );
 	Camera camera( Vec3( 0, 30, -300 ), Vec3( 0, 0, 0 ), 500.0f );
@@ -62,7 +64,7 @@ int main( ) {
 	RayTracer tracer;
 	trace.hits.reserve( 1024 );
 	shadowtrace.hits.reserve( 1024 );
-	Multisampler multisampler( 2, 2, randomengine );
+	Multisampler multisampler( 1, 1, randomengine );
 	std::vector<RealRgba> samples( multisampler.size( ) );
 	if ( displaywindow )
 		window.Show( );

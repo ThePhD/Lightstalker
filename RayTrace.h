@@ -7,7 +7,6 @@
 
 struct RayTrace {
 public:
-	Fur::optional<PrimitiveHit> closesthit;
 	std::vector<PrimitiveHit> hits;
 	std::vector<PrimitiveHit*> orderedhits;
 	RealRgba color;
