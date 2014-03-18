@@ -83,17 +83,19 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ImageOutput.h" />
+    <ClInclude Include="Ior.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="Multisampler.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="RayShader.h" />
+    <ClInclude Include="RayTracer.h" />
     <ClInclude Include="RealRgba.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="real.h" />
-    <ClInclude Include="Sample.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="Trace.h" />
+    <ClInclude Include="RayTrace.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furrovine\Furrovine++\Furrovine++.Unicode.vcxproj">
@@ -102,6 +104,9 @@
     <ProjectReference Include="..\..\Furrovine\Furrovine++\Furrovine++.vcxproj">
       <Project>{46eb64eb-010e-43ad-b3bc-1091df7239fa}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Basic Light Equation.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -21,13 +21,24 @@ struct disk_arg_t { };
 const auto disk_arg = disk_arg_t{ };
 struct triangle_arg_t { };
 const auto triangle_arg = triangle_arg_t{ };
+struct vacuum_arg_t { };
+const auto vacuum_arg = vacuum_arg_t{ };
+struct point_light_arg_t { };
+const auto point_light_arg = point_light_arg_t{ };
+struct spot_light_arg_t { };
+const auto spot_light_arg = spot_light_arg_t{ };
 
 enum class PrimitiveId {
+	Vacuum,
+	PointLight,
+	SpotLight,
 	Sphere,
 	Triangle,
 	Plane,
 	Disk
 };
+
+struct Vacuum { };
 
 template <typename T>
 struct TPrimitive {
@@ -38,6 +49,7 @@ struct TPrimitive {
 		Fur::RPlane<T> plane;
 		Fur::RTriangle3<T> triangle;
 		Fur::RDisk3<T> disk;
+		Vacuum vacuum;
 	};
 
 	TPrimitive( const Fur::RSphere<T>& sphere ) : id( PrimitiveId::Sphere ), sphere( sphere ) {
@@ -53,6 +65,10 @@ struct TPrimitive {
 	}
 
 	TPrimitive( const Fur::RDisk3<T>& disk ) : id( PrimitiveId::Disk ), disk( disk ) {
+
+	}
+
+	TPrimitive( vacuum_arg_t ) : id( PrimitiveId::Vacuum), vacuum() {
 
 	}
 
@@ -80,11 +96,14 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimiti
 	case PrimitiveId::Plane:
 		return Fur::intersect( ray, target.plane );
 	case PrimitiveId::Sphere:
+	case PrimitiveId::PointLight:
 		return Fur::intersect( ray, target.sphere );
 	case PrimitiveId::Triangle:
 		return Fur::intersect( ray, target.triangle );
 	case PrimitiveId::Disk:
 		return Fur::intersect( ray, target.disk );
+	case PrimitiveId::Vacuum:
+		return Fur::THit3<T>{ };
 	}
 	unreachable;
 }
@@ -96,4 +115,4 @@ typedef Fur::RDisk3<real> Disk;
 typedef Fur::THit3<real> Hit;
 typedef TPrimitive<real> Primitive;
 
-typedef Fur::triple<Primitive&, Material&, Hit> PrimitiveHit;
+typedef Fur::triple<const Primitive&, const Material&, Hit> PrimitiveHit;

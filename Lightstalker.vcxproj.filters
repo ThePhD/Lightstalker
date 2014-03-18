@@ -35,9 +35,6 @@
     <ClInclude Include="Ray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Sample.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Output.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -53,11 +50,23 @@
     <ClInclude Include="RayShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Trace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RealRgba.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RayTracer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ior.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTrace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Multisampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Basic Light Equation.txt" />
   </ItemGroup>
 </Project>

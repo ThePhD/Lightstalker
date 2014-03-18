@@ -2,24 +2,25 @@
 
 #include "Primitive.h"
 #include "RealRgba.h"
-#include "Trace.h"
+#include "RayTrace.h"
 #include <vector>
 
 struct RayShader {
 public:
 
-	RealRgba operator()( const Ray& ray, Trace& trace, const PointLight& pointlight ) {
-		Hit& hit = trace.closesthit->third;
-		DirectionalLight directionallight( hit.contact.direction_to( pointlight.position ) );
+	RealRgba operator()( const Ray& ray, PrimitiveHit& primitivehit, const PointLight& pointlight ) {
+		Hit& hit = primitivehit.third;
+		DirectionalLight directionallight( hit.contact.direction_to( pointlight.position ), pointlight.intensity );
 		auto& me = *this;
-		return me( ray, trace, directionallight );
+		return me( ray, primitivehit, directionallight );
 	}
 
-	RealRgba operator()( const Ray& ray, Trace& trace, const DirectionalLight& directionallight ) {
+	RealRgba operator()( const Ray& ray, PrimitiveHit& primitivehit, const DirectionalLight& directionallight ) {
 		RealRgba color{ };
-		Primitive& primitive = trace.closesthit->first;
-		Material& material = trace.closesthit->second;
-		Hit& hit = trace.closesthit->third;
+
+		const Primitive& primitive = primitivehit.first;
+		const Material& material = primitivehit.second;
+		Hit& hit = primitivehit.third;
 		Vec3 viewerray = -ray.direction;
 		Vec3 directiontolight = -directionallight.direction;
 		
@@ -34,14 +35,14 @@ public:
 		if ( normaldothalfway >= static_cast<real>( 0 ) ) {
 			real specularbrightness = std::pow( normaldothalfway, material.specularpower );
 			real specularclampedbrightness = Fur::clamp( specularbrightness, static_cast<real>( 0 ), static_cast<real>( 1 ) );
-			color += material.specular * specularclampedbrightness;
+			color += material.specularity * specularclampedbrightness;
 		}
 
 		return color;
 	}
 
-	RealRgba operator()( const Ray& ray, Trace& trace, const AmbientLight& ambientlight ) {
-		return RealRgba( ambientlight );
+	RealRgba operator()( const Ray& ray, PrimitiveHit& primitivehit, const AmbientLight& ambientlight ) {
+		return RealRgba( ambientlight * primitivehit.second.ambient );
 	}
 
 };

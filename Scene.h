@@ -1,8 +1,10 @@
+#pragma once
+
 #include "Primitive.h"
 #include "RealRgba.h"
 #include "Material.h"
 #include "Light.h"
-#include "Trace.h"
+#include "RayTrace.h"
 #include "RayShader.h"
 #include <Furrovine++/optional.h>
 #include <Furrovine++/reference_equals.h>
@@ -10,6 +12,9 @@
 
 class Scene {
 private:
+	Primitive vacuum;
+	Material vacuummaterial;
+	Hit vacuumhit;
 	std::vector<Primitive> primitives;
 	std::vector<Material> materials;
 	std::vector<AmbientLight> ambientlights;
@@ -19,7 +24,12 @@ private:
 
 public:
 
-	Scene( ) {
+	Scene( const RealRgba& background = Fur::Colors::White ) : vacuum( vacuum_arg ), vacuummaterial( background, Fur::Colors::Transparent ) {
+		vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
+		vacuumhit.normal = Vec3::Zero;
+		vacuumhit.uvw = vacuumhit.contact = Vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
+		vacuummaterial.indexofrefraction = Ior::Vacuum;
+
 		primitives.reserve( 9182 );
 		materials.reserve( 9182 );
 		ambientlights.reserve( 2 );
@@ -66,13 +76,14 @@ public:
 		return materials[ idx ];
 	}
 
-	void Intersect( const Ray& ray, Trace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) {
+	void Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
 		trace.closesthit = Fur::nullopt;
 		trace.hits.clear( );
+		trace.orderedhits.clear( );
 
 		real t0 = std::numeric_limits<real>::max( );
 		for ( std::size_t p = 0; p < primitives.size( ); ++p ) {
-			Primitive& prim = primitives[ p ];
+			const Primitive& prim = primitives[ p ];
 			if ( ignore && Fur::reference_equals( ignore.value( ), prim ) )
 				continue;
 			auto hit = intersect( ray, prim );
@@ -80,73 +91,82 @@ public:
 				continue;
 			trace.hits.emplace_back( PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) } );
 			if ( hit->distance0 < t0 ) {
-				trace.closesthit = PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) };
+				trace.closesthit = trace.hits.back();
 				t0 = hit->distance0;
 			}
 		}
-	}
 
-	std::pair<RealRgba, RealRgba> Shading( const Ray& ray, RayShader& rayshader, Trace& trace ) {
-		/*Intersect( shadowray, shadowtrace, primitive );
-		if ( !shadowtrace.closesthit )
-			return false;
+		trace.hits.emplace_back( PrimitiveHit{ vacuum, vacuummaterial, vacuumhit } );
+		if ( trace.hits.size( ) == 1 )
+			trace.closesthit = trace.hits.back( );
 
-		Primitive& shadowprimitive = shadowtrace.closesthit->first;
-		Material& shadowmaterial = materials[ shadowprimitive.material ];
-		if ( length_squared( shadowmaterial.transmission ) == static_cast<real>( 0 ) ) {
-			// No transmission: full black
-			color = Black;
+		for ( std::size_t h = 0; h < trace.hits.size( ); ++h ) {
+			trace.orderedhits.emplace_back( std::addressof( trace.hits[ h ] ) );
 		}
-
-		RealRgba shadowinfluence = lerp_components( RealRgba( Black ),
-			shadowmaterial.diffuse,
-			shadowmaterial.transmission );
-		color += shadowinfluence;*/
-		return{ };
+		std::sort( trace.orderedhits.begin( ), trace.orderedhits.end( ), 
+		[ ] ( PrimitiveHit* left, PrimitiveHit* right ) {
+			return left->third.distance0 < right->third.distance0;
+		} );
 	}
 
-	RealRgba Lighting( const Ray& ray, RayShader& rayshader, Trace& trace, Trace& shadowtrace ) {
+	RealRgba Shading( const Ray& shadowray, const Primitive& primitive, RayShader& rayshader, RayTrace& shadowtrace ) const {
+		const static RealRgba transparent = RealRgba( Fur::Colors::Transparent );
+		RealRgba shadow{ static_cast<real>( 1 ), static_cast<real>( 1 ), static_cast<real>( 1 ), static_cast<real>( 1 ) };
+		Intersect( shadowray, shadowtrace, primitive );
+		if ( !shadowtrace.closesthit || shadowtrace.closesthit->first.id == PrimitiveId::Vacuum )
+			return shadow;
+		for ( std::size_t s = 0; s < shadowtrace.orderedhits.size( ); ++s ) {
+			PrimitiveHit& shadowphit = *shadowtrace.orderedhits[ s ];
+			const Primitive& shadowprimitive = shadowphit.first;
+			const Material& shadowmaterial = shadowphit.second;
+			Hit& shadowhit = shadowphit.third;
+			if ( shadowmaterial.transparency.length_squared( ) == static_cast<real>( 0 ) ) {
+				shadow = { 0, 0, 0, 0 };
+				break;
+			}
+			shadow -= shadowmaterial.transparency;
+		}
+		shadow.max( Vec4::Zero );
+		return shadow;
+	}
+
+	RealRgba Lighting( const Ray& ray, RayShader& rayshader, PrimitiveHit& primitivehit, RayTrace& shadowtrace ) const {
 		using namespace Fur::Colors;
 
-		if ( !trace.closesthit )
-			return RealRgba{ };
-		
+		real perambient = static_cast<real>( 1 ) / ambientlights.size( );
+		real perdirectional = static_cast<real>( 1 ) / directionallights.size( );
+		real perpoint = static_cast<real>( 1 ) / pointlights.size( );
+
 		RealRgba color{ };
-		RealRgba shadowcolor{ };
-		RealRgba shadowpower{ };
+		
 		RealRgba ambient{ };
 		RealRgba directional{ };
 		RealRgba point{ };
-
-		Primitive& primitive = trace.closesthit->first;
-		Material& material = trace.closesthit->second;
-		Hit& hit = trace.closesthit->third;
+		
+		const Primitive& primitive = primitivehit.first;
+		const Material& material = primitivehit.second;
+		Hit& hit = primitivehit.third;
 		const Vec3& surfacecontact = hit.contact;
 		
 		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
-			ambient += rayshader( ray, trace, ambientlights[ a ] );
+			ambient += rayshader( ray, primitivehit, ambientlights[ a ] ) * perambient;
 		}
+
 		for ( std::size_t d = 0; d < directionallights.size( ); ++d ) {
 			Ray shadowray( surfacecontact, -directionallights[ d ].direction );
-			Intersect( shadowray, shadowtrace, primitive );
-			if ( shadowtrace.closesthit ) {
-				continue;
-			}
-			directional += rayshader( ray, trace, directionallights[ d ] );
+			RealRgba shadow = Shading( shadowray, primitive, rayshader, shadowtrace );
+			directional += shadow * rayshader( ray, primitivehit, directionallights[ d ] ) * perdirectional;
 		}
+
 		for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
 			Vec3 dir = surfacecontact.direction_to( pointlights[ p ].position );
 			Ray shadowray( surfacecontact, dir );
-			Intersect( shadowray, shadowtrace, primitive );
-			if ( shadowtrace.closesthit ) {
-				continue;
-			}
-			point += rayshader( ray, trace, pointlights[ p ] );
+			RealRgba shadow = Shading( shadowray, primitive, rayshader, shadowtrace );
+			point += shadow * rayshader( ray, primitivehit, pointlights[ p ] ) * perpoint;
 		}
 
-		color = ambient + point + directional;
-		
-		return color.lerp( shadowcolor, shadowpower );
+		color += ambient + point + directional;
+		return color;
 	}
 
 };
