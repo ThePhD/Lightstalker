@@ -71,7 +71,7 @@ public:
 		real nreflectionratio = ray.direction.dot( hit.normal );
 		real reflectionratio = -nreflectionratio;
 		// Literally making shit up.
-		real fresnelreflected = static_cast<real>( 0.5 );
+		real fresnelreflected = static_cast<real>( 0.7 );
 		real fresnelrefracted = one - fresnelreflected;
 		RealRgba opacity = static_cast<real>( 1 ) - material.transparency;
 
@@ -85,6 +85,7 @@ public:
 			reflection = Bounce( reflectionray, scene, shader, trace, shadowtrace, depth + 1, reflection_ray_arg );
 		}
 		if ( hastransparency ) {
+			// Nothing complicated -- no fresnel equation here
 			Vec3 refractionraydir = ray.direction;
 			Ray refractionray( hit.contact + refractionraydir * bias, refractionraydir );
 			refraction = Bounce( refractionray, scene, shader, trace, shadowtrace, depth + 1, refraction_ray_arg );
@@ -93,10 +94,10 @@ public:
 		RealRgba refractioncomponent{ };
 		refractioncomponent = refraction * fresnelrefracted * material.transparency;
 		RealRgba reflectioncomponent{ };
-		//reflectioncomponent = reflection * fresnelreflected;
-		sample = reflectioncomponent 
-			+ refractioncomponent
-			/*+ surface * opacity*/;
+		reflectioncomponent = reflection * fresnelreflected;
+		sample = refractioncomponent
+			+ reflectioncomponent
+			+ surface * opacity;
 
 		return sample;
 	}

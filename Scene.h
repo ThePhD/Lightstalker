@@ -128,7 +128,7 @@ public:
 				shadow = { 0, 0, 0, 0 };
 				break;
 			}
-			shadow -= shadowmaterial.transparency;
+			shadow -= shadowopacity;
 		}
 		shadow.max( Vec4::Zero );
 		return shadow;
