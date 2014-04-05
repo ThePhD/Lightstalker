@@ -13,7 +13,7 @@ private:
 
 public:
 	template <typename TGen>
-	Multisampler( std::size_t nx, std::size_t my, TGen&& gen ) : n( nx ), m( my ), multisamples( Fur::Sampling::jittered<real>( n, m, gen ) ) {
+	Multisampler( std::size_t nx, std::size_t my, TGen&& gen ) : n( nx ), m( my ), multisamples( Fur::Sampling::jittered<real>( n, m, std::forward<TGen>( gen ) ) ) {
 
 	}
 

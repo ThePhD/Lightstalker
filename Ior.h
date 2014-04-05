@@ -17,4 +17,5 @@ namespace Ior {
 	const real Glycerol = static_cast<real>( 1.4729 );
 	const real Sapphire = static_cast<real>( 1.778 );
 	const real Amber = static_cast<real>( 1.55 );
+
 }

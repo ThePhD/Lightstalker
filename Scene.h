@@ -123,12 +123,11 @@ public:
 			const Primitive& shadowprimitive = shadowphit.first;
 			const Material& shadowmaterial = shadowphit.second;
 			Hit& shadowhit = shadowphit.third;
-			RealRgba shadowopacity = static_cast<real>( 1 ) - shadowmaterial.transparency;
-			if ( shadowopacity.length_squared( ) == static_cast<real>( 0 ) ) {
+			if ( shadowmaterial.transparency.length_squared( ) == static_cast<real>( 0 ) ) {
 				shadow = { 0, 0, 0, 0 };
 				break;
 			}
-			shadow -= shadowopacity;
+			shadow -= shadowmaterial.transparency;
 		}
 		shadow.max( Vec4::Zero );
 		return shadow;

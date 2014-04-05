@@ -17,8 +17,6 @@
 #include <Furrovine++/Colors.h>
 #include <iostream>
 
-
-
 int main( ) {
 	using namespace Furrovine::Colors;
 	using namespace Furrovine::Graphics;
@@ -29,13 +27,13 @@ int main( ) {
 	ImageOutput output( image );
 	Scene scene( WhiteSmoke );
 
-	scene.Add( Material{ Red, White, 32, White },
+	scene.Add( Material{ Red, White, 32, Transparent },
 		sphere_arg, 50.0f, Vec3( 0, 60, 0 ) );
-	scene.Add( Material{ LightBlue, White, 32, White },
+	scene.Add( Material{ LightBlue, White, 32 },
 		sphere_arg, 30.0f, Vec3( -90, 40, -10 ) );
 	scene.Add( Material{ YellowOrange, White, 32 },
 		sphere_arg, 80.0f, Vec3( 0, 90, 130 ) );
-	scene.Add( Material{ DarkGreen, White, 32, White },
+	scene.Add( Material{ DarkGreen, White, 32 },
 		sphere_arg, 30.0f, Vec3( 90, 40, -10 ) );
 
 	scene.Add( Material{ BlueBell, Transparent },

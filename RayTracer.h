@@ -24,6 +24,47 @@ private:
 		return b * mix + a * ( T( 1 ) - mix );
 	}
 
+	RealRgba ReflectionBounce( const Ray& ray, const Scene& scene, RayShader& shader, RayTrace& trace, RayTrace& shadowtrace, const PrimitiveHit& primitivehit, const std::pair<real, real>& fresnel, const real& ior1, const real& ior2, std::size_t depth ) {
+		using namespace Fur::Colors;
+		const static RealRgba nontransparent = RealRgba( White );
+		const static RealRgba transparent = RealRgba( Transparent );
+		
+		const Primitive& primitive = primitivehit.first;
+		const Material& material = primitivehit.second;
+		const Hit& hit = primitivehit.third;
+
+		bool hasreflectivity = material.transparency > nontransparent && material.reflectivitypower > transparent;
+		if ( !hasreflectivity )
+			return RealRgba{ };
+		
+		Vec3 reflectionraydir = reflect( ray.direction, hit.normal );
+		Ray reflectionray( hit.contact + reflectionraydir * bias,
+			reflectionraydir );
+		return Bounce( reflectionray, scene, shader, trace, shadowtrace, primitivehit, depth + 1, reflection_ray_arg );
+	}
+
+	RealRgba RefractionBounce( const Ray& ray, const Scene& scene, RayShader& shader, RayTrace& trace, RayTrace& shadowtrace, const PrimitiveHit& primitivehit, const std::pair<real, real>& fresnel, const real& ior1, const real& ior2, std::size_t depth ) {
+		using namespace Fur::Colors;
+		const static RealRgba nontransparent = RealRgba( White );
+
+		const Primitive& primitive = primitivehit.first;
+		const Material& material = primitivehit.second;
+		const Hit& hit = primitivehit.third;
+
+		bool hastransparency = material.transparency < nontransparent;
+		if ( !hastransparency )
+			return RealRgba{ };
+
+		Fur::optional<Vec3> oprefractionraydir = refract( ray.direction, hit.normal, ior1, ior2 );
+		if ( !oprefractionraydir )
+			return RealRgba{ };
+
+		// Not total internal reflection
+		const Vec3& refractionraydir = *oprefractionraydir;
+		Ray refractionray( hit.contact + refractionraydir * bias, refractionraydir );
+		return Bounce( refractionray, scene, shader, trace, shadowtrace, primitivehit, depth + 1, refraction_ray_arg );
+	}
+
 public:
 
 	RayTracer( std::size_t max = 3, real raybias = static_cast<real>( 1e-4 ) )
@@ -32,12 +73,14 @@ public:
 	}
 
 	template <typename TRayId = primary_ray_arg_t>
-	RealRgba Bounce( const Ray& ray, const Scene& scene, RayShader& shader, RayTrace& trace, RayTrace& shadowtrace, std::size_t depth = 0, TRayId rayid = TRayId{ } ) {
+	RealRgba Bounce( const Ray& ray, const Scene& scene, RayShader& shader, RayTrace& trace, RayTrace& shadowtrace, Fur::optional<const PrimitiveHit&> previoushit = Fur::nullopt, std::size_t depth = 0, TRayId rayid = TRayId{ } ) {
 		using namespace Fur::Colors;
+		const static RealRgba whitepoint = RealRgba( White );
 		const static RealRgba transparent = RealRgba( Transparent );
 		const static real two = static_cast<real>( 2 );
 		const static real one = static_cast<real>( 1 );
 		const static real zero = static_cast<real>( 0 );
+
 		RealRgba sample{ };
 		auto ophit = scene.Intersect( ray, trace );
 		
@@ -58,46 +101,28 @@ public:
 		PrimitiveHit& primitivehit = *ophit;
 		const Primitive& primitive = primitivehit.first;
 		const Material& material = primitivehit.second;
-		Hit& hit = primitivehit.third;
-		bool hastransparency = material.transparency > transparent;
-		bool hasreflectivity = material.reflectivity > transparent;
+		const Hit& hit = primitivehit.third;
+		RealRgba opacity = whitepoint - material.transparency;
+		bool nomoredepth = !( depth < maxdepth );
+		bool hastransparency = material.transparency < whitepoint;
+		bool hasreflectivity = material.transparency > whitepoint && material.reflectivitypower > transparent;
 
 		RealRgba surface = scene.Lighting( ray, shader, primitivehit, shadowtrace );
-		if ( ( !hasreflectivity && !hastransparency ) || maxdepth < depth ) {
+		if ( ( !hasreflectivity && !hastransparency ) || nomoredepth ) {
 			// Opaque object -- light it up!
 			return surface;
 		}
 
-		real nreflectionratio = ray.direction.dot( hit.normal );
-		real reflectionratio = -nreflectionratio;
-		// Literally making shit up.
-		real fresnelreflected = static_cast<real>( 0.7 );
-		real fresnelrefracted = one - fresnelreflected;
-		RealRgba opacity = static_cast<real>( 1 ) - material.transparency;
-
-		RealRgba reflection{ };
-		RealRgba refraction{ };
-
-		if ( hasreflectivity ) {
-			Vec3 reflectionraydir = Fur::normalize( ray.direction - hit.normal * two * nreflectionratio );
-			Ray reflectionray( hit.contact + reflectionraydir * bias,
-				reflectionraydir );
-			reflection = Bounce( reflectionray, scene, shader, trace, shadowtrace, depth + 1, reflection_ray_arg );
-		}
-		if ( hastransparency ) {
-			// Nothing complicated -- no fresnel equation here
-			Vec3 refractionraydir = ray.direction;
-			Ray refractionray( hit.contact + refractionraydir * bias, refractionraydir );
-			refraction = Bounce( refractionray, scene, shader, trace, shadowtrace, depth + 1, refraction_ray_arg );
-		}
+		const real& ior1 = previoushit ? previoushit->second.indexofrefraction : Ior::Vacuum;
+		const real& ior2 = material.indexofrefraction;
+		std::pair<real, real> fresnelfactors = fresnel( ray.direction, hit.normal, ior1, ior2 );
 		
-		RealRgba refractioncomponent{ };
-		refractioncomponent = refraction * fresnelrefracted * material.transparency;
-		RealRgba reflectioncomponent{ };
-		reflectioncomponent = reflection * fresnelreflected;
-		sample = refractioncomponent
-			+ reflectioncomponent
-			+ surface * opacity;
+		RealRgba reflectioncolor = ReflectionBounce( ray, scene, shader, trace, shadowtrace, primitivehit, fresnelfactors, ior1, ior2, depth );
+		RealRgba refractioncolor = RefractionBounce( ray, scene, shader, trace, shadowtrace, primitivehit, fresnelfactors, ior2, ior2, depth );
+
+		sample = ( reflectioncolor * fresnelfactors.first * material.transparency )
+			+ ( refractioncolor * fresnelfactors.second * opacity )
+			;//+ ( surface * material.transparency );
 
 		return sample;
 	}

@@ -24,9 +24,3 @@ typedef Fur::RVector2<real> RVec2;
 typedef Fur::RVector3<real> RVec3;
 typedef Fur::RVector4<real> RVec4;
 
-template <typename T>
-std::pair<T, T> fresnel(  ) {
-	real refl;
-	real refr;
-	return std::pair<real, real>( refl, refr );
-}
