@@ -26,7 +26,7 @@ struct TMaterial : public RMaterial<T> {
 	const Fur::TRgba<T>& transparent = Fur::Colors::White,
 	const Fur::TRgba<T>& reflectpower = Fur::Colors::Transparent,
 	const Fur::TRgba<T>& emission = Fur::Colors::Transparent,
-	T indexofrefrac = Ior::Vacuum,
+	T indexofrefrac = Ior::Glass,
 	const Fur::TRgba<T>& ambience = Fur::Colors::White ) {
 		diffuse = diffusecolor;
 		specularity = specular;

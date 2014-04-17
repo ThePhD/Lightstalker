@@ -27,7 +27,7 @@ int main( ) {
 	ImageOutput output( image );
 	Scene scene( WhiteSmoke );
 
-	scene.Add( Material{ Red, White, 32, Transparent },
+	scene.Add( Material{ Red, White, 32, White, White },
 		sphere_arg, 50.0f, Vec3( 0, 60, 0 ) );
 	scene.Add( Material{ LightBlue, White, 32 },
 		sphere_arg, 30.0f, Vec3( -90, 40, -10 ) );
