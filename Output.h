@@ -1,10 +1,11 @@
 #pragma once
 
 #include "real.h"
-#include "RealRgba.h"
+#include "rgba.h"
 
-struct Output {
-	virtual void Set( real x, real y, const RealRgba& pixel ) { }
+class Output {
+public:
+	virtual void Set( real x, real y, const rgba& pixel ) { }
 	virtual ~Output () { };
 };
 

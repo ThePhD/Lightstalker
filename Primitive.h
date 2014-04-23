@@ -23,15 +23,9 @@ struct triangle_arg_t { };
 const auto triangle_arg = triangle_arg_t{ };
 struct vacuum_arg_t { };
 const auto vacuum_arg = vacuum_arg_t{ };
-struct point_light_arg_t { };
-const auto point_light_arg = point_light_arg_t{ };
-struct spot_light_arg_t { };
-const auto spot_light_arg = spot_light_arg_t{ };
 
 enum class PrimitiveId {
 	Vacuum,
-	PointLight,
-	SpotLight,
 	Sphere,
 	Triangle,
 	Plane,
@@ -42,49 +36,50 @@ struct Vacuum { };
 
 template <typename T>
 struct TPrimitive {
-	std::size_t material;
 	PrimitiveId id;
+	std::size_t material;
+	bool light;
 	union {
+		Vacuum vacuum;
 		Fur::RSphere<T> sphere;
 		Fur::RPlane<T> plane;
 		Fur::RTriangle3<T> triangle;
 		Fur::RDisk3<T> disk;
-		Vacuum vacuum;
 	};
 
-	TPrimitive( const Fur::RSphere<T>& sphere ) : id( PrimitiveId::Sphere ), sphere( sphere ) {
+	TPrimitive( const Fur::RSphere<T>& sphere ) : id( PrimitiveId::Sphere ), material( 0 ), light( false ), sphere( sphere ) {
 
 	}
 
-	TPrimitive( const Fur::RPlane<T>& plane ) : id( PrimitiveId::Plane ), plane( plane ) {
+	TPrimitive( const Fur::RPlane<T>& plane ) : id( PrimitiveId::Plane ), material( 0 ), light( false ), plane( plane ) {
 
 	}
 
-	TPrimitive( const Fur::RTriangle3<T>& triangle ) : id( PrimitiveId::Triangle ), triangle( triangle ) {
+	TPrimitive( const Fur::RTriangle3<T>& triangle ) : id( PrimitiveId::Triangle ), material( 0 ), light( false ), triangle( triangle ) {
 
 	}
 
-	TPrimitive( const Fur::RDisk3<T>& disk ) : id( PrimitiveId::Disk ), disk( disk ) {
+	TPrimitive( const Fur::RDisk3<T>& disk ) : id( PrimitiveId::Disk ), material( 0 ), light( false ), disk( disk ) {
 
 	}
 
-	TPrimitive( vacuum_arg_t ) : id( PrimitiveId::Vacuum), vacuum() {
+	TPrimitive( vacuum_arg_t ) : id( PrimitiveId::Vacuum ), material( 0 ), light( false ), vacuum( ) {
 
 	}
 
-	TPrimitive( sphere_arg_t, T radius, const Fur::RVector3<T>& position ) : id( PrimitiveId::Sphere ), sphere( { radius, position } ) {
+	TPrimitive( sphere_arg_t, T radius, const Fur::RVector3<T>& position ) : id( PrimitiveId::Sphere ), material( 0 ), light( false ), sphere( { radius, position } ) {
 
 	}
 
-	TPrimitive( plane_arg_t, T distance, const Fur::RVector3<T>& normal ) : id( PrimitiveId::Plane ), plane( { distance, normal } ) {
+	TPrimitive( plane_arg_t, T distance, const Fur::RVector3<T>& normal ) : id( PrimitiveId::Plane ), material( 0 ), light( false ), plane( { distance, normal } ) {
 
 	}
 
-	TPrimitive( disk_arg_t, T radius, const Fur::RVector3<T>& position, const Fur::RVector3<T>& normal ) : id( PrimitiveId::Plane ), disk( { position.Length( ), normal }, radius, position ) {
+	TPrimitive( disk_arg_t, T radius, const Fur::RVector3<T>& position, const Fur::RVector3<T>& normal ) : id( PrimitiveId::Plane ), material( 0 ), light( false ), disk( { position.Length( ), normal }, radius, position ) {
 
 	}
 
-	TPrimitive( triangle_arg_t, const Fur::RVector3<T>& a, const Fur::RVector3<T>& b, const Fur::RVector3<T>& c ) : id( PrimitiveId::Triangle ), triangle( { a, b, c } ) {
+	TPrimitive( triangle_arg_t, const Fur::RVector3<T>& a, const Fur::RVector3<T>& b, const Fur::RVector3<T>& c ) : id( PrimitiveId::Triangle ), material( 0 ), light( false ), triangle( { a, b, c } ) {
 
 	}
 
@@ -96,7 +91,6 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimiti
 	case PrimitiveId::Plane:
 		return Fur::intersect( ray, target.plane );
 	case PrimitiveId::Sphere:
-	case PrimitiveId::PointLight:
 		return Fur::intersect( ray, target.sphere );
 	case PrimitiveId::Triangle:
 		return Fur::intersect( ray, target.triangle );

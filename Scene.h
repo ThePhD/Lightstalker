@@ -1,18 +1,18 @@
 #pragma once
 
 #include "Primitive.h"
-#include "RealRgba.h"
+#include "rgba.h"
 #include "Material.h"
 #include "Light.h"
 #include "RayTrace.h"
 #include "RayShader.h"
 #include <Furrovine++/optional.h>
 #include <Furrovine++/reference_equals.h>
-#include <vector>
+#include <Furrovine++/buffer_view.h>
 
 class Scene {
 private:
-	Primitive vacuum;
+	Primitive vacuumprimitive;
 	Material vacuummaterial;
 	Hit vacuumhit;
 	std::vector<Primitive> primitives;
@@ -24,17 +24,22 @@ private:
 
 public:
 
-	Scene( const RealRgba& background = Fur::Colors::White ) : vacuum( vacuum_arg ), vacuummaterial( background, Fur::Colors::Transparent ) {
+	Scene( const rgba& background = RealWhite ) 
+	: vacuumprimitive( vacuum_arg ), vacuummaterial( background, background, background, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ), vacuumhit( ) {
 		vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
 		vacuumhit.normal = Vec3::Zero;
-		vacuumhit.uvw = vacuumhit.contact = Vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
-		vacuummaterial.indexofrefraction = Ior::Vacuum;
-
+		vacuumhit.uvw = Vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
+		vacuumhit.contact = Vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
+		
 		primitives.reserve( 9182 );
 		materials.reserve( 9182 );
 		ambientlights.reserve( 2 );
 		pointlights.reserve( 8 );
 		directionallights.reserve( 8 );
+	}
+
+	PrimitiveHit Vacuum( ) const {
+		return PrimitiveHit{ vacuumprimitive, vacuummaterial, vacuumhit };
 	}
 
 	template <typename... Tn>
@@ -76,6 +81,90 @@ public:
 		return materials[ idx ];
 	}
 
+	Fur::buffer_view<Material> Materials( ) {
+		return materials;
+	}
+
+	Fur::buffer_view<Primitive> Primitives( ) {
+		return primitives;
+	}
+
+	Fur::buffer_view<AmbientLight> AmbientLights( ) {
+		return ambientlights;
+	}
+
+	Fur::buffer_view<DirectionalLight> DirectionalLights( ) {
+		return directionallights;
+	}
+
+	Fur::buffer_view<PointLight> PointLights( ) {
+		return pointlights;
+	}
+
+	const Primitive& PrimitiveAt( std::size_t idx ) const {
+		return primitives[ idx ];
+	}
+
+	const Material& MaterialOf( Primitive& primitive ) const {
+		return MaterialAt( primitive.material );
+	}
+
+	const Material& MaterialAt( std::size_t idx ) const {
+		return materials[ idx ];
+	}
+
+	Fur::buffer_view<const Material> Materials( ) const {
+		return materials;
+	}
+
+	Fur::buffer_view<const Primitive> Primitives( ) const {
+		return primitives;
+	}
+
+	Fur::buffer_view<const AmbientLight> AmbientLights( ) const {
+		return ambientlights;
+	}
+
+	Fur::buffer_view<const DirectionalLight> DirectionalLights( ) const {
+		return directionallights;
+	}
+
+	Fur::buffer_view<const PointLight> PointLights( ) const {
+		return pointlights;
+	}
+
+	/*Fur::buffer_view<const SpotLight> SpotLights( ) const {
+	return spotlights;
+	}
+
+	Fur::buffer_view<SpotLight> SpotLights( ) {
+		return spotlights;
+	}*/
+
+
+	Fur::optional<PrimitiveHit> Intersect( const Ray& ray, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
+		Fur::optional<PrimitiveHit> closesthit = Fur::nullopt;
+		
+		real t0 = std::numeric_limits<real>::max( );
+		for ( std::size_t p = 0; p < primitives.size( ); ++p ) {
+			const Primitive& prim = primitives[ p ];
+			if ( ignore && Fur::reference_equals( ignore.value( ), prim ) )
+				continue;
+			auto hit = intersect( ray, prim );
+			if ( !hit )
+				continue;
+			if ( hit->distance0 < t0 ) {
+				closesthit = PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) };
+				t0 = hit->distance0;
+			}
+		}
+
+		if ( !closesthit )
+			closesthit = Vacuum();
+
+		return closesthit;
+	}
+
 	Fur::optional<PrimitiveHit> Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
 		Fur::optional<PrimitiveHit> closesthit;
 		closesthit = Fur::nullopt;
@@ -97,9 +186,10 @@ public:
 			}
 		}
 
-		trace.hits.emplace_back( PrimitiveHit{ vacuum, vacuummaterial, vacuumhit } );
-		if ( trace.hits.size( ) == 1 )
-			closesthit = trace.hits.back( );
+		if ( !closesthit )
+			closesthit = Vacuum();
+
+		trace.hits.push_back( Vacuum() );
 
 		for ( std::size_t h = 0; h < trace.hits.size( ); ++h ) {
 			trace.orderedhits.emplace_back( std::addressof( trace.hits[ h ] ) );
@@ -110,66 +200,6 @@ public:
 		} );
 
 		return closesthit;
-	}
-
-	RealRgba Shading( const Ray& shadowray, const Primitive& primitive, RayShader& rayshader, RayTrace& shadowtrace ) const {
-		const static RealRgba transparent = RealRgba( Fur::Colors::Transparent );
-		RealRgba shadow{ static_cast<real>( 1 ), static_cast<real>( 1 ), static_cast<real>( 1 ), static_cast<real>( 1 ) };
-		auto shadwophit = Intersect( shadowray, shadowtrace, primitive );
-		if ( !shadwophit || shadwophit->first.id == PrimitiveId::Vacuum )
-			return shadow;
-		for ( std::size_t s = 0; s < shadowtrace.orderedhits.size( ); ++s ) {
-			PrimitiveHit& shadowphit = *shadowtrace.orderedhits[ s ];
-			const Primitive& shadowprimitive = shadowphit.first;
-			const Material& shadowmaterial = shadowphit.second;
-			Hit& shadowhit = shadowphit.third;
-			if ( shadowmaterial.transparency.length_squared( ) == static_cast<real>( 0 ) ) {
-				shadow = { 0, 0, 0, 0 };
-				break;
-			}
-			shadow -= shadowmaterial.transparency;
-		}
-		shadow.max( Vec4::Zero );
-		return shadow;
-	}
-
-	RealRgba Lighting( const Ray& ray, RayShader& rayshader, PrimitiveHit& primitivehit, RayTrace& shadowtrace ) const {
-		using namespace Fur::Colors;
-
-		real perambient = static_cast<real>( 1 ) / ambientlights.size( );
-		real perdirectional = static_cast<real>( 1 ) / directionallights.size( );
-		real perpoint = static_cast<real>( 1 ) / pointlights.size( );
-
-		RealRgba color{ };
-		
-		RealRgba ambient{ };
-		RealRgba directional{ };
-		RealRgba point{ };
-		
-		const Primitive& primitive = primitivehit.first;
-		const Material& material = primitivehit.second;
-		Hit& hit = primitivehit.third;
-		const Vec3& surfacecontact = hit.contact;
-		
-		for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
-			ambient += rayshader( ray, primitivehit, ambientlights[ a ] ) * perambient;
-		}
-
-		for ( std::size_t d = 0; d < directionallights.size( ); ++d ) {
-			Ray shadowray( surfacecontact, -directionallights[ d ].direction );
-			RealRgba shadow = Shading( shadowray, primitive, rayshader, shadowtrace );
-			directional += shadow * rayshader( ray, primitivehit, directionallights[ d ] ) * perdirectional;
-		}
-
-		for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
-			Vec3 dir = surfacecontact.direction_to( pointlights[ p ].position );
-			Ray shadowray( surfacecontact, dir );
-			RealRgba shadow = Shading( shadowray, primitive, rayshader, shadowtrace );
-			point += shadow * rayshader( ray, primitivehit, pointlights[ p ] ) * perpoint;
-		}
-
-		color += ambient + point + directional;
-		return color;
 	}
 
 };

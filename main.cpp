@@ -1,12 +1,9 @@
-#define FURROVINEDLL
-#define _SCL_SECURE_NO_WARNINGS
-
+#include "SampleScene.h"
 #include "Scene.h"
 #include "Multisampler.h"
 #include "Camera.h"
 #include "ImageOutput.h"
 #include "RayShader.h"
-#include "RayTrace.h"
 #include "RayTracer.h"
 #include <Furrovine++/Sampling.h>
 #include <Furrovine++/Graphics/Window.h>
@@ -14,7 +11,6 @@
 #include <Furrovine++/Graphics/GraphicsDevice.h>
 #include <Furrovine++/Graphics/Image2D.h>
 #include <Furrovine++/Stopwatch.h>
-#include <Furrovine++/Colors.h>
 #include <iostream>
 
 int main( ) {
@@ -25,25 +21,13 @@ int main( ) {
 	Image2D image( 800, 600, SurfaceFormat::Red8Green8Blue8Alpha8Normalized );
 	std::fill_n( image.data( ), image.size( ), 0 );
 	ImageOutput output( image );
-	Scene scene( WhiteSmoke );
-
-	scene.Add( Material{ Red, White, 32, White, White },
-		sphere_arg, 50.0f, Vec3( 0, 60, 0 ) );
-	scene.Add( Material{ LightBlue, White, 32 },
-		sphere_arg, 30.0f, Vec3( -90, 40, -10 ) );
-	scene.Add( Material{ YellowOrange, White, 32 },
-		sphere_arg, 80.0f, Vec3( 0, 90, 130 ) );
-	scene.Add( Material{ DarkGreen, White, 32 },
-		sphere_arg, 30.0f, Vec3( 90, 40, -10 ) );
-
-	scene.Add( Material{ BlueBell, Transparent },
-		plane_arg, -1.0f, Vec3::Up );
 	
-	scene.AddAmbientLight( 0.04f, 0.04f, 0.04f, 0.04f );
-	scene.AddDirectionalLight( DirectionalLight( normalize( Vec3( 0, -1, 0 ) ), RealRgba( White ) ) );
-	scene.AddDirectionalLight( DirectionalLight( normalize( Vec3( -1, -1, 0 ) ), RealRgba( White ) ) );
-	
-	Camera camera( Vec3( 0, 30, -300 ), Vec3( 0, 0, 0 ), 500.0f );
+	//Camera camera( Vec3( 0, 30, -300 ), Vec3( 0, 0, 0 ), Vec3::Up, 500.0f );
+	//Scene scene = SampleScene::SizedSpheres( );
+	Camera camera( Vec3( 0, 400, -30 ), Vec3( 0, 0, 0 ), Vec3::Forward, 500.0f );
+	Scene scene = SampleScene::Trifecta( );
+	//Camera camera( Vec3( 0, 10, -10 ), Vec3( 0, 0, 0 ), Vec3::Up, 500.0f );
+	//Scene scene = SampleScene::Complex( );
 
 	Fur::Stopwatch stopwatch;
 	Fur::WindowDriver windowdriver;
@@ -60,14 +44,11 @@ int main( ) {
 	bool timerbreak = false;
 	bool displaywindow = true;
 	std::default_random_engine randomengine{ };
-	Fur::TimeSpan computationallimit = Fur::TimeSpan::FromMilliseconds( 500 );
+	Fur::TimeSpan computationallimit = Fur::TimeSpan::FromMilliseconds( 750 );
+	Multisampler multisampler( 2, 2, randomengine );
+	std::vector<rgba> samples( multisampler.size( ) );
 	RayShader shader;
-	RayTrace trace, shadowtrace;
 	RayTracer tracer;
-	trace.hits.reserve( 1024 );
-	shadowtrace.hits.reserve( 1024 );
-	Multisampler multisampler( 1, 1, randomengine );
-	std::vector<RealRgba> samples( multisampler.size( ) );
 	if ( displaywindow )
 		window.Show( );
 
@@ -117,13 +98,13 @@ int main( ) {
 		for ( ; y < 600 && !timerbreak; ) {
 			for ( ; x < 800 && !timerbreak; ++x ) {
 				samples.clear();
-				RealRgba pixel{ };
+				rgba pixel{ };
 				for ( std::size_t s = 0; s < multisampler.size( ); ++s ) {
 					const Vec2& multisample = multisampler[ s ];
 					real sx = x + multisample.x;
 					real sy = y + multisample.y;
 					Ray ray = camera.Compute( sx, sy, width, height );
-					RealRgba sample = tracer.Bounce( ray, scene, shader, trace, shadowtrace );
+					rgba sample = tracer.Bounce( ray, scene, shader );
 					samples.push_back( sample );
 				}
 				multisampler.Shuffle( );

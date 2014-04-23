@@ -11,7 +11,7 @@ private:
 	
 public:
 
-	Camera( Vec3 pos, Vec3 lookat, float nearplane = 1.0f, Vec3 referenceup = Vec3::Up ) 
+	Camera( Vec3 pos, Vec3 lookat, Vec3 referenceup = Vec3::Up, float nearplane = 1.0f )
 	: position( pos ), target( lookat ), referenceup( referenceup ), nearplane( nearplane ) {
 		direction = position.unnormalized_direction_to( target );
 		forward = normalize( direction );
