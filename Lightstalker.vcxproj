@@ -83,8 +83,10 @@
     <ClCompile Include="rgba.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TileTracer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Absorption.h" />
+    <ClInclude Include="Hitmap.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="ImageOutput.h" />
     <ClInclude Include="Ior.h" />
@@ -100,7 +102,7 @@
     <ClInclude Include="real.h" />
     <ClInclude Include="SampleScene.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="RayTrace.h" />
+    <ClInclude Include="ThreadedTileTracer.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furrovine\Furrovine++\Furrovine++.Unicode.vcxproj">

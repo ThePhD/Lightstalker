@@ -5,50 +5,58 @@
 #include "ImageOutput.h"
 #include "RayShader.h"
 #include "RayTracer.h"
-#include <Furrovine++/Sampling.h>
-#include <Furrovine++/Graphics/Window.h>
-#include <Furrovine++/WindowDriver.h>
-#include <Furrovine++/Graphics/GraphicsDevice.h>
-#include <Furrovine++/Graphics/Image2D.h>
+#include "ThreadedTileTracer.h"
+#include "TileTracer.h"
 #include <Furrovine++/Stopwatch.h>
+#include <Furrovine++/lexical_cast.h>
+#include <Furrovine++/Sampling.h>
+#include <Furrovine++/WindowDriver.h>
+#include <Furrovine++/Graphics/Window.h>
+#include <Furrovine++/Graphics/GraphicsDevice.h>
+#include <Furrovine++/Graphics/NymphBatch.h>
+#include <Furrovine++/Graphics/Image2D.h>
+#include <Furrovine++/Pipeline/RasterFontLoader.h>
 #include <iostream>
 
 int main( ) {
+	using namespace Furrovine;
 	using namespace Furrovine::Colors;
 	using namespace Furrovine::Graphics;
+	using namespace Furrovine::Pipeline;
+	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
 	
-	Image2D image( 800, 600, SurfaceFormat::Red8Green8Blue8Alpha8Normalized );
-	std::fill_n( image.data( ), image.size( ), 0 );
+	std::size_t width = 800;
+	std::size_t height = 600;
+	real swidth = static_cast<real>( width );
+	real sheight = static_cast<real>( height );
+	Image2D image( width, height, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, 32, 0 );
 	ImageOutput output( image );
-	
-	//Camera camera( Vec3( 0, 30, -300 ), Vec3( 0, 0, 0 ), Vec3::Up, 500.0f );
-	//Scene scene = SampleScene::SizedSpheres( );
-	Camera camera( Vec3( 0, 400, -30 ), Vec3( 0, 0, 0 ), Vec3::Forward, 500.0f );
-	Scene scene = SampleScene::Trifecta( );
-	//Camera camera( Vec3( 0, 10, -10 ), Vec3( 0, 0, 0 ), Vec3::Up, 500.0f );
-	//Scene scene = SampleScene::Complex( );
-
-	Fur::Stopwatch stopwatch;
-	Fur::WindowDriver windowdriver;
-	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", Fur::Size2ui( 800, 600 ) ) );
-	GraphicsDevice graphics( window );
-	Fur::MessageQueue messagequeue;
-
-	real x = 0;
-	real y = 0;
-	real width = 800;
-	real height = 600;
-
-	bool quit = false;
-	bool timerbreak = false;
-	bool displaywindow = true;
 	std::default_random_engine randomengine{ };
-	Fur::TimeSpan computationallimit = Fur::TimeSpan::FromMilliseconds( 750 );
-	Multisampler multisampler( 2, 2, randomengine );
-	std::vector<rgba> samples( multisampler.size( ) );
+	Multisampler multisampler( 1, 1, randomengine );
 	RayShader shader;
 	RayTracer tracer;
+	//Camera camera( vec3( 0, 30, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+	//Scene scene = SampleScene::SizedSpheres( );
+	Camera camera( vec3( 0, 400, -30 ), vec3( 0, 0, 0 ), vec3::Forward, 400.0f );
+	Scene scene = SampleScene::Trifecta( );
+	//Camera camera( vec3( 0, 10, -10 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+	//Scene scene = SampleScene::Complex( );
+	TileTracer tiletracer( width, height, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );
+
+	Fur::WindowDriver windowdriver;
+	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", Fur::Size2ui( width, height + 40 ) ) );
+	GraphicsDevice graphics( window );
+	NymphBatch batch( graphics );
+	Fur::MessageQueue messagequeue;
+	RasterFont font = RasterFontLoader( graphics )( RasterFontDescription( "Arial", 14 ) );
+	real x = 0;
+	real y = 0;
+	int mousex = 0;
+	int mousey = 0;
+	
+	bool quit = false;
+	bool displaywindow = true;
 	if ( displaywindow )
 		window.Show( );
 
@@ -79,7 +87,19 @@ int main( ) {
 					&& keyboard.Down ) {
 					output.Save( );
 					break;
+				}
+				if ( keyboard.Key == Key::B
+					&& keyboard.Down ) {
+					x = swidth;
+					y = sheight;
+					break;
 				}}
+				break;
+			case Fur::MessageId::Mouse: {
+				Fur::MouseEvent& mouse = message.as<Fur::MouseEvent>( );
+				mousex = mouse.Relative.x;
+				mousey = mouse.Relative.y;
+				}
 				break;
 			case Fur::MessageId::Window: {
 				Fur::WindowEvent& windowm = message.as<Fur::WindowEvent>( );
@@ -93,36 +113,7 @@ int main( ) {
 		if ( quit )
 			break;
 
-		stopwatch.Start( );
-		timerbreak = false;
-		for ( ; y < 600 && !timerbreak; ) {
-			for ( ; x < 800 && !timerbreak; ++x ) {
-				samples.clear();
-				rgba pixel{ };
-				for ( std::size_t s = 0; s < multisampler.size( ); ++s ) {
-					const Vec2& multisample = multisampler[ s ];
-					real sx = x + multisample.x;
-					real sy = y + multisample.y;
-					Ray ray = camera.Compute( sx, sy, width, height );
-					rgba sample = tracer.Bounce( ray, scene, shader );
-					samples.push_back( sample );
-				}
-				multisampler.Shuffle( );
-
-				for ( std::size_t s = 0; s < samples.size( ); ++s ) {
-					pixel += samples[ s ];
-				}
-				
-				pixel /= static_cast<real>( samples.size( ) );
-				output.Set( x, y, pixel );
-				
-				timerbreak = ( stopwatch.ElapsedTime() > computationallimit ) && displaywindow;
-			}
-			if ( x == 800 ) {
-				++y;
-				x = 0;
-			}
-		}
+		tiletracer.Compute( );
 		
 		if ( !displaywindow || !graphics.Ready( ) ) {
 			continue;
@@ -132,7 +123,13 @@ int main( ) {
 			break;
 
 		graphics.Clear( PastelGrey );
-		graphics.RenderImage( image );
+		graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
+		graphics.RenderImage( font.Texture( ) );
+		batch.Begin( );
+		String datastring = Format( "[ x: {0} | y: {1} ]", lexical_cast( mousex ), lexical_cast( mousey ) );
+		batch.RenderString( font, datastring, { 0, sheight } );
+		batch.End( );
+
 		graphics.Present( );
 	}
 }

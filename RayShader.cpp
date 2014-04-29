@@ -10,7 +10,7 @@ rgba RayShader::operator()( const Ray& ray, const Scene& scene, const PrimitiveH
 	const Material& material = primitivehit.second;
 	const Hit& hit = primitivehit.third;
 
-	Vec3 directiontolight = -directionallight.direction;
+	vec3 directiontolight = -directionallight.direction;
 	Ray shadowray( hit.contact, directiontolight );
 	rgba shadow = RealWhite;
 	if ( Shadow( shadow, shadowray, scene, primitivehit ) ) {
@@ -28,7 +28,7 @@ rgba RayShader::operator()( const Ray& ray, const Scene& scene, const PrimitiveH
 
 	// Specular Term
 	if ( material.specular > RealTransparent ) {
-		Vec3 halfway = ( 2 * brightness * hit.normal ) - directiontolight;
+		vec3 halfway = ( 2 * brightness * hit.normal ) - directiontolight;
 		real normaldothalfway = dot( -ray.direction, halfway );
 		if ( normaldothalfway >= static_cast<real>( 0 ) ) {
 			rgba specularbrightness = std::pow( normaldothalfway, material.specularpower ) * material.specular * shadow;
@@ -70,18 +70,18 @@ rgba RayShader::Lighting( const Ray& ray, const Scene& scene, const PrimitiveHit
 	const Primitive& primitive = primitivehit.first;
 	const Material& material = primitivehit.second;
 	const Hit& hit = primitivehit.third;
-	const Vec3& surfacecontact = hit.contact;
+	const vec3& surfacecontact = hit.contact;
 
 	for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
-		ambient += ( *this )( ray, scene, primitivehit, ambientlights[ a ] ) * perambient;
+		ambient += ( *this )( ray, scene, primitivehit, ambientlights[ a ] );// *perambient;
 	}
 
 	for ( std::size_t d = 0; d < directionallights.size( ); ++d ) {
-		directional += ( *this )( ray, scene, primitivehit, directionallights[ d ] ) * perlight;
+		directional += ( *this )( ray, scene, primitivehit, directionallights[ d ] );// *perlight;
 	}
 
 	for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
-		point += ( *this )( ray, scene, primitivehit, pointlights[ p ] ) * perlight;
+		point += ( *this )( ray, scene, primitivehit, pointlights[ p ] );// *perlight;
 	}
 
 	color += ambient + point + directional;

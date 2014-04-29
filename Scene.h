@@ -4,11 +4,11 @@
 #include "rgba.h"
 #include "Material.h"
 #include "Light.h"
-#include "RayTrace.h"
 #include "RayShader.h"
 #include <Furrovine++/optional.h>
 #include <Furrovine++/reference_equals.h>
 #include <Furrovine++/buffer_view.h>
+#include <vector>
 
 class Scene {
 private:
@@ -27,9 +27,9 @@ public:
 	Scene( const rgba& background = RealWhite ) 
 	: vacuumprimitive( vacuum_arg ), vacuummaterial( background, background, background, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ), vacuumhit( ) {
 		vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
-		vacuumhit.normal = Vec3::Zero;
-		vacuumhit.uvw = Vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
-		vacuumhit.contact = Vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
+		vacuumhit.normal = vec3::Zero;
+		vacuumhit.uvw = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
+		vacuumhit.contact = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
 		
 		primitives.reserve( 9182 );
 		materials.reserve( 9182 );
@@ -165,7 +165,7 @@ public:
 		return closesthit;
 	}
 
-	Fur::optional<PrimitiveHit> Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
+	/*Fur::optional<PrimitiveHit> Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
 		Fur::optional<PrimitiveHit> closesthit;
 		closesthit = Fur::nullopt;
 		trace.hits.clear( );
@@ -200,6 +200,6 @@ public:
 		} );
 
 		return closesthit;
-	}
+	}*/
 
 };

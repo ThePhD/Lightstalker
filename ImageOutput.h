@@ -23,12 +23,10 @@ public:
 		saver( *image, outputname );
 	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
-	virtual void Set( real x, real y, const rgba& pixel ) override {
+	virtual void operator()( std::size_t x, std::size_t y, const rgba& pixel ) override {
 		Fur::buffer_view2<Fur::ByteColor> imagepixels( reinterpret_cast<Fur::ByteColor*>( image->data( ) ), { image->Width( ), image->Height( ) } );
-		std::size_t ix = static_cast<std::size_t>( x );
-		std::size_t iy = static_cast<std::size_t>( y );
 		
-		Fur::ByteColor& datapixel = imagepixels[ { ix, iy } ];
+		Fur::ByteColor& datapixel = imagepixels[ Fur::index<2>( { x, y } ) ];
 		rgba clampedpixel = Fur::clamp( pixel );
 		datapixel = clampedpixel;
 	}

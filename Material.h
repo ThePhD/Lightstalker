@@ -30,8 +30,8 @@ struct TMaterial : public RMaterial<T> {
 	const Fur::TRgba<T>& refraction = Fur::Colors::Transparent,
 	const Fur::TRgba<T>& reflection = Fur::Colors::Transparent,
 	const Fur::TRgba<T>& emission = Fur::Colors::Transparent,
-	T indexofrefrac = Ior::Glass,
-	T absorb = Absorption::Glass,
+	T indexofrefrac = Ior::Water,
+	T absorb = Absorption::Water,
 	const Fur::TRgba<T>& ambience = Fur::Colors::White ) {
 		color = materialcolor;
 		diffuse = diffuseshade;

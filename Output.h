@@ -5,7 +5,7 @@
 
 class Output {
 public:
-	virtual void Set( real x, real y, const rgba& pixel ) { }
+	virtual void operator()( std::size_t x, std::size_t y, const rgba& pixel ) { }
 	virtual ~Output () { };
 };
 

@@ -2,6 +2,7 @@
 
 #include "real.h"
 
+#include <Furrovine++/Size2.h>
 #include <Furrovine++/Vector2.h>
 #include <Furrovine++/Vector3.h>
 #include <Furrovine++/Vector4.h>
@@ -9,22 +10,21 @@
 #include <Furrovine++/TNormal3.h>
 #include <Furrovine++/TNormal4.h>
 #include <Furrovine++/TMatrix4.h>
+#include <Furrovine++/TRectangle.h>
 #include <Furrovine++/Ray3.h>
 #include <Furrovine++/optional.h>
 
 namespace Fur = Furrovine;
 
-typedef Fur::TNormal2<real> Norm2;
-typedef Fur::TNormal3<real> Norm3;
-typedef Fur::TNormal4<real> Norm4;
-typedef Fur::TVector2<real> Vec2;
-typedef Fur::TVector3<real> Vec3;
-typedef Fur::TVector4<real> Vec4;
-typedef Fur::RMatrix4<real> RMat4;
-typedef Fur::TMatrix4<real> Mat4;
-typedef Fur::RVector2<real> RVec2;
-typedef Fur::RVector3<real> RVec3;
-typedef Fur::RVector4<real> RVec4;
+typedef Fur::TNormal2<real> normal2;
+typedef Fur::TNormal3<real> normal3;
+typedef Fur::TNormal4<real> normal4;
+typedef Fur::TSize2<real> size2;
+typedef Fur::TVector2<real> vec2;
+typedef Fur::TVector3<real> vec3;
+typedef Fur::TVector4<real> vec4;
+typedef Fur::TMatrix4<real> mat4;
+
 
 template <typename T>
 Fur::TVector3<T> reflect( const Fur::RVector3<T>& incident, const Fur::RVector3<T>& normal ) {
