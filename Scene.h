@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Primitive.h"
-#include "rgba.h"
+#include "PrimitiveHit.h"
 #include "Material.h"
+#include "rgba.h"
 #include "Light.h"
 #include "RayShader.h"
 #include <Furrovine++/optional.h>
@@ -25,7 +25,7 @@ private:
 public:
 
 	Scene( const rgba& background = RealWhite ) 
-	: vacuumprimitive( vacuum_arg ), vacuummaterial( background, background, background, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ), vacuumhit( ) {
+	: vacuumprimitive( vacuum_arg ), vacuummaterial( BasicMaterial( background, background, background, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ), vacuumhit( ) {
 		vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
 		vacuumhit.normal = vec3::Zero;
 		vacuumhit.uvw = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
@@ -42,10 +42,10 @@ public:
 		return PrimitiveHit{ vacuumprimitive, vacuummaterial, vacuumhit };
 	}
 
-	template <typename... Tn>
-	void Add( Material material, Tn&&... argn ) {
+	template <typename Tm, typename... Tn>
+	void Add( Tm&& material, Tn&&... argn ) {
 		primitives.emplace_back( std::forward<Tn>( argn )... );
-		materials.push_back( material );
+		materials.emplace_back( std::forward<Tm>( material ) );
 		primitives.back( ).material = materials.size( ) - 1;
 	}
 

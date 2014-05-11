@@ -2,7 +2,6 @@
 
 #include "real.h"
 #include "rgba.h"
-#include "Primitive.h"
 #include "Scene.h"
 #include "RayShader.h"
 
@@ -16,7 +15,7 @@ private:
 		const Material& material = primitivehit.second;
 		const Hit& hit = primitivehit.third;
 
-		bool hasreflectivity = material.reflectivity > RealTransparent;
+		bool hasreflectivity = material.reflectivity( primitive, hit ) > RealTransparent;
 		if ( !hasreflectivity )
 			return false;
 		
@@ -32,7 +31,7 @@ private:
 		const Material& material = primitivehit.second;
 		const Hit& hit = primitivehit.third;
 
-		bool hastransparency = material.refractivity > RealTransparent;
+		bool hastransparency = material.refractivity( primitive, hit ) > RealTransparent;
 		if ( !hastransparency )
 			return false;
 
@@ -59,11 +58,11 @@ private:
 		
 		// The vacuum of the scene is the background of the scene: the diffuse component contains the background (all taken care of by Scene)
 		if ( primitive.id == PrimitiveId::Vacuum ) {
-			bounces += ophit->second.color;
+			bounces += ophit->second.color( primitive, hit );
 			return primitive;
 		}
 
-		if ( material.diffuse > RealTransparent && !hit.inside ) {
+		if ( material.diffuse( primitive, hit ) > RealTransparent && !hit.inside ) {
 			rgba surface = shader.Lighting( ray, scene, primitivehit );
 			bounces += surface;
 		}
@@ -71,8 +70,8 @@ private:
 		if ( depth >= maxdepth )
 			return primitive;
 
-		const real& ior1 = previoushit ? previoushit->second.indexofrefraction : Ior::Vacuum;
-		const real& ior2 = material.indexofrefraction;
+		const real& ior1 = previoushit ? previoushit->second.indexofrefraction( primitive, hit ) : Ior::Vacuum;
+		const real& ior2 = material.indexofrefraction( primitive, hit );
 		
 		// Refraction Part
 		rgba refractioncolor( 0, 0, 0, 0 );
@@ -80,7 +79,7 @@ private:
 			// Things have a slight coloration to depth if they are shallow refractions.
 			// Intensity of the light drops off related to density and concentration
 			// of transparent material
-			/*rgba absorbance = material.color * material.absorption * -hit.distance0;
+			/*rgba absorbance = material.color( primitive, hit ) * material.absorption( primitive, hit ) * -hit.distance0;
 			rgba opacity( std::exp( absorbance.r ),
 				std::exp( absorbance.g ),
 				std::exp( absorbance.b ),

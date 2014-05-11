@@ -11,7 +11,7 @@ namespace SampleScene {
 		using namespace Furrovine::Colors;
 		
 		Scene scene( WhiteSmoke );
-		scene.Add( Material{ Red, White, White, 32, 
+		scene.Add( BasicMaterial{ Red, White, White, 32, 
 			rgba( 0.2f, 0.2f, 0.2f, 0.2f ), Transparent, Transparent, Ior::Water },
 			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
 		/*scene.Add( Material{ Blue, White, White, 32 },
@@ -23,7 +23,7 @@ namespace SampleScene {
 			for ( int z = -2; z < 3; ++z ) {
 				float xspace = 80.0f;
 				float zspace = 80.0f;
-				scene.Add( Material{ Blue, White, White, 32 },
+				scene.Add( BasicMaterial{ Blue, White, White, 32 },
 					sphere_arg, 20.0f, 
 				vec3( ( xspace * x ), -10, ( 138.564f - 69.282f ) + ( zspace * z ) ) );
 			}
@@ -44,17 +44,17 @@ namespace SampleScene {
 		using namespace Furrovine::Colors;
 
 		Scene scene( WhiteSmoke );
-		scene.Add( Material{ Red, White, White, 32, White, White },
+		scene.Add( BasicMaterial{ Red, White, White, 32, White, White },
 			sphere_arg, 50.0f, vec3( 0, 60, 0 ) );
-		scene.Add( Material{ YellowOrange, White, White, 32 },
+		scene.Add( BasicMaterial{ YellowOrange, White, White, 32 },
 			sphere_arg, 80.0f, vec3( 0, 90, 130 ) );
 
-		scene.Add( Material{ LightBlue, White, White, 32 },
+		scene.Add( BasicMaterial{ LightBlue, White, White, 32 },
 			sphere_arg, 30.0f, vec3( -90, 40, -10 ) );
-		scene.Add( Material{ DarkGreen, White, White, 32 },
+		scene.Add( BasicMaterial{ DarkGreen, White, White, 32 },
 			sphere_arg, 30.0f, vec3( 90, 40, -10 ) );
 
-		scene.Add( Material{ BlueBell, White, Transparent },
+		scene.Add( BasicMaterial{ BlueBell, White, Transparent },
 			plane_arg, -1.0f, vec3::Up );
 
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
@@ -70,16 +70,16 @@ namespace SampleScene {
 		Scene scene( WhiteSmoke );
 		
 		// ground plane
-		scene.Add( Material{ rgba( 0.4f, 0.3f, 0.3f, 1.0f ), RealWhite, RealWhite, 32 },
+		scene.Add( BasicMaterial{ rgba( 0.4f, 0.3f, 0.3f, 1.0f ), RealWhite, RealWhite, 32 },
 			plane_arg, 4.4f, vec3::Up );
 		
 		// big sphere
-		scene.Add( Material{ rgba( 0.7f, 0.7f, 1.0f, 1.0f ), RealWhite, RealWhite, 32, 
+		scene.Add( BasicMaterial{ rgba( 0.7f, 0.7f, 1.0f, 1.0f ), RealWhite, RealWhite, 32,
 				rgba( 0.2f, 0.2f, 0.2f, 0.2f ), rgba( 0.8f, 0.8f, 0.8f, 0.8f ), RealTransparent, 1.3f },
 			sphere_arg, 2.5f, vec3( 2, 0.8f, 3 ) );
 		
 		// small sphere
-		scene.Add( Material{ rgba( 0.7f, 0.7f, 1.0f ),
+		scene.Add( BasicMaterial{ rgba( 0.7f, 0.7f, 1.0f ),
 				rgba( 0.1f, 0.1f, 0.1f, 0.1f ),
 				White,
 				32,
@@ -96,7 +96,7 @@ namespace SampleScene {
 		int prim = 8;
 		for ( int x = 0; x < 8; x++ ) {
 			for ( int y = 0; y < 7; y++ ) {
-				scene.Add( Material{ rgba( 0.7f, 0.7f, 1.0f ),
+				scene.Add( BasicMaterial{ rgba( 0.7f, 0.7f, 1.0f ),
 					rgba( 0.6f, 0.6f, 0.6f, 0.6f ),
 					rgba( 0.6f, 0.6f, 0.6f, 0.6f ),
 					32,

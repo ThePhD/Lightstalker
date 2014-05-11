@@ -83,6 +83,8 @@
     <ClCompile Include="rgba.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PrimitiveHit.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="TileTracer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Absorption.h" />
@@ -91,7 +93,7 @@
     <ClInclude Include="ImageOutput.h" />
     <ClInclude Include="Ior.h" />
     <ClInclude Include="Light.h" />
-    <ClInclude Include="Material.h" />
+    <ClInclude Include="TMaterial.h" />
     <ClInclude Include="Multisampler.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="RayShader.h" />

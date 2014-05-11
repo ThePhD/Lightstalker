@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Primitive.h"
+#include "PrimitiveHit.h"
 #include "rgba.h"
 #include "Light.h"
 

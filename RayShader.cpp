@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 rgba RayShader::operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const AmbientLight& ambientlight ) const {
-	return rgba( ambientlight.intensity * primitivehit.second.ambient );
+	return rgba( ambientlight.intensity * primitivehit.second.ambient( primitivehit.first, primitivehit.third ) );
 }
 
 rgba RayShader::operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const DirectionalLight& directionallight ) const {
@@ -22,16 +22,16 @@ rgba RayShader::operator()( const Ray& ray, const Scene& scene, const PrimitiveH
 	// Diffuse Term
 	real brightness = dot( hit.normal, directiontolight );
 	if ( brightness > static_cast<real>( 0 ) 
-		&& material.diffuse > RealTransparent ) {
-		color += material.diffuse * brightness * material.color * directionallight.intensity * shadow;
+		&& material.diffuse( primitive, hit ) > RealTransparent ) {
+		color += material.diffuse( primitive, hit ) * brightness * material.color( primitive, hit ) * directionallight.intensity * shadow;
 	}
 
 	// Specular Term
-	if ( material.specular > RealTransparent ) {
+	if ( material.specular( primitive, hit ) > RealTransparent ) {
 		vec3 halfway = ( 2 * brightness * hit.normal ) - directiontolight;
 		real normaldothalfway = dot( -ray.direction, halfway );
 		if ( normaldothalfway >= static_cast<real>( 0 ) ) {
-			rgba specularbrightness = std::pow( normaldothalfway, material.specularpower ) * material.specular * shadow;
+			rgba specularbrightness = std::pow( normaldothalfway, material.specularpower( primitive, hit ) ) * material.specular( primitive, hit ) * shadow;
 			color += specularbrightness * directionallight.intensity;
 		}
 	}

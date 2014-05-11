@@ -25,12 +25,12 @@ int main( ) {
 	using namespace Furrovine::Pipeline;
 	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
-	
+
 	std::size_t width = 800;
 	std::size_t height = 600;
 	real swidth = static_cast<real>( width );
 	real sheight = static_cast<real>( height );
-	Image2D image( width, height, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, 32, 0 );
+	Image2D image( width, height, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, 8, 0 );
 	ImageOutput output( image );
 	std::default_random_engine randomengine{ };
 	Multisampler multisampler( 1, 1, randomengine );
@@ -123,13 +123,13 @@ int main( ) {
 			break;
 
 		graphics.Clear( PastelGrey );
-		graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
-		graphics.RenderImage( font.Texture( ) );
-		batch.Begin( );
+		graphics.RenderImage( image );
+		//graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
+		/*batch.Begin( );
 		String datastring = Format( "[ x: {0} | y: {1} ]", lexical_cast( mousex ), lexical_cast( mousey ) );
 		batch.RenderString( font, datastring, { 0, sheight } );
 		batch.End( );
-
+		*/
 		graphics.Present( );
 	}
 }

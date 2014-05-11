@@ -2,7 +2,6 @@
 
 #include "real.h"
 #include "Ray.h"
-#include "Material.h"
 #include <Furrovine++/unreachable.h>
 #include <Furrovine++/optional.h>
 #include <Furrovine++/THit3.h>
@@ -108,5 +107,3 @@ typedef Fur::RSphere<real> Sphere;
 typedef Fur::RDisk3<real> Disk;
 typedef Fur::THit3<real> Hit;
 typedef TPrimitive<real> Primitive;
-
-typedef Fur::triple<const Primitive&, const Material&, Hit> PrimitiveHit;

@@ -46,6 +46,8 @@ private:
 			}
 			if ( x == width ) {
 				++y;
+				if ( y == height )
+					break;
 				x = 0;
 			}
 		}
