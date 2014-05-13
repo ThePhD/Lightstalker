@@ -33,10 +33,11 @@ struct TMaterial {
 
 	template <typename Tm>
 	struct interfacer : base {
-		Tm m;
+		typedef typename std::decay<Tm>::type Tdm;
+		Tdm m;
 
-		template <typename Tmm>
-		interfacer ( Tmm&& mm ) : m( std::forward<Tmm>( mm ) ) {
+		template <typename... Tmm>
+		interfacer ( Tmm&&... mm ) : m( std::forward<Tmm>( mm )... ) {
 
 		}
 
@@ -84,7 +85,7 @@ struct TMaterial {
 	std::unique_ptr<base> matbase;
 
 	template <typename Tm>
-	TMaterial( Tm&& m ) : matbase( std::make_unique<interfacer<Tm>>( interfacer<Tm>{ std::forward<Tm>( m ) } ) ) {
+	TMaterial( Tm&& m ) : matbase( std::make_unique<interfacer<typename std::decay<Tm>::type>>( interfacer<typename std::decay<Tm>::type>{ std::forward<Tm>( m ) } ) ) {
 
 	}
 

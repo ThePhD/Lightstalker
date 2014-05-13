@@ -48,7 +48,7 @@ public:
 			}
 		}
 		// Bottom Side
-		if ( idx[ 1 ] < static_cast<ptrdiff_t>( h ) ) {
+		if ( idx[ 1 ] < static_cast<ptrdiff_t>( h - 1 ) ) {
 			if ( primitive != hitmap[ idx + idx_t{ 0, 1 } ] ) {
 				return true;
 			}

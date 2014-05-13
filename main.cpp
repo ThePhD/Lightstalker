@@ -30,7 +30,7 @@ int main( ) {
 	std::size_t height = 600;
 	real swidth = static_cast<real>( width );
 	real sheight = static_cast<real>( height );
-	Image2D image( width, height, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, 8, 0 );
+	Image2D image( width, height, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, ToByteSize( SurfaceFormat::Red8Green8Blue8Alpha8Normalized ), 0 );
 	ImageOutput output( image );
 	std::default_random_engine randomengine{ };
 	Multisampler multisampler( 1, 1, randomengine );
@@ -39,7 +39,7 @@ int main( ) {
 	//Camera camera( vec3( 0, 30, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::SizedSpheres( );
 	Camera camera( vec3( 0, 400, -30 ), vec3( 0, 0, 0 ), vec3::Forward, 400.0f );
-	Scene scene = SampleScene::Trifecta( );
+	Scene scene = SampleScene::RefractionTest( );
 	//Camera camera( vec3( 0, 10, -10 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::Complex( );
 	TileTracer tiletracer( width, height, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );

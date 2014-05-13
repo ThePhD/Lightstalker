@@ -9,33 +9,75 @@ namespace SampleScene {
 	Scene Trifecta( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
-		
+
 		Scene scene( WhiteSmoke );
-		scene.Add( BasicMaterial{ Red, White, White, 32, 
+		scene.Add( BasicMaterial{ Red, White, White, 32,
+			rgba( 0.2f, 0.2f, 0.2f, 0.2f ), Transparent, Transparent, Ior::Water },
+			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
+		scene.Add( BasicMaterial{ Blue, White, White, 32 },
+		sphere_arg, 80.0f, vec3( 80, 120, 0 - 69.282f ) );
+		scene.Add( BasicMaterial{ Yellow, White, White, 32 },
+		sphere_arg, 80.0f, vec3( -80, 120, 0 - 69.282f ) );
+		
+		scene.Add( BasicMaterial{ BlueBell, White, Transparent, 50000.0f },
+		plane_arg, -30.0f, vec3::Up );
+		
+		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
+
+		return scene;
+	}
+
+	Scene MultiSphere( ) {
+		using namespace Furrovine;
+		using namespace Furrovine::Colors;
+
+		Scene scene( WhiteSmoke );
+		scene.Add( BasicMaterial{ Red, White, White, 32,
 			rgba( 0.2f, 0.2f, 0.2f, 0.2f ), Transparent, Transparent, Ior::Water },
 			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
 		/*scene.Add( Material{ Blue, White, White, 32 },
-			sphere_arg, 80.0f, vec3( 80, 120, 0 - 69.282f ) );
+		sphere_arg, 80.0f, vec3( 80, 120, 0 - 69.282f ) );
 		scene.Add( Material{ Yellow, White, White, 32 },
-			sphere_arg, 80.0f, vec3( -80, 120, 0 - 69.282f ) );
+		sphere_arg, 80.0f, vec3( -80, 120, 0 - 69.282f ) );
 		*/
 		for ( int x = -2; x < 3; ++x ) {
 			for ( int z = -2; z < 3; ++z ) {
 				float xspace = 80.0f;
 				float zspace = 80.0f;
 				scene.Add( BasicMaterial{ Blue, White, White, 32 },
-					sphere_arg, 20.0f, 
-				vec3( ( xspace * x ), -10, ( 138.564f - 69.282f ) + ( zspace * z ) ) );
+					sphere_arg, 20.0f,
+					vec3( ( xspace * x ), -10, ( 138.564f - 69.282f ) + ( zspace * z ) ) );
 			}
 		}
-		
+
 		/*scene.Add( Material{ BlueBell, White, Transparent },
-			plane_arg, -30.0f, vec3::Up );
+		plane_arg, -30.0f, vec3::Up );
 		*/
 		//scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
 		//scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
+
+		return scene;
+	}
+
+	Scene RefractionTest( ) {
+		using namespace Furrovine;
+		using namespace Furrovine::Colors;
+
+		Scene scene( WhiteSmoke );
+		scene.Add( BasicMaterial{ Red, White, White, 32,
+			rgba( 0.2f, 0.2f, 0.2f, 0.2f ), Transparent, Transparent, Ior::Water },
+			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
 		
+		scene.Add( GridMaterial{ vec3( 20, 20, 20 ), Black, White, White, Transparent },
+		plane_arg, -30.0f, vec3::Up );
+		
+		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
+		//scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
+
 		return scene;
 	}
 

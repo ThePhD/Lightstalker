@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TMaterial.h"
+#include <Furrovine++/TSpherical.h>
 
 template <typename T>
 struct TBasicMaterial {
@@ -84,10 +85,11 @@ template <typename T>
 struct TGridMaterial : public TBasicMaterial<T> {
 
 	Fur::RRgba<T> offcolor;
-	T gridsizex;
-	T gridsizey;
+	Fur::TVector3<T> gridsize;
 
-	TGridMaterial( const Fur::TRgba<T>& materialcolor = Fur::Colors::Red,
+	TGridMaterial( const Fur::RVector3<T>& gridsize,
+		const Fur::TRgba<T>& offcolor = Fur::Colors::White, 
+		const Fur::TRgba<T>& materialcolor = Fur::Colors::Red,
 		const Fur::TRgba<T>& diffuseshade = Fur::Colors::White,
 		const Fur::TRgba<T>& specularshade = Fur::Colors::White,
 		T specularpow = static_cast<T>( 255 ),
@@ -97,11 +99,28 @@ struct TGridMaterial : public TBasicMaterial<T> {
 		T indexofrefrac = Ior::Water,
 		T absorb = Absorption::Water,
 		const Fur::TRgba<T>& ambience = Fur::Colors::White ) :
-		TBasicMaterial( materialcolor, diffuseshade, specularshade, specularpow, refraction, reflection, emission, indexofrefrac, absorb, ambience ) {
+		TBasicMaterial( materialcolor, diffuseshade, specularshade, specularpow, refraction, reflection, emission, indexofrefrac, absorb, ambience ),
+		gridsize( gridsize ), offcolor( offcolor ) {
 
 	}
 
 	Fur::TRgba<T> color( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		// We'll erase the below, and try:
+		// Finding 2 perpendicular vectors that lie entirely in the plane (use normal for this)
+		// Get distance from origin to point along those 2 vectors
+		// these are x and y for grid coordinates.
+		auto origin = primitive.origin();
+		auto planarvec = Fur::unnormalized_direction_to( origin, hit.contact );
+		Fur::TSpherical<T> spherical = hit.normal;
+		spherical.elevation += Fur::half_pi<T>( );
+		auto xvec = spherical.cartesian( );
+		auto zvec = Fur::cross( xvec, hit.normal );
+		auto xdist = Fur::distance_to( Fur::project( planarvec, xvec ), origin );
+		auto zdist = Fur::distance_to( Fur::project( planarvec, zvec ), origin );
+		if ( std::fmod( xdist, gridsize[ 0 ] * 2 ) < gridsize[ 0 ] )
+			return offcolor;
+		if ( std::fmod( zdist, gridsize[ 1 ] * 2 ) < gridsize[ 1 ] )
+			return offcolor;
 		return matcolor;
 	}
 

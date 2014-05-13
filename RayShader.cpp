@@ -50,7 +50,7 @@ bool RayShader::Shadow( rgba& shadow, const Ray& shadowray, const Scene& scene, 
 	auto shadowophit = scene.Intersect( shadowray, primitivehit.first );
 	if ( !shadowophit || shadowophit->first.id == PrimitiveId::Vacuum )
 		return false;
-	shadow = RealTransparent;
+	shadow = RealBlack;
 	return true;
 }
 

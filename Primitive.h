@@ -82,6 +82,20 @@ struct TPrimitive {
 
 	}
 
+	Fur::TVector3<T> origin( ) const {
+		switch ( id ) {
+		case PrimitiveId::Plane:
+			return plane.distance * plane.normal;
+		case PrimitiveId::Sphere:
+			return sphere.origin;
+		case PrimitiveId::Triangle:
+			return triangle.center();
+		default:
+			break;
+		};
+		unreachable;
+	}
+
 };
 
 template <typename T>
