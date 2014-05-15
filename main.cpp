@@ -38,14 +38,15 @@ int main( ) {
 	RayTracer tracer;
 	//Camera camera( vec3( 0, 30, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::SizedSpheres( );
-	Camera camera( vec3( 0, 400, -30 ), vec3( 0, 0, 0 ), vec3::Forward, 400.0f );
+	Camera camera( vec3( 0, 400, -30 ), vec3( 0, 0, 0 ), vec3::Up, 400.0f );
 	Scene scene = SampleScene::RefractionTest( );
 	//Camera camera( vec3( 0, 10, -10 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::Complex( );
 	TileTracer tiletracer( width, height, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );
 
 	Fur::WindowDriver windowdriver;
-	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", Fur::Size2ui( width, height + 40 ) ) );
+	height += 60;
+	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", Fur::Size2u32( width, height ) ) );
 	GraphicsDevice graphics( window );
 	NymphBatch batch( graphics );
 	Fur::MessageQueue messagequeue;
@@ -122,9 +123,8 @@ int main( ) {
 		if ( quit )
 			break;
 
-		graphics.Clear( PastelGrey );
-		graphics.RenderImage( image );
-		//graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
+		graphics.Clear( Black );
+		graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
 		/*batch.Begin( );
 		String datastring = Format( "[ x: {0} | y: {1} ]", lexical_cast( mousex ), lexical_cast( mousey ) );
 		batch.RenderString( font, datastring, { 0, sheight } );
