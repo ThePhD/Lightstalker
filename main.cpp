@@ -18,6 +18,8 @@
 #include <Furrovine++/Pipeline/RasterFontLoader.h>
 #include <iostream>
 
+#include <Furrovine++/strided_buffer_view.h>
+
 int main( ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Colors;
@@ -26,6 +28,22 @@ int main( ) {
 	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
 
+	int items[][5] = {
+		0, 1, 2, 3, 
+		4, 5, 6, 7, 
+		8, 9, 10, 11,
+		12, 13, 14, 15, 
+		16, 17, 18, 19
+	};
+	buffer_view<int, 2> unstrided( items );
+	strided_buffer_view<int, 2> strided( unstrided.data( ), { 2, 3 }, { 1, 4 }, { 1, 1 } );
+
+	std::size_t n = strided.size( );
+
+	for ( auto beg = begin( strided.bounds( ) ); beg != end( strided.bounds( ) ); ++beg ) {
+		std::cout << strided[ *beg ] << std::endl;
+	}
+
 	std::size_t width = 800;
 	std::size_t height = 600;
 	real swidth = static_cast<real>( width );
@@ -33,16 +51,16 @@ int main( ) {
 	Image2D image( width, height, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, ToByteSize( SurfaceFormat::Red8Green8Blue8Alpha8Normalized ), 0 );
 	ImageOutput output( image );
 	std::default_random_engine randomengine{ };
-	Multisampler multisampler( 1, 1, randomengine );
+	Multisampler multisampler( 4, 4, randomengine );
 	RayShader shader;
 	RayTracer tracer;
 	//Camera camera( vec3( 0, 30, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::SizedSpheres( );
-	Camera camera( vec3( 0, 400, -30 ), vec3( 0, 0, 0 ), vec3::Up, 400.0f );
+	Camera camera( vec3( 0, 350, -120 ), vec3( 0, 0, 0 ), vec3::Up, 400.0f );
 	Scene scene = SampleScene::RefractionTest( );
 	//Camera camera( vec3( 0, 10, -10 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::Complex( );
-	TileTracer tiletracer( width, height, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );
+	TileTracer<16, 16> tiletracer( width, height, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );
 
 	Fur::WindowDriver windowdriver;
 	height += 60;

@@ -28,6 +28,7 @@ public:
 		
 		Fur::ByteColor& datapixel = imagepixels[ { x, y } ];
 		rgba clampedpixel = Fur::clamp( pixel );
+		clampedpixel.a = 1.0f;
 		datapixel = clampedpixel;
 	}
 

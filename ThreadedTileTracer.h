@@ -4,9 +4,8 @@
 #include "RayTracer.h"
 #include "Camera.h"
 #include "Hitmap.h"
+#include "Tile.h"
 #include <Furrovine++/Threading/ThreadPool.h>
-
-typedef Furrovine::TRectangle<std::size_t> Tile;
 
 class ThreadedTileTracer {
 public:
@@ -100,7 +99,7 @@ public:
 		for ( std::size_t y = tile.top; y < tile.bottom; ++y ) {
 			for ( std::size_t x = tile.left; x < tile.right; ++x ) {
 				auto hit = raytracer.RayTrace( vec2( static_cast<float>( x ), static_cast<float>( y ) ), size2( hitmap.bounds( ) ), camera, scene, rayshader );
-				hitmap[ { x, y } ] = std::addressof( hit.second.value( ) );
+				hitmap[ { x, y } ] = hit.second.value( );
 				ontrace( { x, y }, hit.first, false );
 				output( x, y, hit.first );
 			}

@@ -85,6 +85,8 @@
   <ItemGroup>
     <ClInclude Include="PrimitiveHit.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="ScanlineTracer.h" />
+    <ClInclude Include="Tile.h" />
     <ClInclude Include="TileTracer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Absorption.h" />

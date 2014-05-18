@@ -8,8 +8,8 @@
 class Hitmap {
 private:
 	std::size_t w, h;
-	std::vector<Primitive const*> primitives;
-	Fur::buffer_view<Primitive const*, 2> hitmap;
+	std::vector<uintptr_t> primitives;
+	Fur::buffer_view<uintptr_t, 2> hitmap;
 	typedef Fur::buffer_view<Primitive const*, 2>::index_type idx_t;
 	typedef Fur::buffer_view<Primitive const*, 2>::bounds_type bounds_t;
 
@@ -28,7 +28,7 @@ public:
 	}
 
 	bool should_multisample( idx_t idx ) const {
-		Primitive const* primitive = hitmap[ idx ];
+		uintptr_t primitive = hitmap[ idx ];
 		// Left Side
 		if ( idx[ 0 ] > 0 ) {
 			if ( primitive != hitmap[ idx - idx_t{ 1, 0 } ] ) {
@@ -56,11 +56,11 @@ public:
 		return false;
 	}
 
-	Primitive const* const& operator[] ( idx_t idx ) const {
+	const uintptr_t& operator[] ( idx_t idx ) const {
 		return hitmap[ idx ];
 	}
 
-	Primitive const*& operator[] ( idx_t idx ) {
+	uintptr_t& operator[] ( idx_t idx ) {
 		return hitmap[ idx ];
 	}
 

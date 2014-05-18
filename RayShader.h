@@ -6,14 +6,14 @@
 
 struct RayShader {
 public:
-	bool Shadow( rgba& shadow, const Ray& shadowray, const Scene& scene, const PrimitiveHit& primitivehit ) const;
+	Fur::triple<rgba, bool, bool> Shadow( const Ray& shadowray, const Scene& scene, const PrimitiveHit& primitivehit ) const;
 
-	rgba Lighting( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit ) const;
+	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit ) const;
 
-	rgba operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const PointLight& pointlight ) const;
+	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const PointLight& pointlight ) const;
 
-	rgba operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const DirectionalLight& directionallight ) const;
+	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const DirectionalLight& directionallight ) const;
 
-	rgba operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const AmbientLight& ambientlight ) const;
+	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const AmbientLight& ambientlight ) const;
 
 };

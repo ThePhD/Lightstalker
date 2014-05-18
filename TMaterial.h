@@ -135,4 +135,31 @@ struct TMaterial {
 
 };
 
-typedef TMaterial<real> Material;
+template <typename T>
+struct TPrecalculatedMaterial {
+
+	Fur::RRgba<T> color;
+	Fur::RRgba<T> ambient;
+	Fur::RRgba<T> diffuse;
+	Fur::RRgba<T> specular;
+	Fur::RRgba<T> refractivity;
+	Fur::RRgba<T> reflectivity;
+	Fur::RRgba<T> emissive;
+	T specularpower;
+	T indexofrefraction;
+	T absorption;
+
+	TPrecalculatedMaterial( const TMaterial<T>& material, const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) {
+		color = material.color( primitive, hit );
+		ambient = material.ambient( primitive, hit );
+		diffuse = material.diffuse( primitive, hit );
+		specular = material.specular( primitive, hit );
+		refractivity = material.refractivity( primitive, hit );
+		reflectivity = material.reflectivity( primitive, hit );
+		emissive = material.emissive( primitive, hit );
+		specularpower = material.specularpower( primitive, hit );
+		indexofrefraction = material.indexofrefraction( primitive, hit );
+		absorption = material.absorption( primitive, hit );
+	}
+
+};

@@ -39,7 +39,7 @@ public:
 	}
 
 	PrimitiveHit Vacuum( ) const {
-		return PrimitiveHit{ vacuumprimitive, vacuummaterial, vacuumhit };
+		return PrimitiveHit{ vacuumprimitive, PrecalculatedMaterial( vacuummaterial, vacuumprimitive, vacuumhit ), vacuumhit };
 	}
 
 	template <typename Tm, typename... Tn>
@@ -154,7 +154,7 @@ public:
 			if ( !hit )
 				continue;
 			if ( hit->distance0 < t0 ) {
-				closesthit = PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) };
+				closesthit = PrimitiveHit{ prim, PrecalculatedMaterial( materials[ prim.material ], prim, hit.value() ), hit.value( ) };
 				t0 = hit->distance0;
 			}
 		}

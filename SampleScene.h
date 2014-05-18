@@ -68,14 +68,21 @@ namespace SampleScene {
 
 		Scene scene( WhiteSmoke );
 		scene.Add( BasicMaterial{ Red, White, White, 32,
-			rgba( 0.2f, 0.2f, 0.2f, 0.2f ), Transparent, Transparent, Ior::Water },
+			rgba( 0.5f, 0.5f, 0.5f, 0.5f ) },
 			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
-		
-		scene.Add( GridMaterial{ vec3( 20, 20, 20 ), Black, White, White, Transparent },
-		plane_arg, -30.0f, vec3::Up );
-		
+
+		scene.Add( BasicMaterial{ Blue, White, White, 32,
+			RealWhite, rgba( 0.2f, 0.2f, 0.2f, 0.2f ) },
+			sphere_arg, 60.0f, vec3( 0, 120, 138.564f - 69.282f ) );
+
+		scene.Add( CheckerMaterial{ vec3( 80, 80, 80 ), Black, White, White, Transparent },
+			plane_arg, -30.0f, vec3::Up );
+
+		scene.Add( CheckerMaterial{ vec3( 70, 70, 70 ), Black, Blue, White, Transparent },
+			plane_arg, -200.0f, vec3::Right );
+
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
-		//scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
 
 		return scene;
