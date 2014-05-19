@@ -27,23 +27,7 @@ int main( ) {
 	using namespace Furrovine::Pipeline;
 	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
-
-	int items[][5] = {
-		0, 1, 2, 3, 
-		4, 5, 6, 7, 
-		8, 9, 10, 11,
-		12, 13, 14, 15, 
-		16, 17, 18, 19
-	};
-	buffer_view<int, 2> unstrided( items );
-	strided_buffer_view<int, 2> strided( unstrided.data( ), { 2, 3 }, { 1, 4 }, { 1, 1 } );
-
-	std::size_t n = strided.size( );
-
-	for ( auto beg = begin( strided.bounds( ) ); beg != end( strided.bounds( ) ); ++beg ) {
-		std::cout << strided[ *beg ] << std::endl;
-	}
-
+	
 	std::size_t width = 800;
 	std::size_t height = 600;
 	real swidth = static_cast<real>( width );

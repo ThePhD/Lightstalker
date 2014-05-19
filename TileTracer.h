@@ -61,7 +61,7 @@ private:
 
 	void Trace1Prepare( ) {
 		Fur::Stopwatch stopwatch;
-		auto mtend = Fur::end( hitmap.bounds( ) );
+		auto mtend = hitmap.bounds( ).end( );
 		bool timerbreak = false;
 		
 		stopwatch.Start( );
@@ -137,7 +137,7 @@ public:
 				tiles.push_back( tile );
 			}
 		}
-		mtit = Fur::begin( hitmap.bounds( ) );
+		mtit = hitmap.bounds( ).begin( );
 		tracecomplete = false;
 		multisampleprepcomplete = false;
 		multisamplecomplete = false;
