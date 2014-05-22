@@ -16,18 +16,30 @@
 #include <Furrovine++/Graphics/NymphBatch.h>
 #include <Furrovine++/Graphics/Image2D.h>
 #include <Furrovine++/Pipeline/RasterFontLoader.h>
+#include <Furrovine++/Pipeline/ImageLoader.h>
+#include <Furrovine++/Graphics/Filtering/SobelEdges.h>
 #include <iostream>
-
-#include <Furrovine++/strided_buffer_view.h>
 
 int main( ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Colors;
 	using namespace Furrovine::Graphics;
+	using namespace Furrovine::Graphics::Filtering;
 	using namespace Furrovine::Pipeline;
 	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
 	
+	Image2D testimage = ImageLoader( )( load_single, "test2.png" );
+	Image2D realimage( testimage.width( ), testimage.height( ), SurfaceFormat::Red32Green32Blue32Alpha32 );
+	buffer_view<ByteColor, 2> testimageview = testimage.view<ByteColor>( );
+	buffer_view<FloatColor, 2> realimageview = realimage.view<FloatColor>( );
+	std::copy( testimageview.begin( ), testimageview.end( ), realimageview.begin( ) );
+	SobelEdges sobel;
+	
+	auto data = sobel.Convolve( realimageview );
+	std::copy( data.view<TRgba<float>>( ).data( ), data.view<TRgba<float>>( ).data_end( ), testimageview.begin( ) );
+	PNGSaver( )( testimage, "test2-o.png" );
+
 	std::size_t width = 800;
 	std::size_t height = 600;
 	real swidth = static_cast<real>( width );
@@ -78,7 +90,7 @@ int main( ) {
 					// Reload with FileSystemWatcher
 					x = 0;
 					y = 0;
-					std::fill_n( image.data( ), image.size( ), 0 );
+					std::fill_n( image.raw_view( ).data(), image.raw_view( ).size( ), 0 );
 				}
 				if ( ( keyboard.Key == Key::Escape
 					|| keyboard.Key == Key::Q )

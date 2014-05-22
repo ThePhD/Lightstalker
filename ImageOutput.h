@@ -24,7 +24,7 @@ public:
 	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
 	virtual void operator()( std::size_t x, std::size_t y, const rgba& pixel ) override {
-		Fur::buffer_view2<Fur::ByteColor> imagepixels( reinterpret_cast<Fur::ByteColor*>( image->data( ) ), { image->Width( ), image->Height( ) } );
+		Fur::buffer_view2<Fur::ByteColor> imagepixels = image->view<Fur::ByteColor>();
 		
 		Fur::ByteColor& datapixel = imagepixels[ { x, y } ];
 		rgba clampedpixel = Fur::clamp( pixel );
