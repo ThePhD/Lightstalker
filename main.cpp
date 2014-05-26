@@ -17,7 +17,12 @@
 #include <Furrovine++/Graphics/Image2D.h>
 #include <Furrovine++/Pipeline/RasterFontLoader.h>
 #include <Furrovine++/Pipeline/ImageLoader.h>
-#include <Furrovine++/Graphics/Filtering/SobelEdges.h>
+#include <Furrovine++/Graphics/Filtering/SobelEdge.h>
+#include <Furrovine++/Graphics/Filtering/LaplacianEdge.h>
+#include <Furrovine++/Graphics/Filtering/MotionBlur.h>
+#include <Furrovine++/Graphics/Filtering/BoxBlur.h>
+#include <Furrovine++/Graphics/Filtering/Greyscale.h>
+#include <Furrovine++/Graphics/Filtering/GaussianBlur.h>
 #include <iostream>
 
 int main( ) {
@@ -29,22 +34,11 @@ int main( ) {
 	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
 	
-	Image2D testimage = ImageLoader( )( load_single, "test2.png" );
-	Image2D realimage( testimage.width( ), testimage.height( ), SurfaceFormat::Red32Green32Blue32Alpha32 );
-	buffer_view<ByteColor, 2> testimageview = testimage.view<ByteColor>( );
-	buffer_view<FloatColor, 2> realimageview = realimage.view<FloatColor>( );
-	std::copy( testimageview.begin( ), testimageview.end( ), realimageview.begin( ) );
-	SobelEdges sobel;
-	
-	auto data = sobel.Convolve( realimageview );
-	std::copy( data.view<TRgba<float>>( ).data( ), data.view<TRgba<float>>( ).data_end( ), testimageview.begin( ) );
-	PNGSaver( )( testimage, "test2-o.png" );
-
 	std::size_t width = 800;
 	std::size_t height = 600;
 	real swidth = static_cast<real>( width );
 	real sheight = static_cast<real>( height );
-	Image2D image( width, height, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, ToByteSize( SurfaceFormat::Red8Green8Blue8Alpha8Normalized ), 0 );
+	Image2D image( bounds<2>( width, height ), SurfaceFormat::Red8Green8Blue8Alpha8Normalized, ToByteSize( SurfaceFormat::Red8Green8Blue8Alpha8Normalized ), 0 );
 	ImageOutput output( image );
 	std::default_random_engine randomengine{ };
 	Multisampler multisampler( 4, 4, randomengine );
