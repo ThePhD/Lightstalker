@@ -2,6 +2,7 @@
 
 #include "TMaterial.h"
 #include <Furrovine++/TSpherical.h>
+#include <Furrovine++/Graphics/Material.h>
 
 template <typename T>
 struct TBasicMaterial {
@@ -147,9 +148,63 @@ struct TCheckerMaterial : public TBasicMaterial<T> {
 
 };
 
+template <typename T>
+struct TWavefrontMaterial {
+
+	Fur::Graphics::Material mat;
+	Fur::TRgba<T> matreflectivity;
+
+	template <typename... Tn>
+	TWavefrontMaterial( Tn&&... argn ) : mat( std::forward<Tn>( argn )... ) {
+		T mr = static_cast<T>( mat.Reflectivity );
+		matreflectivity = Fur::TRgba<T>( mr, mr, mr, mr );
+	}
+
+	Fur::TRgba<T> color( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return mat.Diffuse;
+	}
+
+	Fur::TRgba<T> ambient( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return mat.Ambience;
+	}
+
+	Fur::TRgba<T> diffuse( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return mat.Diffuse;
+	}
+
+	Fur::TRgba<T> specular( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return mat.Specular;
+	}
+
+	Fur::TRgba<T> refractivity( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return mat.Transmission;
+	}
+
+	Fur::TRgba<T> reflectivity( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return matreflectivity;
+	}
+
+	Fur::TRgba<T> emissive( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return mat.Emissive;
+	}
+
+	T specularpower( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return static_cast<T>( mat.Shininess );
+	}
+
+	T indexofrefraction( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return Ior::Glass;
+	}
+
+	T absorption( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return mat.Alpha;
+	}
+
+};
 
 typedef TMaterial<real> Material;
 typedef TBasicMaterial<real> BasicMaterial;
 typedef TGridMaterial<real> GridMaterial;
 typedef TCheckerMaterial<real> CheckerMaterial;
 typedef TPrecalculatedMaterial<real> PrecalculatedMaterial;
+typedef TWavefrontMaterial<real> WavefrontMaterial;

@@ -2,6 +2,7 @@
 
 #include "Scene.h"
 #include "Material.h"
+#include "ObjLoader.h"
 #include <Furrovine++/Colors.h>
 
 namespace SampleScene {
@@ -154,6 +155,18 @@ namespace SampleScene {
 					sphere_arg, 0.3f, vec3( -4.5f + x * 1.5f, -4.3f + y * 1.5f, 10 ) );
 			}
 		}
+		return scene;
+	}
+
+	Scene ObjScene( ) {
+		Scene scene{ };
+		ObjLoader{ scene }( "Mesh/CubeSphere.obj" );
+		return scene;
+	}
+
+	Scene SimpleObjScene( ) {
+		Scene scene{ };
+		ObjLoader{ scene }( "Mesh/Triangle.obj" );
 		return scene;
 	}
 

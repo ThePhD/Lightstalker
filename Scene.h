@@ -8,10 +8,12 @@
 #include <Furrovine++/optional.h>
 #include <Furrovine++/reference_equals.h>
 #include <Furrovine++/buffer_view.h>
+#include <Furrovine++/BoundingBox.h>
 #include <vector>
 
 class Scene {
 private:
+	Fur::BoundingBox box;
 	Primitive vacuumprimitive;
 	Material vacuummaterial;
 	Hit vacuumhit;
@@ -22,13 +24,32 @@ private:
 	std::vector<DirectionalLight> directionallights;
 	//std::vector<SpotLight> spotlights;
 
+	void update_box( const Primitive& primitive ) {
+		switch ( primitive.id ) {
+		case PrimitiveId::MeshTriangle:
+		case PrimitiveId::Triangle:
+			box.max.max( primitive.triangle.maximum( ) );
+			box.min.min( primitive.triangle.minimum( ) );
+			break;
+		case PrimitiveId::Sphere:
+			box.max.max( primitive.sphere.maximum( ) );
+			box.min.min( primitive.sphere.minimum( ) );
+			break;
+		case PrimitiveId::Disk:
+			
+			break;
+		case PrimitiveId::Plane:
+			break;
+		}
+	}
+
 public:
 
 	Scene( const rgba& background = RealWhite ) 
 	: vacuumprimitive( vacuum_arg ), vacuummaterial( BasicMaterial( background, background, background, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ), vacuumhit( ) {
 		vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
 		vacuumhit.normal = vec3::Zero;
-		vacuumhit.uvw = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
+		vacuumhit.stu = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
 		vacuumhit.contact = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
 		
 		primitives.reserve( 9182 );
@@ -36,6 +57,7 @@ public:
 		ambientlights.reserve( 2 );
 		pointlights.reserve( 8 );
 		directionallights.reserve( 8 );
+		AddMaterial( BasicMaterial( ) );
 	}
 
 	PrimitiveHit Vacuum( ) const {
@@ -44,9 +66,20 @@ public:
 
 	template <typename Tm, typename... Tn>
 	void Add( Tm&& material, Tn&&... argn ) {
+		AddMaterial( std::forward<Tm>( material ) );
+		AddPrimitive( std::forward<Tn>( argn )... );
+	}
+
+	template <typename... Tn>
+	void AddMaterial( Tn&&... argn ) {
+		materials.emplace_back( std::forward<Tn>( argn )... );
+	}
+
+	template <typename... Tn>
+	void AddPrimitive( Tn&&... argn ) {
 		primitives.emplace_back( std::forward<Tn>( argn )... );
-		materials.emplace_back( std::forward<Tm>( material ) );
 		primitives.back( ).material = materials.size( ) - 1;
+		update_box( primitives.back( ) );
 	}
 
 	template <typename... Tn>

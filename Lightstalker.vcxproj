@@ -83,9 +83,12 @@
     <ClCompile Include="rgba.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PrimitiveHit.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="ScanlineTracer.h" />
+    <ClInclude Include="RMeshTriangle3.h" />
+    <ClInclude Include="Vacuum.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="TileTracer.h" />
     <ClInclude Include="Camera.h" />
@@ -118,6 +121,34 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Mesh\CubeSphere.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Mesh\snake.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Mesh\Teapot.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Mesh\Triangle.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Mesh\CubeSphere.mtl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Mesh\snake.mtl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Mesh\Teapot.mtl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Mesh\UVTest.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

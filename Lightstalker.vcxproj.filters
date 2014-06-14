@@ -98,8 +98,33 @@
     <ClInclude Include="Tile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ObjLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vacuum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RMeshTriangle3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Mesh\CubeSphere.obj" />
+    <Object Include="Mesh\snake.obj" />
+    <Object Include="Mesh\Teapot.obj" />
+    <Object Include="Mesh\Triangle.obj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Mesh\CubeSphere.mtl" />
+    <None Include="Mesh\snake.mtl" />
+    <None Include="Mesh\Teapot.mtl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Mesh\UVTest.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

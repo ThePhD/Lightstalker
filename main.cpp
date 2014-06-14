@@ -46,8 +46,8 @@ int main( ) {
 	RayTracer tracer;
 	//Camera camera( vec3( 0, 30, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::SizedSpheres( );
-	Camera camera( vec3( 0, 350, -120 ), vec3( 0, 0, 0 ), vec3::Up, 400.0f );
-	Scene scene = SampleScene::RefractionTest( );
+	Camera camera( vec3( 0, 0, -500 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+	Scene scene = SampleScene::SimpleObjScene( );
 	//Camera camera( vec3( 0, 10, -10 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::Complex( );
 	TileTracer<16, 16> tiletracer( width, height, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );
@@ -96,12 +96,6 @@ int main( ) {
 					&& keyboard.Down ) {
 					output.Save( );
 					break;
-				}
-				if ( keyboard.Key == Key::B
-					&& keyboard.Down ) {
-					x = swidth;
-					y = sheight;
-					break;
 				}}
 				break;
 			case Fur::MessageId::Mouse: {
@@ -133,11 +127,10 @@ int main( ) {
 
 		graphics.Clear( Black );
 		graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
-		/*batch.Begin( );
+		batch.Begin( );
 		String datastring = Format( "[ x: {0} | y: {1} ]", lexical_cast( mousex ), lexical_cast( mousey ) );
 		batch.RenderString( font, datastring, { 0, sheight } );
 		batch.End( );
-		*/
 		graphics.Present( );
 	}
 }
