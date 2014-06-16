@@ -53,9 +53,6 @@
     <ClInclude Include="RayShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RayTracer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Ior.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -104,7 +101,13 @@
     <ClInclude Include="Vacuum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RMeshTriangle3.h">
+    <ClInclude Include="RMeshTriangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RayBouncer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTracerStep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

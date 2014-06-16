@@ -86,8 +86,9 @@
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PrimitiveHit.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="RayTracerStep.h" />
     <ClInclude Include="ScanlineTracer.h" />
-    <ClInclude Include="RMeshTriangle3.h" />
+    <ClInclude Include="RMeshTriangle.h" />
     <ClInclude Include="Vacuum.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="TileTracer.h" />
@@ -102,7 +103,7 @@
     <ClInclude Include="Multisampler.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="RayShader.h" />
-    <ClInclude Include="RayTracer.h" />
+    <ClInclude Include="RayBouncer.h" />
     <ClInclude Include="rgba.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="Ray.h" />

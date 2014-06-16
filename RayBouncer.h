@@ -2,10 +2,11 @@
 
 #include "real.h"
 #include "rgba.h"
+#include "Camera.h"
 #include "Scene.h"
 #include "RayShader.h"
 
-class RayTracer {
+class RayBouncer {
 private:
 	real bias;
 	std::size_t maxdepth;
@@ -102,7 +103,7 @@ private:
 	
 public:
 
-	RayTracer( std::size_t max = 3, real raybias = static_cast<real>( 1e-2 ) )
+	RayBouncer( std::size_t max = 3, real raybias = static_cast<real>( 1e-2 ) )
 	: bias( raybias ), maxdepth( max ) {
 
 	}
@@ -118,7 +119,7 @@ public:
 		return std::pair<rgba, Fur::optional<uintptr_t>>( bounces, pid );
 	}
 
-	std::pair<rgba, Fur::optional<uintptr_t>> RayTrace( vec2 xy, size2 wh, const Camera& camera, const Scene& scene, const RayShader& shader ) const {
+	std::pair<rgba, Fur::optional<uintptr_t>> RayBounce( vec2 xy, size2 wh, const Camera& camera, const Scene& scene, const RayShader& shader ) const {
 		Ray ray = camera.Compute( xy, wh );
 		return Bounce( ray, scene, shader, Fur::nullopt, 0 );
 	}

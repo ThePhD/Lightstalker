@@ -32,22 +32,23 @@ struct ObjLoader {
 					scene.AddMaterial( BasicMaterial( ) );
 				}
 				else {
+					//scene.AddMaterial( BasicMaterial( ) );
 					scene.AddMaterial( WavefrontMaterial( modeldesc.Materials[ submeshdesc.MaterialNames[ 0 ] ] ) );
 				}
 				MeshTriangle meshtriangle;
 				for ( std::size_t ix = submeshdesc.IndexOffset; ix < submeshdesc.IndexCount; ix += 3 ) {
 					const vertex& va = vertices[ indices[ ix + 0 ] ];
-					meshtriangle.a = va.position;
-					meshtriangle.ta = va.texture;
-					meshtriangle.na = va.normal;
+					meshtriangle.a.position = va.position;
+					meshtriangle.a.texture = va.texture;
+					meshtriangle.a.normal = va.normal;
 					const vertex& vb = vertices[ indices[ ix + 1 ] ];
-					meshtriangle.b = vb.position;
-					meshtriangle.tb = vb.texture;
-					meshtriangle.nb = vb.normal;
+					meshtriangle.b.position = vb.position;
+					meshtriangle.b.texture = vb.texture;
+					meshtriangle.b.normal = vb.normal;
 					const vertex& vc = vertices[ indices[ ix + 2 ] ];
-					meshtriangle.c = vc.position;
-					meshtriangle.tc = vc.texture;
-					meshtriangle.nc = vc.normal;
+					meshtriangle.c.position = vc.position;
+					meshtriangle.c.texture = vc.texture;
+					meshtriangle.c.normal = vc.normal;
 					scene.AddPrimitive( meshtriangle );
 				}
 			}

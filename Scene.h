@@ -13,7 +13,7 @@
 
 class Scene {
 private:
-	Fur::BoundingBox box;
+	BoundingBox box;
 	Primitive vacuumprimitive;
 	Material vacuummaterial;
 	Hit vacuumhit;
@@ -25,8 +25,15 @@ private:
 	//std::vector<SpotLight> spotlights;
 
 	void update_box( const Primitive& primitive ) {
+		Triangle tri;
 		switch ( primitive.id ) {
-		case PrimitiveId::MeshTriangle:
+		case PrimitiveId::VertexTriangle:
+			tri.a = primitive.meshtriangle.a.position;
+			tri.b = primitive.meshtriangle.b.position;
+			tri.c = primitive.meshtriangle.c.position;
+			box.max.max( tri.maximum( ) );
+			box.min.min( tri.minimum( ) );
+			break;
 		case PrimitiveId::Triangle:
 			box.max.max( primitive.triangle.maximum( ) );
 			box.min.min( primitive.triangle.minimum( ) );
@@ -62,6 +69,10 @@ public:
 
 	PrimitiveHit Vacuum( ) const {
 		return PrimitiveHit{ vacuumprimitive, PrecalculatedMaterial( vacuummaterial, vacuumprimitive, vacuumhit ), vacuumhit };
+	}
+
+	BoundingBox Bounds( ) const {
+		return box;
 	}
 
 	template <typename Tm, typename... Tn>

@@ -7,15 +7,24 @@
 
 class Hitmap {
 private:
-	std::size_t w, h;
+	typedef Fur::buffer_view<uintptr_t, 2>::index_type idx_t;
+	typedef Fur::buffer_view<uintptr_t, 2>::bounds_type bounds_t;
+	static const idx_t skew;
+	static const idx_t to_left;
+	static const idx_t to_right;
+	static const idx_t to_up;
+	static const idx_t to_down;
+	bounds_t visiblebnd;
+	bounds_t bnd;
 	std::vector<uintptr_t> primitives;
 	Fur::buffer_view<uintptr_t, 2> hitmap;
-	typedef Fur::buffer_view<Primitive const*, 2>::index_type idx_t;
-	typedef Fur::buffer_view<Primitive const*, 2>::bounds_type bounds_t;
-
+	
 public:
 
-	Hitmap( std::size_t wx, std::size_t hy ) : w( wx ), h( hy ), primitives( w * h ), hitmap( primitives.data(), { w, h } ) {
+	Hitmap( const bounds_t& wh, uintptr_t defaultvalue = 0 ) : 
+	visiblebnd( wh ), bnd( wh + bounds_t(2, 2) ), 
+	primitives( bnd[0] * bnd[1], defaultvalue ), 
+	hitmap( primitives.data(), bnd ) {
 		
 	}
 
@@ -24,44 +33,54 @@ public:
 	}
 
 	bounds_t bounds( ) const {
-		return hitmap.bounds( );
+		return visiblebnd;
 	}
 
 	bool should_multisample( idx_t idx ) const {
-		uintptr_t primitive = hitmap[ idx ];
+		idx += skew;
+		const uintptr_t& primitive = hitmap[ idx ];
+		
 		// Left Side
-		if ( idx[ 0 ] > 0 ) {
-			if ( primitive != hitmap[ idx - idx_t{ 1, 0 } ] ) {
-				return true;
-			}
+		idx_t left = idx + to_left;
+		if ( primitive != hitmap[ left ] ) {
+			return true;
 		}
+		
 		// Top Side
-		if ( idx[ 1 ] > 0 ) {
-			if ( primitive != hitmap[ idx - idx_t{ 0, 1 } ] ) {
-				return true;
-			}
+		idx_t top = idx + to_up;
+		if ( primitive != hitmap[ top ] ) {
+			return true;
 		}
+
 		// Right Side
-		if ( idx[ 0 ] < static_cast<ptrdiff_t>( w ) ) {
-			if ( primitive != hitmap[ idx + idx_t{ 1, 0 } ] ) {
-				return true;
-			}
+		idx_t right = idx + to_right;
+		if ( primitive != hitmap[ right ] ) {
+			return true;
 		}
+		
 		// Bottom Side
-		if ( idx[ 1 ] < static_cast<ptrdiff_t>( h - 1 ) ) {
-			if ( primitive != hitmap[ idx + idx_t{ 0, 1 } ] ) {
-				return true;
-			}
+		idx_t bottom = idx + to_down;
+		if ( primitive != hitmap[ bottom ] ) {
+			return true;
 		}
+
 		return false;
 	}
 
 	const uintptr_t& operator[] ( idx_t idx ) const {
+		idx += skew;
 		return hitmap[ idx ];
 	}
 
 	uintptr_t& operator[] ( idx_t idx ) {
+		idx += skew;
 		return hitmap[ idx ];
 	}
 
 };
+
+const Hitmap::idx_t Hitmap::skew = idx_t{ 1, 1 };
+const Hitmap::idx_t Hitmap::to_left = Hitmap::idx_t{ -1, 0 };
+const Hitmap::idx_t Hitmap::to_right = Hitmap::idx_t{ 1, 0 };
+const Hitmap::idx_t Hitmap::to_up = Hitmap::idx_t{ 0, 1 };
+const Hitmap::idx_t Hitmap::to_down = Hitmap::idx_t{ 0, -1 };

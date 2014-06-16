@@ -3,7 +3,7 @@
 #include "real.h"
 #include "Ray.h"
 #include "Vacuum.h"
-#include "RMeshTriangle3.h"
+#include "RMeshTriangle.h"
 #include <Furrovine++/unreachable.h>
 #include <Furrovine++/optional.h>
 #include <Furrovine++/THit3.h>
@@ -11,6 +11,7 @@
 #include <Furrovine++/RTriangle3.h>
 #include <Furrovine++/RDisk3.h>
 #include <Furrovine++/RPlane.h>
+#include <Furrovine++/TBoundingBox.h>
 #include <Furrovine++/intersect3.h>
 #include <Furrovine++/triple.h>
 
@@ -22,8 +23,8 @@ struct disk_arg_t { };
 const auto disk_arg = disk_arg_t{ };
 struct triangle_arg_t { };
 const auto triangle_arg = triangle_arg_t{ };
-struct mesh_triangle_arg_t { };
-const auto mesh_triangle_arg = mesh_triangle_arg_t{ };
+struct vertex_triangle_arg_t { };
+const auto vertex_triangle_arg = vertex_triangle_arg_t{ };
 struct vacuum_arg_t { };
 const auto vacuum_arg = vacuum_arg_t{ };
 
@@ -31,11 +32,10 @@ enum class PrimitiveId {
 	Vacuum,
 	Sphere,
 	Triangle,
-	MeshTriangle,
+	VertexTriangle,
 	Plane,
 	Disk
 };
-
 
 template <typename T>
 struct TPrimitive {
@@ -48,7 +48,7 @@ struct TPrimitive {
 		Fur::RPlane<T> plane;
 		Fur::RDisk3<T> disk;
 		Fur::RTriangle3<T> triangle;
-		RMeshTriangle3<T> meshtriangle;
+		RMeshTriangle<T> meshtriangle;
 	};
 
 	TPrimitive( const Fur::RSphere<T>& sphere ) : id( PrimitiveId::Sphere ), material( 0 ), light( false ), sphere( sphere ) {
@@ -63,7 +63,7 @@ struct TPrimitive {
 
 	}
 
-	TPrimitive( const RMeshTriangle3<T>& meshtriangle ) : id( PrimitiveId::MeshTriangle ), material( 0 ), light( false ), meshtriangle( meshtriangle ) {
+	TPrimitive( const RMeshTriangle<T>& meshtriangle ) : id( PrimitiveId::VertexTriangle ), material( 0 ), light( false ), meshtriangle( meshtriangle ) {
 
 	}
 
@@ -99,7 +99,7 @@ struct TPrimitive {
 			return sphere.origin;
 		case PrimitiveId::Triangle:
 			return triangle.center( );
-		case PrimitiveId::MeshTriangle:
+		case PrimitiveId::VertexTriangle:
 			return triangle.center( );
 		case PrimitiveId::Disk:
 			return disk.origin;
@@ -114,42 +114,6 @@ struct TPrimitive {
 };
 
 template <typename T>
-Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const RMeshTriangle3<T>& target ) {
-	Fur::RVector3<T> edge1( target.b ), edge2( target.c );
-	edge1 -= target.a;
-	edge2 -= target.a;
-
-	Fur::RVector3<T> crossproduct( cross( ray.direction, edge2 ) );
-	T dotproduct = edge1.dot( crossproduct );
-
-	if ( dotproduct == static_cast<T>( 0 ) )
-		return Fur::nullopt;
-
-	Fur::THit3<T> hit;
-	
-	Fur::RVector3<T> vdist( ray.origin - target.a );
-	hit.stu.s = vdist.dot( crossproduct ) / dotproduct;
-	if ( hit.stu.s < static_cast<T>( 0 ) || hit.stu.s > static_cast<T>( 1 ) )
-		return Fur::nullopt;
-
-	Fur::RVector3<T> vrdist( vdist.cross( edge1 ) );
-
-	hit.stu.t = dot( ray.direction, vrdist ) / dotproduct;
-	if ( hit.stu.t < static_cast<T>( 0 ) || ( hit.stu.s + hit.stu.t ) > static_cast<T>( 1 ) )
-		return Fur::nullopt;
-	
-	hit.distance0 = edge2.dot( vrdist ) / dotproduct;
-	if ( hit.distance0 <= static_cast<T>( 0 ) )
-		return Fur::nullopt;
-	
-	hit.stu.u = static_cast<T>( 1 ) - hit.stu.x - hit.stu.y;
-	hit.normal = target.normal( hit.stu );
-	hit.contact = ray.at( hit.distance0 );
-	hit.inside = false;
-	return hit;
-}
-
-template <typename T>
 Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimitive<T>& target ) {
 	switch ( target.id ) {
 	case PrimitiveId::Plane:
@@ -158,8 +122,8 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimiti
 		return Fur::intersect( ray, target.sphere );
 	case PrimitiveId::Triangle:
 		return Fur::intersect( ray, target.triangle );
-	case PrimitiveId::MeshTriangle:
-		return intersect( ray, target.meshtriangle );
+	case PrimitiveId::VertexTriangle: {
+		return Fur::intersect( ray, target.meshtriangle ); }
 	case PrimitiveId::Disk:
 		return Fur::intersect( ray, target.disk );
 	case PrimitiveId::Vacuum:
@@ -170,8 +134,10 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimiti
 
 typedef Fur::RPlane<real> Plane;
 typedef Fur::RTriangle3<real> Triangle;
-typedef RMeshTriangle3<real> MeshTriangle;
 typedef Fur::RSphere<real> Sphere;
 typedef Fur::RDisk3<real> Disk;
 typedef Fur::THit3<real> Hit;
+typedef Fur::TBoundingBox<real> BoundingBox;
+typedef RMeshVertex<real> MeshVertex;
+typedef RMeshTriangle<real> MeshTriangle;
 typedef TPrimitive<real> Primitive;

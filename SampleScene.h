@@ -159,14 +159,18 @@ namespace SampleScene {
 	}
 
 	Scene ObjScene( ) {
-		Scene scene{ };
+		Scene scene( Fur::Colors::SlateGrey );
 		ObjLoader{ scene }( "Mesh/CubeSphere.obj" );
+		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
+		scene.AddDirectionalLight( DirectionalLight( ) );
 		return scene;
 	}
 
 	Scene SimpleObjScene( ) {
-		Scene scene{ };
+		Scene scene( Fur::Colors::SlateGrey );
 		ObjLoader{ scene }( "Mesh/Triangle.obj" );
+		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
+		//scene.AddDirectionalLight( DirectionalLight( vec3( 0, 1, 1 ) ) );
 		return scene;
 	}
 

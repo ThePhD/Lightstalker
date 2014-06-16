@@ -12,5 +12,5 @@ struct RayShader;
 
 class Scene;
 class Multisampler;
-class RayTracer;
+class RayBouncer;
 class Output;
