@@ -12,15 +12,15 @@ namespace SampleScene {
 		using namespace Furrovine::Colors;
 
 		Scene scene( WhiteSmoke );
-		scene.Add( BasicMaterial{ Red, White, White, 32,
-			rgba( 0.2f, 0.2f, 0.2f, 0.2f ), Transparent, Transparent, Ior::Water },
+		scene.Add( BasicMaterial( Red, White, White, 32,
+			rgba( 0.7f, 0.7f, 0.7f, 0.7f ), Transparent, Transparent, Ior::Water ),
 			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
-		scene.Add( BasicMaterial{ Blue, White, White, 32 },
+		scene.Add( BasicMaterial( Blue, White, White, 32 ),
 		sphere_arg, 80.0f, vec3( 80, 120, 0 - 69.282f ) );
-		scene.Add( BasicMaterial{ Yellow, White, White, 32 },
+		scene.Add( BasicMaterial( Yellow, White, White, 32 ),
 		sphere_arg, 80.0f, vec3( -80, 120, 0 - 69.282f ) );
 		
-		scene.Add( BasicMaterial{ BlueBell, White, Transparent, 50000.0f },
+		scene.Add( BasicMaterial( BlueBell, White, Transparent ),
 		plane_arg, -30.0f, vec3::Up );
 		
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
@@ -94,7 +94,7 @@ namespace SampleScene {
 		using namespace Furrovine::Colors;
 
 		Scene scene( WhiteSmoke );
-		scene.Add( BasicMaterial{ Red, White, White, 32, White, White },
+		scene.Add( BasicMaterial{ Red, White, White, 32, White, rgba(0.5f, 0.5f, 0.5f, 0.5f) },
 			sphere_arg, 50.0f, vec3( 0, 60, 0 ) );
 		scene.Add( BasicMaterial{ YellowOrange, White, White, 32 },
 			sphere_arg, 80.0f, vec3( 0, 90, 130 ) );
@@ -159,18 +159,24 @@ namespace SampleScene {
 	}
 
 	Scene ObjScene( ) {
+		using namespace Furrovine;
+		using namespace Furrovine::Colors;
 		Scene scene( Fur::Colors::SlateGrey );
 		ObjLoader{ scene }( "Mesh/CubeSphere.obj" );
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
-		scene.AddDirectionalLight( DirectionalLight( ) );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
 		return scene;
 	}
 
 	Scene SimpleObjScene( ) {
+		using namespace Furrovine;
+		using namespace Furrovine::Colors;
 		Scene scene( Fur::Colors::SlateGrey );
 		ObjLoader{ scene }( "Mesh/Triangle.obj" );
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
-		//scene.AddDirectionalLight( DirectionalLight( vec3( 0, 1, 1 ) ) );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
 		return scene;
 	}
 

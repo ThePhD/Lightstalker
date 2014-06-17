@@ -60,28 +60,31 @@ std::pair<rgba, bool> RayShader::operator()( const Ray& ray, const Scene& scene,
 	auto ambientlights = scene.AmbientLights( );
 	auto directionallights = scene.DirectionalLights( );
 	auto pointlights = scene.PointLights( );
-
+	real ambientsize = static_cast<real>( ambientlights.size( ) );
+	real lightssize = static_cast<real>( directionallights.size( ) ) + static_cast<real>( pointlights.size( ) );
 	bool shaded = false;
 	rgba color{ };
+	rgba ambientcolor{ };
 	const Primitive& primitive = primitivehit.first;
 	
 	for ( std::size_t a = 0; a < ambientlights.size( ); ++a ) {
 		auto colorshadow = ( *this )( ray, scene, primitivehit, ambientlights[ a ] );
-		color += colorshadow.first;
+		ambientcolor += colorshadow.first / ambientsize;
 		shaded |= colorshadow.second;
 	}
 
 	for ( std::size_t d = 0; d < directionallights.size( ); ++d ) {
 		auto colorshadow = ( *this )( ray, scene, primitivehit, directionallights[ d ] );
-		color += colorshadow.first;
+		color += colorshadow.first / lightssize;
 		shaded |= colorshadow.second;
 	}
 
 	for ( std::size_t p = 0; p < pointlights.size( ); ++p ) {
 		auto colorshadow = ( *this )( ray, scene, primitivehit, pointlights[ p ] );
-		color += colorshadow.first;
+		color += colorshadow.first / lightssize;
 		shaded |= colorshadow.second;
 	}
+	color += ambientcolor;
 
 	return { color, shaded };
 }

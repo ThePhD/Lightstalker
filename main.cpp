@@ -35,18 +35,19 @@ int main( ) {
 	ImageOutput output( image );
 	std::default_random_engine randomengine{ };
 	Multisampler multisampler( 4, 4, randomengine );
-	RayShader shader;
-	RayBouncer bouncer;
+	RayShader shader{ };
+	RayBouncer bouncer{ };
 	//Scene scene = SampleScene::Trifecta( );
-	//Camera camera( vec3( 0, 300, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
-	//Scene scene = SampleScene::SizedSpheres( );
-	//Camera camera( vec3( 0, 30, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
-	Scene scene = SampleScene::SimpleObjScene( );
-	Camera camera( vec3( 0, 0, -500 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+	//Camera camera( vec3( 0, 500, -500 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+	Scene scene = SampleScene::SizedSpheres( );
+	Camera camera( vec3( 0, 30, -300 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+	//Scene scene = SampleScene::SimpleObjScene( );
+	//Camera camera( vec3( 0, 0, -500 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::ObjScene( );
 	//Camera camera( vec3( 3, 3, 3 ) * scene.Bounds().max, vec3( 0, 0, 0 ), vec3::Up, 500.0f );
 	//Scene scene = SampleScene::Complex( );
 	//Camera camera( vec3( 0, 10, -10 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+	
 	//ScanlineTracer<256> tiletracer( { width, height }, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );
 	//TileTracer<16, 16> tiletracer( { width, height }, camera, scene, tracer, shader, multisampler, output, std::chrono::milliseconds( 750 ) );
 	ThreadedTileTracer<16, 16> raytracer( threadpool, { width, height }, camera, scene, bouncer, shader, multisampler, output );
