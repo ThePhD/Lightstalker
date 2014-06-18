@@ -96,8 +96,6 @@
     <ClInclude Include="ScanlineTracer.h" />
     <ClInclude Include="RMeshTriangle.h" />
     <ClInclude Include="RayTracerCommandLoader.h" />
-    <ClInclude Include="ThreadedTrace.h" />
-    <ClInclude Include="Trace.h" />
     <ClInclude Include="Vacuum.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="TileTracer.h" />

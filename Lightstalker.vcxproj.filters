@@ -125,12 +125,6 @@
     <ClInclude Include="SampleCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadedTrace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Trace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
