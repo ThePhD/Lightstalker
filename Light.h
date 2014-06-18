@@ -6,7 +6,7 @@ template <typename T>
 struct TAmbientLight {
 	Fur::TRgba<T> intensity;
 
-	TAmbientLight( const Fur::RRgba<T>& intense ) {
+	TAmbientLight( const Fur::RRgba<T>& intense = Fur::TRgba<T>(5, 5, 5, 5) ) {
 		intensity = intense;
 	}
 };

@@ -14,8 +14,13 @@ private:
 public:
 
 	ImageOutput( Fur::Graphics::Image2D& img, const Fur::String& name = "output.png" ) 
-		: image( std::addressof( img ) ), outputname( name ) {
+	: image( std::addressof( img ) ), outputname( name ) {
 
+	}
+
+	void Clear( ) {
+		auto rawview = image->raw_view( );
+		std::fill_n( rawview.data(), rawview.size( ), 0 );
 	}
 
 	void Save( ) {

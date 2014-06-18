@@ -6,6 +6,10 @@
 
 struct RayShader {
 public:
+	bool Shadows;
+
+	RayShader( );
+
 	Fur::triple<rgba, bool, bool> Shadow( const Ray& shadowray, const Scene& scene, const PrimitiveHit& primitivehit ) const;
 
 	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit ) const;

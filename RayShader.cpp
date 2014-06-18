@@ -48,6 +48,9 @@ std::pair<rgba, bool> RayShader::operator()( const Ray& ray, const Scene& scene,
 }
 
 Fur::triple<rgba, bool, bool> RayShader::Shadow( const Ray& shadowray, const Scene& scene, const PrimitiveHit& primitivehit ) const {
+	if ( !Shadows ) {
+		return{ RealWhite, false, false };
+	}
 	auto shadowophit = scene.Intersect( shadowray, primitivehit.first );
 	if ( !shadowophit || shadowophit->first.id == PrimitiveId::Vacuum )
 		return { RealWhite, false, false };
@@ -87,4 +90,8 @@ std::pair<rgba, bool> RayShader::operator()( const Ray& ray, const Scene& scene,
 	color += ambientcolor;
 
 	return { color, shaded };
+}
+
+RayShader::RayShader( ) : Shadows( true ) {
+
 }

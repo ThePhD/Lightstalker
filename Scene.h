@@ -52,8 +52,8 @@ private:
 
 public:
 
-	Scene( const rgba& background = RealWhite ) 
-	: vacuumprimitive( vacuum_arg ), vacuummaterial( BasicMaterial( background, background, background, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ), vacuumhit( ) {
+	Scene( const rgba& background = Fur::Colors::AmbientGrey ) 
+	: vacuumprimitive( vacuum_arg ), vacuummaterial( BasicMaterial( background, RealWhite, RealTransparent, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ), vacuumhit( ) {
 		vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
 		vacuumhit.normal = vec3::Zero;
 		vacuumhit.stu = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
@@ -69,6 +69,14 @@ public:
 
 	PrimitiveHit Vacuum( ) const {
 		return PrimitiveHit{ vacuumprimitive, PrecalculatedMaterial( vacuummaterial, vacuumprimitive, vacuumhit ), vacuumhit };
+	}
+
+	void SetBackground( const rgba& background ) {
+		vacuummaterial = std::move( Material( BasicMaterial( background, RealWhite, RealTransparent, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ) );
+	}
+
+	const rgba& Background( ) const {
+		return vacuummaterial.color( vacuumprimitive, vacuumhit );
 	}
 
 	BoundingBox Bounds( ) const {

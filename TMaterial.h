@@ -93,6 +93,11 @@ struct TMaterial {
 
 	}
 
+	TMaterial& operator=( TMaterial&& mov ) {
+		matbase = std::move( mov.matbase );
+		return *this;
+	}
+
 	Fur::TRgba<T> color( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
 		return matbase->color( primitive, hit );
 	}

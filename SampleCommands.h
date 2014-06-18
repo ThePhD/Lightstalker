@@ -3,15 +3,20 @@
 #include "Scene.h"
 #include "Material.h"
 #include "ObjLoader.h"
+#include "RayTracerCommandLoader.h"
 #include <Furrovine++/Colors.h>
 
-namespace SampleScene {
+namespace SampleCommands {
 
-	Scene Trifecta( ) {
+	RayTracerCommand Trifecta( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
 
-		Scene scene( WhiteSmoke );
+		RayTracerCommand command{ };
+		Scene& scene = command.scene;
+		Camera& camera = command.camera;
+
+		scene.SetBackground( WhiteSmoke );
 		scene.Add( BasicMaterial( Red, White, White, 32,
 			rgba( 0.7f, 0.7f, 0.7f, 0.7f ), Transparent, Transparent, Ior::Water ),
 			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
@@ -27,47 +32,58 @@ namespace SampleScene {
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
 
-		return scene;
+		camera = Camera( camera_look_at, vec3( 0, 40, -500 ), vec3( 0, 00, 0 ), vec3::Up );
+
+		return command;
 	}
 
-	Scene MultiSphere( ) {
+	RayTracerCommand MultiSphere( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
 
-		Scene scene( WhiteSmoke );
+		RayTracerCommand command{ };
+		Scene& scene = command.scene;
+		Camera& camera = command.camera;
+
+		scene.SetBackground( WhiteSmoke );
 		scene.Add( BasicMaterial{ Red, White, White, 32,
-			rgba( 0.2f, 0.2f, 0.2f, 0.2f ), Transparent, Transparent, Ior::Water },
+			rgba( 0.5f, 0.5f, 0.5f, 0.5f ) },
 			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
-		/*scene.Add( Material{ Blue, White, White, 32 },
+		scene.Add( BasicMaterial{ Blue, White, White, 32 },
 		sphere_arg, 80.0f, vec3( 80, 120, 0 - 69.282f ) );
-		scene.Add( Material{ Yellow, White, White, 32 },
+		scene.Add( BasicMaterial{ Yellow, White, White, 32 },
 		sphere_arg, 80.0f, vec3( -80, 120, 0 - 69.282f ) );
-		*/
-		for ( int x = -2; x < 3; ++x ) {
-			for ( int z = -2; z < 3; ++z ) {
-				float xspace = 80.0f;
-				float zspace = 80.0f;
+		
+		for ( std::ptrdiff_t x = -2; x < 3; ++x ) {
+			for ( std::ptrdiff_t z = -2; z < 3; ++z ) {
+				real xspace = 80;
+				real zspace = 80;
 				scene.Add( BasicMaterial{ Blue, White, White, 32 },
-					sphere_arg, 20.0f,
-					vec3( ( xspace * x ), -10, ( 138.564f - 69.282f ) + ( zspace * z ) ) );
+					sphere_arg, real( 20 ),
+					vec3( ( xspace * x ), -10, real( 138.564 - 69.282 ) + ( zspace * z ) ) );
 			}
 		}
 
-		/*scene.Add( Material{ BlueBell, White, Transparent },
-		plane_arg, -30.0f, vec3::Up );
-		*/
-		//scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
-		//scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
+		scene.Add( BasicMaterial{ BlueBell, White, Transparent },
+			plane_arg, -30.0f, vec3::Up );
+		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
+		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
 
-		return scene;
+		camera = Camera( camera_look_at, vec3( 0, 250, -500 ), vec3( 0, 0, 0 ), vec3::Up );
+		
+		return command;
 	}
 
-	Scene RefractionTest( ) {
+	RayTracerCommand RefractionTest( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
 
-		Scene scene( WhiteSmoke );
+		RayTracerCommand command{ };
+		Scene& scene = command.scene;
+		Camera& camera = command.camera;
+
+		scene.SetBackground( WhiteSmoke );
 		scene.Add( BasicMaterial{ Red, White, White, 32,
 			rgba( 0.5f, 0.5f, 0.5f, 0.5f ) },
 			sphere_arg, 80.0f, vec3( 0, 120, 138.564f - 69.282f ) );
@@ -86,14 +102,20 @@ namespace SampleScene {
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
 
-		return scene;
+		camera = Camera( camera_look_at, vec3( 0, 40, -500 ), vec3( 0, 00, 0 ), vec3::Up );
+		
+		return command;
 	}
 
-	Scene SizedSpheres( ) {
+	RayTracerCommand SizedSpheres( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
 
-		Scene scene( WhiteSmoke );
+		RayTracerCommand command{ };
+		Scene& scene = command.scene;
+		Camera& camera = command.camera;
+
+		scene.SetBackground( WhiteSmoke );
 		scene.Add( BasicMaterial{ Red, White, White, 32, White, rgba(0.5f, 0.5f, 0.5f, 0.5f) },
 			sphere_arg, 50.0f, vec3( 0, 60, 0 ) );
 		scene.Add( BasicMaterial{ YellowOrange, White, White, 32 },
@@ -111,13 +133,19 @@ namespace SampleScene {
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
 
-		return scene;
+		camera = Camera( camera_look_at, vec3( 0, 40, -500 ), vec3( 0, 00, 0 ), vec3::Up );
+		
+		return command;
 	}
 
-	Scene Complex( ) {
+	RayTracerCommand Complex( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
-		Scene scene( WhiteSmoke );
+		RayTracerCommand command{ };
+		Scene& scene = command.scene;
+		Camera& camera = command.camera;
+
+		scene.SetBackground( WhiteSmoke );
 		
 		// ground plane
 		scene.Add( BasicMaterial{ rgba( 0.4f, 0.3f, 0.3f, 1.0f ), RealWhite, RealWhite, 32 },
@@ -155,29 +183,50 @@ namespace SampleScene {
 					sphere_arg, 0.3f, vec3( -4.5f + x * 1.5f, -4.3f + y * 1.5f, 10 ) );
 			}
 		}
-		return scene;
+
+		camera = Camera( vec3( 0, 10, -10 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+
+		return command;
 	}
 
-	Scene ObjScene( ) {
+	RayTracerCommand ObjScene( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
-		Scene scene( Fur::Colors::SlateGrey );
-		ObjLoader{ scene }( "Mesh/CubeSphere.obj" );
+
+		RayTracerCommand command{ };
+		Scene& scene = command.scene;
+		Camera& camera = command.camera;
+
+		scene.SetBackground( Fur::Colors::SlateGrey );
+		ObjLoader obj( scene );
+		obj( "Mesh/CubeSphere.obj" );
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
-		return scene;
+		
+		camera = Camera( vec3( 3, 3, 3 ) * scene.Bounds( ).max, vec3( 0, 0, 0 ), vec3::Up, 500.0f ); 
+		
+		return command;
 	}
 
-	Scene SimpleObjScene( ) {
+	RayTracerCommand SimpleObjScene( ) {
 		using namespace Furrovine;
 		using namespace Furrovine::Colors;
-		Scene scene( Fur::Colors::SlateGrey );
-		ObjLoader{ scene }( "Mesh/Triangle.obj" );
+		
+		RayTracerCommand command{ };
+		Scene& scene = command.scene;
+		Camera& camera = command.camera;
+
+		scene.SetBackground( Fur::Colors::SlateGrey );
+		ObjLoader obj( scene );
+		obj( "Mesh/Triangle.obj" );
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( 0, -1, 0 ) ), rgba( White ) ) );
 		scene.AddDirectionalLight( DirectionalLight( normalize( vec3( -1, -1, 0 ) ), rgba( White ) ) );
-		return scene;
+		
+		camera = Camera( vec3( 0, 0, -500 ), vec3( 0, 0, 0 ), vec3::Up, 500.0f );
+		
+		return command;
 	}
 
 }

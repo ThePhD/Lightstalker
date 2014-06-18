@@ -14,7 +14,6 @@
 template <std::size_t n = 16, std::size_t m = n>
 class TileTracer {
 private:
-	Fur::bounds<2> bnd;
 	std::vector<Tile> tiles;
 	std::vector<Tile> multipreptiles;
 	std::vector<Tile> multitiles;
@@ -27,6 +26,7 @@ private:
 	const Camera& camera;
 	const RayBouncer& raybouncer;
 	const RayShader& rayshader;
+	const vec2u& imagesize;
 	Fur::optional<const Multisampler&> multisampler;
 	Output& output;
 
@@ -129,23 +129,28 @@ private:
 	}
 
 public:
-	TileTracer( Fur::bounds<2> wh, const Camera& camera, const Scene& scene, const RayBouncer& raybouncer, const RayShader& rayshader, Fur::optional<const Multisampler&> multisampler, Output& output, std::chrono::milliseconds timelimit ) : timelimit( timelimit ),
-		tracecomplete( false ), multisampleprepcomplete( false ), multisamplecomplete( false ), bnd( wh ),
-		hitmap( w, h ), scene( scene ), camera( camera ), raybouncer( raybouncer ),
-		rayshader( rayshader ), multisampler( std::move( multisampler ) ), output( output ) {
+	TileTracer( const vec2u& imagesize, const Camera& camera, const Scene& scene, const RayBouncer& raybouncer, const RayShader& rayshader, Fur::optional<const Multisampler&> multisampler, Output& output, std::chrono::milliseconds timelimit ) : timelimit( timelimit ),
+	tracecomplete( false ), multisampleprepcomplete( false ), multisamplecomplete( false ), 
+	imagesize( imagesize ),
+	hitmap( imagesize, reinterpret_cast<uintptr_t>( std::addressof( scene.Vacuum().first ) ) ), 
+	scene( scene ), camera( camera ), raybouncer( raybouncer ),
+	rayshader( rayshader ), multisampler( std::move( multisampler ) ), output( output ) {
 		Reset( );
 	}
 
-	void Reset( ) {
+	void Stop( ) {
 		tiles.clear( );
 		multipreptiles.clear( );
 		multitiles.clear( );
+		Compute( );
+	}
 
-		std::size_t width = hitmap.bounds( )[ 0 ];
-		std::size_t height = hitmap.bounds( )[ 1 ];
-		real swidth = static_cast<real>( width );
-		real sheight = static_cast<real>( height );
+	void Reset( ) {
+		Stop( );
 
+		std::size_t width = imagesize[ 0 ];
+		std::size_t height = imagesize[ 1 ];
+		
 		for ( std::size_t y = 0; y < height; y += m ) {
 			for ( std::size_t x = 0; x < width; x += n ) {
 				Tile tile( x, y, x + n < width ? n : width - x, y + m < height ? m : height - y );

@@ -10,7 +10,7 @@ class RayBouncer {
 private:
 	real bias;
 	std::size_t maxdepth;
-
+	
 	bool ReflectionBounce( rgba& bounces, const Ray& ray, const Scene& scene, const RayShader& shader, const PrimitiveHit& primitivehit, const real& ior1, const real& ior2, std::size_t depth ) const {
 		const Primitive& primitive = primitivehit.first;
 		const PrecalculatedMaterial& material = primitivehit.second;
@@ -102,7 +102,6 @@ private:
 	}
 	
 public:
-
 	RayBouncer( std::size_t max = 3, real raybias = static_cast<real>( 1e-2 ) )
 	: bias( raybias ), maxdepth( max ) {
 
