@@ -213,4 +213,7 @@ public:
 
 	}
 
+	~ThreadedTileTracer( ) {
+		Stop( );
+	}
 };

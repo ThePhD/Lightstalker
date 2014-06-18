@@ -7,7 +7,6 @@ const real real_one = static_cast<real>( 1 );
 const real real_neg_one = static_cast<real>( -1 );
 const real real_two = static_cast<real>( 2 );
 
-struct RayTrace;
 struct RayShader;
 
 class Scene;

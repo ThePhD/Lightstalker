@@ -12,6 +12,7 @@
 #include "RayTracerCommandLoader.h"
 #include <Furrovine++/lexical_cast.h>
 #include <Furrovine++/WindowDriver.h>
+#include <Furrovine++/Input/KeyboardDevice.h>
 #include <Furrovine++/Graphics/Window.h>
 #include <Furrovine++/Graphics/GraphicsDevice.h>
 #include <Furrovine++/Graphics/NymphBatch.h>
@@ -19,7 +20,7 @@
 #include <Furrovine++/Pipeline/RasterFontLoader.h>
 
 template <typename TTracer>
-void trace( RayTracerCommand& command, Furrovine::Graphics::Image2D& image, ImageOutput& output, TTracer&& raytracer ) {
+void RayTrace( RayTracerCommand& command, Furrovine::Graphics::Image2D& image, ImageOutput& output, TTracer&& raytracer ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Colors;
 	using namespace Furrovine::Graphics;
@@ -37,44 +38,25 @@ void trace( RayTracerCommand& command, Furrovine::Graphics::Image2D& image, Imag
 	NymphBatch batch( graphics );
 	Fur::MessageQueue messagequeue;
 	RasterFont font = RasterFontLoader( graphics )( RasterFontDescription( "Arial", 14 ) );
+	KeyboardDevice keyboard( 0 );
 	int mousex = 0;
 	int mousey = 0;
 
 	bool quit = false;
-	bool displaywindow = true;
+	bool autosave = false;
+	bool& displaywindow = command.displaywindow;
 	if ( displaywindow )
 		window.Show( );
 
 	while ( true ) {
-		if ( quit )
-			break;
+		if ( quit ) {
+			windowdriver.Quit( window );
+		}
 		windowdriver.Push( window, messagequeue );
 		Fur::optional<Fur::MessageData> opmessage;
-		bool ctrlpressed = false;
 		while ( opmessage = messagequeue.pop( ) ) {
 			Fur::MessageData& message = opmessage.value( );
 			switch ( message.header.id ) {
-			case Fur::MessageId::Keyboard: {
-				Fur::KeyboardEvent& keyboard = message.as<Fur::KeyboardEvent>( );
-				if ( keyboard.Key == Key::R
-					&& keyboard.Down ) {
-					// Reload with FileSystemWatcher
-					raytracer.Stop( );
-					output.Clear( );
-					raytracer.Reset( );
-				}
-				if ( ( keyboard.Key == Key::Escape
-					|| keyboard.Key == Key::Q )
-					&& keyboard.Down ) {
-					quit = true;
-					break;
-				}
-				if ( keyboard.Key == Key::S
-					&& keyboard.Down ) {
-					output.Save( );
-					break;
-				}}
-				break;
 			case Fur::MessageId::Mouse: {
 				Fur::MouseEvent& mouse = message.as<Fur::MouseEvent>( );
 				mousex = mouse.Relative.x;
@@ -90,15 +72,31 @@ void trace( RayTracerCommand& command, Furrovine::Graphics::Image2D& image, Imag
 
 		if ( quit )
 			break;
+		
+		keyboard.Update( );
+		if ( keyboard.Pressed( Key::Escape ) ) {
+			quit = true;
+		}
+		if ( keyboard.ControlDown() ) {
+			if ( keyboard.Pressed( Key::Q ) ) {
+				quit = true;
+			}
+			if ( keyboard.Pressed( Key::R ) ) {
+				// Reload with FileSystemWatcher
+				raytracer.Stop( );
+				output.Clear( );
+				raytracer.Reset( );
+			}
+			if ( keyboard.Pressed( Key::S ) ) {
+				output.Save( );
+			}
+		}
 
 		raytracer.Compute( );
 
 		if ( !displaywindow || !graphics.Ready( ) ) {
 			continue;
 		}
-
-		if ( quit )
-			break;
 
 		RayTracerStep steps = raytracer.Steps( );
 		String stepstring = "Finished";
@@ -141,12 +139,12 @@ int main( ) {
 			ThreadPool threadpool{ };
 			ThreadedTileTracer<16, 16> raytracer( threadpool, imagesize, camera, 
 				scene, bouncer, shader, multisampler, output );
-			trace( command, image, output, raytracer );
+			RayTrace( command, image, output, raytracer );
 		}
 		else {
 			TileTracer<16, 16> raytracer( imagesize, camera,
 				scene, bouncer, shader, multisampler, output, std::chrono::milliseconds( 1500 ) );
-			trace( command, image, output, raytracer );
+			RayTrace( command, image, output, raytracer );
 		}
 	}
 	catch ( Exception& ex ) {
