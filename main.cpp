@@ -116,8 +116,10 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	bool doreset = false;
 	bool doreload = false;
 	bool& displaywindow = command.displaywindow;
-	if ( displaywindow )
+	if ( displaywindow ) {
+		window.SetCursorVisible( true );
 		window.Show( );
+	}
 
 	while ( true ) {
 		if ( quit ) {
