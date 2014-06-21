@@ -1,7 +1,6 @@
 #pragma once
 
 #include "TMaterial.h"
-#include <Furrovine++/TSpherical.h>
 #include <Furrovine++/Graphics/Material.h>
 
 template <typename T>
@@ -14,11 +13,12 @@ struct TBasicMaterial {
 	Fur::RRgba<T> matrefractivity;
 	Fur::RRgba<T> matreflectivity;
 	Fur::RRgba<T> matemissive;
+	Fur::RVector2<T> matstscale;
 	T matspecularpower;
 	T matindexofrefraction;
 	T matabsorption;
 
-	TBasicMaterial( const Fur::TRgba<T>& materialcolor = Fur::Colors::Red,
+	TBasicMaterial( const Fur::TRgba<T>& materialcolor = Fur::Colors::White,
 		const Fur::TRgba<T>& diffuseshade = Fur::Colors::White,
 		const Fur::TRgba<T>& specularshade = Fur::Colors::White,
 		T specularpow = static_cast<T>( 255 ),
@@ -27,7 +27,8 @@ struct TBasicMaterial {
 		const Fur::TRgba<T>& emission = Fur::Colors::Transparent,
 		T indexofrefrac = Ior::Water,
 		T absorb = Absorption::Water,
-		const Fur::TRgba<T>& ambience = Fur::Colors::White ) {
+		const Fur::TRgba<T>& ambience = Fur::Colors::White,
+		const Fur::TVector2<T>& stscaling = Fur::TVector2<T>( 1, 1 ) ) {
 		matcolor = materialcolor;
 		matdiffuse = diffuseshade;
 		matspecular = specularshade;
@@ -36,6 +37,7 @@ struct TBasicMaterial {
 		matspecularpower = specularpow;
 		matemissive = emission;
 		matambient = ambience;
+		matstscale = stscaling;
 		matindexofrefraction = indexofrefrac;
 		matabsorption = absorb;
 	}
@@ -68,6 +70,10 @@ struct TBasicMaterial {
 		return matemissive;
 	}
 
+	Fur::TVector2<T> stscale( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return matstscale;
+	}
+
 	T specularpower( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
 		return matspecularpower;
 	}
@@ -86,20 +92,19 @@ template <typename T>
 struct TGridMaterial : public TBasicMaterial<T> {
 
 	Fur::RRgba<T> offcolor;
-	Fur::TVector3<T> gridsize;
-
+	
 	template <typename... Tn>
-	TGridMaterial( const Fur::RVector3<T>& gridsize,
-		const Fur::TRgba<T>& offcolor = Fur::Colors::White,
+	TGridMaterial( const Fur::TRgba<T>& offcolor = Fur::Colors::White,
 		Tn&&... argn ) :
 		TBasicMaterial( std::forward<Tn>( argn )... ),
-		gridsize( gridsize ), offcolor( offcolor ) {
+		offcolor( offcolor ) {
 
 	}
 
 	Fur::TRgba<T> color( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
 		auto origin = primitive.origin( );
 		auto planarvec = Fur::unnormalized_direction_to( origin, hit.contact );
+		auto gridsize = stscale( primitive, hit );
 		Fur::TSpherical<T> spherical = hit.normal;
 		spherical.elevation += Fur::half_pi<T>( );
 		std::array<Fur::TVector3<T>, 2> orthogonal = { spherical.cartesian( ), { } };
@@ -119,26 +124,28 @@ template <typename T>
 struct TCheckerMaterial : public TBasicMaterial<T> {
 
 	Fur::RRgba<T> offcolor;
-	Fur::TVector3<T> gridsize;
-
+	
 	template <typename... Tn>
-	TCheckerMaterial( const Fur::RVector3<T>& gridsize,
-		const Fur::TRgba<T>& offcolor = Fur::Colors::White,
+	TCheckerMaterial( const Fur::TRgba<T>& offcolor = Fur::Colors::White,
 		Tn&&... argn ) :
 		TBasicMaterial( std::forward<Tn>( argn )... ),
-		gridsize( gridsize ), offcolor( offcolor ) {
+		offcolor( offcolor ) {
 
 	}
 
 	Fur::TRgba<T> color( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
-		auto origin = primitive.origin( );
+		auto origin = primitive.origin( hit );
 		auto planarvec = Fur::unnormalized_direction_to( origin, hit.contact );
+		auto gridsize = stscale( primitive, hit );
 		Fur::TSpherical<T> spherical = hit.normal;
 		spherical.elevation += Fur::half_pi<T>( );
-		std::array<Fur::TVector3<T>, 2> orthogonal = { spherical.cartesian( ), { } };
-		orthogonal[ 1 ] = Fur::cross( orthogonal[ 0 ], hit.normal );
+		auto sphericalcartesian = spherical.cartesian( );
+		std::array<Fur::TVector3<T>, 2> orthogonal = { 
+			sphericalcartesian, 
+			Fur::cross( sphericalcartesian, hit.normal ) 
+		};
 		std::array<bool, 2> altchecker{ };
-		for ( std::size_t i = 0; i < 2; ++i ) {
+		for ( std::size_t i = 0; i < altchecker.size(); ++i ) {
 			auto dist = Fur::distance_to( Fur::project( planarvec, orthogonal[ i ] ), Fur::TVector3<T>::Zero );
 			dist += gridsize[ i ] / 2;
 			altchecker[ i ] = std::fmod( dist, gridsize[ i ] * 2 ) < gridsize[ i ];
@@ -186,6 +193,10 @@ struct TWavefrontMaterial {
 
 	Fur::TRgba<T> emissive( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
 		return mat.Emissive;
+	}
+
+	Fur::TVector2<T> stscale( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return Fur::TVector2<T>( static_cast<T>( 1 ), static_cast<T>( 1 ) );
 	}
 
 	T specularpower( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {

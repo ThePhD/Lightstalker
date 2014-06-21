@@ -14,10 +14,9 @@ struct RayTracerCommand {
 	RayShader shader;
 	Fur::optional<Multisampler> multisampler;
 	vec2u imagesize;
+	std::size_t threadcount;
 	bool multithreading;
 	bool displaywindow;
 
-	RayTracerCommand( ) : multisampler( Fur::in_place, 4, 4, std::default_random_engine() ), imagesize(800, 600), multithreading( true ), displaywindow( true ) {
-
-	}
+	RayTracerCommand( );
 };

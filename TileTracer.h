@@ -32,12 +32,9 @@ private:
 
 	void Trace1( ) {
 		Fur::Stopwatch stopwatch;
-		bool timerbreak = false;
-		std::size_t width = hitmap.bounds( )[ 0 ];
-		std::size_t height = hitmap.bounds( )[ 1 ];
-		real swidth = static_cast<real>( width );
-		real sheight = static_cast<real>( height );
 		const Multisampler& ms = *multisampler;
+		bool timerbreak = false;
+		vec2 swh = imagesize;
 		real realmssize = static_cast<real>( ms.size( ) );
 
 		stopwatch.Start( );
@@ -45,17 +42,17 @@ private:
 			Tile tile = multitiles.back( );
 			for ( std::size_t y = tile.top; y < tile.bottom; ++y ) {
 				for ( std::size_t x = tile.left; x < tile.right; ++x ) {
-					rgba pixel{ };
+					vec2 xy( static_cast<real>( x ), static_cast<real>( y ) );
+					RayBounce pixelbounce{ };
 					for ( std::size_t s = 0; s < ms.size( ); ++s ) {
-						const vec2& multisample = ms[ s ];
-						real sx = static_cast<real>(x)+multisample.x;
-						real sy = static_cast<real>(y)+multisample.y;
-						Ray ray = camera.Compute( sx, sy, swidth, sheight );
+						vec2 sxy = ms[ s ];
+						sxy += xy;
+						Ray ray = camera.Compute( sxy, swh );
 						auto bounce = raybouncer.Bounce( ray, scene, rayshader );
-						pixel += bounce.first;
+						pixelbounce.accumulate( bounce );
 					}
-					pixel /= realmssize;
-					output( x, y, pixel );
+					pixelbounce.color /= realmssize;
+					output( x, y, pixelbounce );
 				}
 			}
 			multitiles.pop_back( );
@@ -79,6 +76,7 @@ private:
 					if ( !hitmap.should_multisample( { x, y } ) ) {
 						continue;
 					}
+					multisamplecomplete = false;
 					multitiles.push_back( tile );
 					tiled = true;
 				}
@@ -108,11 +106,8 @@ private:
 					real sy = static_cast<real>( y );
 					Ray ray = camera.Compute( sx, sy, swidth, sheight );
 					auto bounce = raybouncer.Bounce( ray, scene, rayshader );
-					if ( bounce.second )
-						hitmap[ { x, y } ] = bounce.second.value( );
-					else
-						hitmap[ { x, y } ] = 0; 
-					output( x, y, bounce.first );
+					hitmap[ { x, y } ] = bounce.hitid;
+					output( x, y, bounce );
 				}
 			}
 			multipreptiles.push_back( tile );
@@ -121,9 +116,9 @@ private:
 			if ( timerbreak )
 				return;
 		}
-
+		hitmap.prepare_multisample( );
 		tracecomplete = true;
-		multisampleprepcomplete = multisamplecomplete = !multisampler;
+		multisampleprepcomplete = multisamplecomplete = !multisampler || multisampler->size( ) < 2;
 		if ( multisampleprepcomplete )
 			multipreptiles.clear( );
 	}
@@ -131,8 +126,7 @@ private:
 public:
 	TileTracer( const vec2u& imagesize, const Camera& camera, const Scene& scene, const RayBouncer& raybouncer, const RayShader& rayshader, Fur::optional<const Multisampler&> multisampler, Output& output, std::chrono::milliseconds timelimit ) : timelimit( timelimit ),
 	tracecomplete( false ), multisampleprepcomplete( false ), multisamplecomplete( false ), 
-	imagesize( imagesize ),
-	hitmap( imagesize, reinterpret_cast<uintptr_t>( std::addressof( scene.Vacuum().first ) ) ), 
+	imagesize( imagesize ), hitmap( imagesize ), 
 	scene( scene ), camera( camera ), raybouncer( raybouncer ),
 	rayshader( rayshader ), multisampler( std::move( multisampler ) ), output( output ) {
 		Reset( );
@@ -158,8 +152,8 @@ public:
 			}
 		}
 		tracecomplete = false;
-		multisampleprepcomplete = !multisampler;
-		multisamplecomplete = !multisampler;
+		multisampleprepcomplete = !multisampler || multisampler->size( ) < 2;
+		multisamplecomplete = true;
 	}
 
 	bool Check( ) const {

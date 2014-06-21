@@ -80,17 +80,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImageOutput.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
+    <ClCompile Include="RayBounce.cpp" />
     <ClCompile Include="RayShader.cpp" />
+    <ClCompile Include="RayTracerCommand.cpp" />
     <ClCompile Include="rgba.cpp" />
     <ClCompile Include="RayTracerCommandLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="KdTree.h" />
     <ClInclude Include="FilmSize.h" />
     <ClInclude Include="ObjLoader.h" />
+    <ClInclude Include="RDisk3.h" />
+    <ClInclude Include="RPlane.h" />
     <ClInclude Include="PrimitiveHit.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="RayBounce.h" />
     <ClInclude Include="RayTracerCommand.h" />
     <ClInclude Include="RayTracerStep.h" />
     <ClInclude Include="ScanlineTracer.h" />
@@ -129,6 +136,11 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
+    <Text Include="commandfile">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+    </Text>
+    <Text Include="Readme" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="Mesh\CubeSphere.obj">

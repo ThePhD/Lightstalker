@@ -1,0 +1,87 @@
+// CG test command file
+// all colors are floats!
+/ comments only need one slash
+// but two looks cooler
+
+// -- vacuum command --
+// v is vacuum (background) color as (r g b) 
+v 0.3 0.3 0.3
+
+
+// -- camera command --
+// camera is formed with several parameters, being position, direction/target
+// additional `t` specificier after 'c' tells camera to target that position, rather than read as direction
+/ c [t] x y z dx dy dz focal_length sensor_size_x sensor_size_y pixel_width pixel_height
+c t 0 300 0 0 0 0 28 24 36 640 480
+// can optionally be written like this instead:
+/ c 0 300 0 -1 0 0 28 24 36 640 480
+
+
+//  -- material command --
+/ m dr dg db sr sg sb se tr tg rb rr rg rb
+// specification: diffuse (r g b) specular (sr sg sb) 
+// specular-exponent (se) refractivity (tr tg tb) reflectivity (rr rg rb)
+// refractivity refers to transparency - 1 is not transparent at all, 0 is transparent
+// reflectivity is how reflective the surface is - 1 is completley reflective, 0 is not reflective at all
+// if you choose, you can leave out the refractivity
+// and reflectivity parts of the arguments
+// (it will default to refractivity: 1 1 1 and reflectivity: 0 0 0)
+m 1 0 0 0 0 0 32 1 1 1 0 0 0
+
+// -- primitive commands --
+// sphere command:
+/ s x y z radius
+s 0 0 0 30
+
+// You can change materials and the next primitive will use the last material defined
+m 0 1 0 1 1 1 32
+// Note that in the above command we left out the reflectivity and refractivity arguments
+
+// triangle comand:
+/ t ax ay az bx by bz cx cy cz
+t 40 0 0  40 0 20  60 0 0
+
+// Another material, blue in color
+m 0 0 1 0 0 0 32 1 1 1 0 0 0
+// box command:
+/ b min_x min_y min_z max_x max_y max_z
+b -60 -20 20 -40 0 40
+
+// Yet another material
+m 0.5 0.5 0.8 0 0 0 32 1 1 1 0 0 0
+// plane command:
+/ p normal_x normal_y normal_z distance_from_origin
+p 0 1 0 -40
+
+// -- light commands --
+// l is light, followed by another letter to denote what kind (point, directional, ambient)
+// 'l p' is pointlight, position is (x y z) and intensity (r g b)
+l p 0 -300 0 1 1 1
+// 'l d' is directional light with direction (x y z) and intensity (r g b)
+l d -1 -1 0 1 1 1
+// 'l a' is ambient light with intensity (r g b)
+l a 0.04 0.04 0.04
+
+// -- option commands -- 
+// options are o, followed by a keyword
+/ o keyword
+// you can stack keywoards on the same line
+/ o keyword1 keyword 2
+// -- option keywords --
+// 'display' - turn on display (default)
+// 'no-display' - turn off display
+// 'multithreading [number]' - turn on multithreading (default)
+//                             number is the number of threads if you don't
+//                             specify the number, it defaults to basic hardware concurrency 
+// 'no-multithreading' - turn off multithreading
+// 'shadows' - turn shadows on (default)
+// 'no-shadows' - turn shadows off
+// 'multisamples [number] [number]' - use multisampling with number and number samples
+//                                    specifying only one number uses the first number for both samples
+
+// try these if you like
+/ o multithreading 4
+/ o no-multithreading
+/ o no-shadows
+/ o no-display
+/ o multisamples 2 2

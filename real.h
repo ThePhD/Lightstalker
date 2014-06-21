@@ -13,3 +13,10 @@ class Scene;
 class Multisampler;
 class RayBouncer;
 class Output;
+
+template <typename TComp, int value>
+struct real_compare {
+	bool operator()( real x ) {
+		return TComp( )( x, static_cast<real>( value ) );
+	}
+};

@@ -24,6 +24,8 @@ struct TMaterial {
 
 		virtual Fur::TRgba<T> emissive( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const = 0;
 
+		virtual Fur::TVector2<T> stscale( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const = 0;
+
 		virtual T specularpower( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const = 0;
 
 		virtual T indexofrefraction( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const = 0;
@@ -67,6 +69,10 @@ struct TMaterial {
 
 		Fur::TRgba<T> emissive( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const override {
 			return m.emissive( primitive, hit );
+		}
+
+		Fur::TVector2<T> stscale( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const override {
+			return m.stscale( primitive, hit );
 		}
 
 		T specularpower( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const override {
@@ -126,6 +132,10 @@ struct TMaterial {
 		return matbase->emissive( primitive, hit );
 	}
 
+	Fur::TVector2<T> stscale( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
+		return matbase->stscale( primitive, hit );
+	}
+
 	T specularpower( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
 		return matbase->specularpower( primitive, hit );
 	}
@@ -148,13 +158,16 @@ struct TPrecalculatedMaterial {
 	Fur::RRgba<T> diffuse;
 	Fur::RRgba<T> specular;
 	Fur::RRgba<T> refractivity;
+	Fur::RRgba<T> opacity;
 	Fur::RRgba<T> reflectivity;
 	Fur::RRgba<T> emissive;
+	Fur::RVector2<T> stscale;
 	T specularpower;
 	T indexofrefraction;
 	T absorption;
 
 	TPrecalculatedMaterial( const TMaterial<T>& material, const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) {
+		const static Fur::TRgba<T> whitepoint = Fur::Colors::White;
 		color = material.color( primitive, hit );
 		ambient = material.ambient( primitive, hit );
 		diffuse = material.diffuse( primitive, hit );
@@ -162,9 +175,11 @@ struct TPrecalculatedMaterial {
 		refractivity = material.refractivity( primitive, hit );
 		reflectivity = material.reflectivity( primitive, hit );
 		emissive = material.emissive( primitive, hit );
+		stscale = material.stscale( primitive, hit );
 		specularpower = material.specularpower( primitive, hit );
 		indexofrefraction = material.indexofrefraction( primitive, hit );
 		absorption = material.absorption( primitive, hit );
+		opacity = whitepoint - refractivity;
 	}
 
 };

@@ -5,34 +5,37 @@
 #include "Camera.h"
 #include "Scene.h"
 #include "RayShader.h"
+#include "RayBounce.h"
+#include <functional>
 
 class RayBouncer {
 private:
 	real bias;
 	std::size_t maxdepth;
 	
-	bool ReflectionBounce( rgba& bounces, const Ray& ray, const Scene& scene, const RayShader& shader, const PrimitiveHit& primitivehit, const real& ior1, const real& ior2, std::size_t depth ) const {
+	bool ReflectionBounce( RayBounce& raybounce, const Ray& ray, const Scene& scene, const RayShader& shader, const PrimitiveHit& primitivehit, const real& ior1, const real& ior2, std::size_t depth ) const {
+		raybounce.ray = ray;
 		const Primitive& primitive = primitivehit.first;
 		const PrecalculatedMaterial& material = primitivehit.second;
 		const Hit& hit = primitivehit.third;
 
-		bool hasreflectivity = material.reflectivity > RealTransparent;
+		bool hasreflectivity = std::any_of( material.reflectivity.begin( ), material.reflectivity.end( ), real_compare<std::greater<>, 0>( ) );
 		if ( !hasreflectivity )
 			return false;
 		
 		vec3 reflectionraydir = reflect( ray.direction, hit.normal );
 		Ray reflectionray( hit.contact + reflectionraydir * bias,
 			reflectionraydir );
-		Bounce( bounces, reflectionray, scene, shader, primitivehit, depth + 1 );
+		Bounce( raybounce, reflectionray, scene, shader, primitivehit, depth + 1 );
 		return true;
 	}
 
-	bool RefractionBounce( rgba& bounces, const Ray& ray, const Scene& scene, const RayShader& shader, const PrimitiveHit& primitivehit, const real& ior1, const real& ior2, std::size_t depth ) const {
+	bool RefractionBounce( RayBounce& raybounce, const Ray& ray, const Scene& scene, const RayShader& shader, const PrimitiveHit& primitivehit, const real& ior1, const real& ior2, std::size_t depth ) const {
 		const Primitive& primitive = primitivehit.first;
 		const PrecalculatedMaterial& material = primitivehit.second;
 		const Hit& hit = primitivehit.third;
 
-		bool hastransparency = material.refractivity < RealWhite;
+		bool hastransparency = std::any_of( material.refractivity.begin( ), material.refractivity.end( ), real_compare<std::less<>, 1>() );
 		if ( !hastransparency )
 			return false;
 
@@ -43,16 +46,19 @@ private:
 		// Not total internal reflection
 		const vec3& refractionraydir = *oprefractionraydir;
 		Ray refractionray( hit.contact + refractionraydir * bias, refractionraydir );
-		Bounce( bounces, refractionray, scene, shader, primitivehit, depth + 1 );
+		raybounce.ray = refractionray;
+		Bounce( raybounce, refractionray, scene, shader, primitivehit, depth + 1 );
 		return true;
 	}
 
-	std::pair<Fur::optional<const Primitive&>, bool> Bounce( rgba& bounces, const Ray& ray, const Scene& scene, const RayShader& shader, Fur::optional<const PrimitiveHit&> previoushit = Fur::nullopt, std::size_t depth = 0 ) const {
-		auto ophit = scene.Intersect( ray );
-		if ( !ophit )
-			return{ Fur::nullopt, false };
-
-		const PrimitiveHit& primitivehit = *ophit;
+	void Bounce( RayBounce& raybounce, const Ray& ray, const Scene& scene, const RayShader& shader, Fur::optional<const PrimitiveHit&> previoushit = Fur::nullopt, std::size_t depth = 0 ) const {
+		raybounce.ray = ray;
+		raybounce.hitid = 0;
+		scene.Intersect( raybounce );
+		if ( !raybounce.hit )
+			return;
+		raybounce.hitid = reinterpret_cast<std::uintptr_t>( std::addressof( raybounce.hit->first ) );
+		const PrimitiveHit& primitivehit = *raybounce.hit;
 		const Primitive& primitive = primitivehit.first;
 		const PrecalculatedMaterial& material = primitivehit.second;
 		const Hit& hit = primitivehit.third;
@@ -60,25 +66,22 @@ private:
 
 		// The vacuum of the scene is the background of the scene: the diffuse component contains the background (all taken care of by Scene)
 		if ( primitive.id == PrimitiveId::Vacuum ) {
-			bounces += ophit->second.color;
-			return{ primitive, shaded };
+			raybounce.color += raybounce.hit->second.color;
+			return;
 		}
 
-		if ( material.diffuse > RealTransparent && !hit.inside ) {
-			auto surface = shader( ray, scene, primitivehit );
-			bounces += surface.first;
-			shaded |= surface.second;
-		}
+		shader( raybounce, scene );
+		raybounce.hitid += static_cast<std::uintptr_t>( raybounce.shadow );
 
 		if ( depth >= maxdepth )
-			return{ primitive, shaded };
+			return;
 
 		const real& ior1 = previoushit ? previoushit->second.indexofrefraction : Ior::Vacuum;
 		const real& ior2 = material.indexofrefraction;
 		
 		// Refraction Part
-		rgba refractioncolor( 0, 0, 0, 0 );
-		if ( RefractionBounce( refractioncolor, ray, scene, shader, primitivehit, ior2, ior2, depth ) ) {
+		RayBounce refractionbounce{ };
+		if ( RefractionBounce( refractionbounce, ray, scene, shader, primitivehit, ior2, ior2, depth ) ) {
 			// Things have a slight coloration to depth if they are shallow refractions.
 			// Intensity of the light drops off related to density and concentration
 			// of transparent material
@@ -87,18 +90,20 @@ private:
 				std::exp( absorbance.g ),
 				std::exp( absorbance.b ),
 				std::exp( absorbance.a ) );*/
-			rgba color = refractioncolor;// *opacity;
-			bounces += color;
+			rgba color = refractionbounce.color;// *opacity;
+			raybounce.color += color;
+			++raybounce.refractions;
 		}
 
 		// Reflection Component
-		rgba reflectioncolor( 0, 0, 0, 0 );
-		if ( ReflectionBounce( reflectioncolor, ray, scene, shader, primitivehit, ior1, ior2, depth ) ) {
-			rgba color = material.reflectivity * reflectioncolor;
-			bounces += color;
+		RayBounce reflectionbounce{ };
+		if ( ReflectionBounce( reflectionbounce, ray, scene, shader, primitivehit, ior1, ior2, depth ) ) {
+			rgba color = material.reflectivity * reflectionbounce.color;
+			raybounce.color += color;
+			++raybounce.reflections;
 		}
-
-		return{ primitive, shaded };
+		raybounce.hitid += static_cast<std::uintptr_t>( raybounce.refractions > 0 );
+		raybounce.hitid += static_cast<std::uintptr_t>( raybounce.reflections > 0 );
 	}
 	
 public:
@@ -107,20 +112,16 @@ public:
 
 	}
 
-	std::pair<rgba, Fur::optional<uintptr_t>> Bounce( const Ray& ray, const Scene& scene, const RayShader& shader, Fur::optional<const PrimitiveHit&> previoushit = Fur::nullopt, std::size_t depth = 0 ) const {
-		rgba bounces;
-		std::uintptr_t pid = 0;
-		std::pair<Fur::optional<const Primitive&>, bool> primitiveshaded = Bounce( bounces, ray, scene, shader, previoushit, depth );
-		if ( primitiveshaded.first ) {
-			pid = reinterpret_cast<uintptr_t>( std::addressof( primitiveshaded.first.value( ) ) );
-			pid += primitiveshaded.second ? 1 : 0;
-		}
-		return std::pair<rgba, Fur::optional<uintptr_t>>( bounces, pid );
+	RayBounce Bounce( const Ray& ray, const Scene& scene, const RayShader& shader ) const {
+		RayBounce raybounce{ };
+		Bounce( raybounce, ray, scene, shader, Fur::nullopt, 0 );
+		++raybounce.samples;
+		return raybounce;
 	}
 
-	std::pair<rgba, Fur::optional<uintptr_t>> RayBounce( vec2 xy, size2 wh, const Camera& camera, const Scene& scene, const RayShader& shader ) const {
+	RayBounce Bounce( vec2 xy, size2 wh, const Camera& camera, const Scene& scene, const RayShader& shader ) const {
 		Ray ray = camera.Compute( xy, wh );
-		return Bounce( ray, scene, shader, Fur::nullopt, 0 );
+		return Bounce( ray, scene, shader );
 	}
 
 };

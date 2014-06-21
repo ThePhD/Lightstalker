@@ -13,29 +13,12 @@ private:
 
 public:
 
-	ImageOutput( Fur::Graphics::Image2D& img, const Fur::String& name = "output.png" ) 
-	: image( std::addressof( img ) ), outputname( name ) {
+	ImageOutput( Fur::Graphics::Image2D& img, const Fur::String& name = "output.png" );
 
-	}
+	void Clear( );
 
-	void Clear( ) {
-		auto rawview = image->raw_view( );
-		std::fill_n( rawview.data(), rawview.size( ), 0 );
-	}
+	void Save( );                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
-	void Save( ) {
-		Fur::Pipeline::PNGSaver saver{ };
-		saver( *image, outputname );
-	}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-
-	virtual void operator()( std::size_t x, std::size_t y, const rgba& pixel ) override {
-		Fur::buffer_view2<Fur::ByteColor> imagepixels = image->view<Fur::ByteColor>();
-		
-		Fur::index<2> test = { x, y };
-		Fur::ByteColor& datapixel = imagepixels[ test ];
-		rgba clampedpixel = Fur::clamp( pixel );
-		clampedpixel.a = 1.0f;
-		datapixel = clampedpixel;
-	}
+	virtual void operator()( std::size_t x, std::size_t y, const RayBounce& pixelbounce ) override;
 
 };

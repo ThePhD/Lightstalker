@@ -11,11 +11,13 @@
 #include <Furrovine++/TNormal4.h>
 #include <Furrovine++/TMatrix4.h>
 #include <Furrovine++/TRectangle.h>
+#include <Furrovine++/TSpherical.h>
 #include <Furrovine++/Ray3.h>
 #include <Furrovine++/optional.h>
 
 namespace Fur = Furrovine;
 
+typedef Fur::TSpherical<real> spherical;
 typedef Fur::TNormal2<real> normal2;
 typedef Fur::TNormal3<real> normal3;
 typedef Fur::TNormal4<real> normal4;
@@ -23,7 +25,9 @@ typedef Fur::TSize2<real> size2;
 typedef Fur::TSize2<std::size_t> size2u;
 typedef Fur::TVector2<real> vec2;
 typedef Fur::TVector2<std::size_t> vec2u;
+typedef Fur::TVector2<std::ptrdiff_t> vec2i;
 typedef Fur::TVector3<real> vec3;
+typedef Fur::TVector3<std::size_t> vec3u;
 typedef Fur::TVector4<real> vec4;
 typedef Fur::TMatrix4<real> mat4;
 

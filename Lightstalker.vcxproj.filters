@@ -30,6 +30,15 @@
     <ClCompile Include="RayTracerCommandLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RayTracerCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RayBounce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scene.h">
@@ -125,9 +134,23 @@
     <ClInclude Include="SampleCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RayBounce.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RPlane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RDisk3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KdTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
+    <Text Include="commandfile" />
+    <Text Include="Readme" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="Mesh\CubeSphere.obj" />

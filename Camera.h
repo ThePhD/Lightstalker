@@ -24,9 +24,11 @@ public:
 
 	Camera( vec3 pos = vec3( 0, 0, real(-100) ), vec3 dir = vec3( 0, 0, real(-1) ), vec3 refup = vec3::Up, 
 		real focallength = 28, vec2 framesize = FilmSize::FullFrame )
-		: position( pos ), direction( dir ), referenceup( refup ), sensorsize( framesize ), focallength( focallength ) {
+		: position( pos ), direction( dir ), referenceup( normalize( refup ) ), sensorsize( framesize ), focallength( focallength ) {
 		target = position + dir;
 		forward = normalize( direction );
+		if ( forward == referenceup || forward == -referenceup )
+			referenceup = orthogonal_to( forward ).second;
 		right = normalize( cross( referenceup, forward ) );
 		up = normalize( cross( forward, right ) );
 	}

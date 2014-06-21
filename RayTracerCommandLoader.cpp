@@ -3,6 +3,8 @@
 #include "FilmSize.h"
 #include <Furrovine++/IO/FileStream.h>
 #include <Furrovine++/IO/TextReader.h>
+#include <Furrovine++/IO/File.h>
+#include <Furrovine++/Graphics/Primitives.h>
 
 RayTracerCommand RayTracerCommandLoader::operator()( const Fur::String& file ) {
 	using namespace Furrovine::IO;
@@ -22,17 +24,22 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 	Triangle triangle;
 	Plane plane;
 	Sphere sphere;
+	Box box;
 	AmbientLight alight;
 	DirectionalLight dlight;
 	PointLight plight;
+	BasicMaterial material;
+	rgba background( RealWhite );
 	vec3 cpos( real_zero, real_zero, real(-100 ) );
-	vec3 cdir( 0, 0, -1.0f );
+	vec3 cdirtarget( 0, 0, -1.0f );
 	vec3 cup = vec3::Up;
 	vec2 framesize = FilmSize::FullFrame;
 	float cfocal = 420.0f;
 	Fur::String stringvalue = "";
 	Fur::uint32 uintvalue = 0;
 	bool cameracommanded = false;
+	bool lookat = false;
+	Furrovine::Graphics::WindingOrder order = WindingOrder::Collinear;
 
 	Scene& scene = command.scene;
 	RayShader& shader = command.shader;
@@ -46,6 +53,9 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 		reader.Read( );
 		Fur::codepoint c = static_cast<Fur::codepoint>( p );
 		switch ( c ) {
+		case '/':
+			reader.SkipLine( );
+			break;
 		case 's':
 			reader.SkipBlankSpace( );
 			if ( !reader.ReadSingle( sphere.origin.x ) )
@@ -66,30 +76,56 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			if ( !reader.ReadSingle( triangle.a.x ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.a.y ) )
+			if ( !reader.ReadSingle( triangle.a.y ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.a.z ) )
+			if ( !reader.ReadSingle( triangle.a.z ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.b.x ) )
+			if ( !reader.ReadSingle( triangle.b.x ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.b.y ) )
+			if ( !reader.ReadSingle( triangle.b.y ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.b.z ) )
+			if ( !reader.ReadSingle( triangle.b.z ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.c.x ) )
+			if ( !reader.ReadSingle( triangle.c.x ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.c.y ) )
+			if ( !reader.ReadSingle( triangle.c.y ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( reader.ReadSingle( triangle.c.z ) )
+			if ( !reader.ReadSingle( triangle.c.z ) )
 				break;
+			order = Fur::Graphics::Primitives::TriangleWinding( triangle.a, triangle.b, triangle.c, triangle.normal( ) );
 			scene.AddPrimitive( triangle );
+			break;
+		case 'b':
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( box.min.x ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( box.min.y ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( box.min.z ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( box.max.x ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( box.max.y ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( box.max.z ) )
+				break;
+			for ( std::size_t i = 0; i < box.max.size( ); ++i ) {
+				if ( box.min[ i ] > box.max[ i ] )
+					std::swap( box.min[ i ], box.max[ i ] );
+			}
+			scene.AddPrimitive( box );
 			break;
 		case 'p':
 			reader.SkipBlankSpace( );
@@ -106,7 +142,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 				break;
 			
 			scene.AddPrimitive( plane );
-			reader.ReadToNewLine( );
+			reader.SkipLine( );
 			break;
 		case 'l':
 			reader.SkipBlankSpace( );
@@ -161,6 +197,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 				reader.SkipBlankSpace( );
 				if ( !reader.ReadSingle( dlight.direction.z ) )
 					break;
+				dlight.direction.normalize( );
 				reader.SkipBlankSpace( );
 				if ( !reader.ReadSingle( dlight.intensity.r ) )
 					break;
@@ -176,48 +213,68 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			}
 			reader.ReadToNewLine( );
 			break;
-		case 'o':
-			if ( reader.At( "bj", true ) ) {
-				reader.SkipBlankSpace( );
-				reader.ReadToNewLine( stringvalue );
-				stringvalue.Trim( );
-				objloader( stringvalue );
+		case 'm':
+			material.matrefractivity = RealWhite;
+			material.matreflectivity = RealTransparent;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( material.matcolor.r ) )
 				break;
-			}
-			// Special options
-			while ( !reader.AtNewLine( ) ) {
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( material.matcolor.g ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( material.matcolor.b ) )
+				break;
+
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( material.matspecular.r ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( material.matspecular.g ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( material.matspecular.b ) )
+				break;
+
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( material.matspecularpower ) )
+				break;
+
+			do {
 				reader.SkipBlankSpace( );
-				if ( reader.At( "ms", true ) ) {
-					reader.SkipBlankSpace( );
-					if ( reader.ReadUInt32( uintvalue ) ) {
-						Fur::uint32 xsamples = uintvalue;
-						Fur::uint32 ysamples = uintvalue;
-						if ( reader.ReadUInt32( uintvalue ) ) {
-							ysamples = uintvalue;
-						}
-						std::default_random_engine randomengine{ };
-						command.multisampler = Fur::optional<Multisampler>( Fur::in_place, xsamples, ysamples, randomengine );
-					}
-				}
-				else if ( reader.At( "shadows", true ) ) {
-					command.shader.Shadows = true;
-				}
-				else if ( reader.At( "no-shadows", true ) ) {
-					command.shader.Shadows = false;
-				}
-				else if ( reader.At( "multhreading", true ) ) {
-					command.multithreading = true;
-				}
-				else if ( reader.At( "no-multhreading", true ) ) {
-					command.multithreading = false;
-				}
-				else {
-					reader.Read( );
-				}
-			}
+				if ( !reader.ReadSingle( material.matrefractivity.r ) )
+					break;
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matrefractivity.g ) )
+					break;
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matrefractivity.b ) )
+					break;
+
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matreflectivity.r ) )
+					break;
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matreflectivity.g ) )
+					break;
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matreflectivity.b ) )
+					break;
+			} while ( false );
+
+			scene.AddMaterial( material );
 			break;
 		case 'c':
 			reader.SkipBlankSpace( );
+			p = reader.Peek( );
+			if ( p == -1 )
+				break;
+			c = static_cast<Fur::codepoint>( p );
+			if ( c == 't' ) {
+				reader.Read( );
+				reader.ReadBlankSpace( );
+				lookat = true;
+			}
 			if ( !reader.ReadSingle( cpos.x ) )
 				break;
 			reader.SkipBlankSpace( );
@@ -227,13 +284,13 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			if ( !reader.ReadSingle( cpos.z ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( !reader.ReadSingle( cdir.x ) )
+			if ( !reader.ReadSingle( cdirtarget.x ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( !reader.ReadSingle( cdir.y ) )
+			if ( !reader.ReadSingle( cdirtarget.y ) )
 				break;
 			reader.SkipBlankSpace( );
-			if ( !reader.ReadSingle( cdir.z ) )
+			if ( !reader.ReadSingle( cdirtarget.z ) )
 				break;
 			reader.SkipBlankSpace( );
 			if ( !reader.ReadSingle( cfocal ) )
@@ -253,15 +310,88 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 				break;
 			command.imagesize.y = uintvalue;
 			
-			camera = Camera( cpos, cdir, cup, cfocal, framesize );
+			if ( lookat ) {
+				if ( cdirtarget == cup || cdirtarget == -cup )
+					cup = vec3::Forward;
+				camera = Camera( camera_look_at, cpos, cdirtarget, cup, cfocal, framesize );
+			}
+			else {
+				if ( cdirtarget == cup || cdirtarget == -cup )
+					cup = vec3::Forward;
+				camera = Camera( cpos, cdirtarget, cup, cfocal, framesize );
+			}
 			cameracommanded = true;
+			break;
+		case 'v':
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( background.r ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( background.g ) )
+				break;
+			reader.SkipBlankSpace( );
+			if ( !reader.ReadSingle( background.b ) )
+				break;
+			scene.SetBackground( background );
+			break;
+		case 'o':
+			if ( reader.At( "bj", true ) ) {
+				reader.SkipBlankSpace( );
+				reader.ReadToNewLine( stringvalue );
+				stringvalue.Trim( );
+				if ( Fur::IO::File::Exists( stringvalue ) )
+					objloader( stringvalue );
+				break;
+			}
+			// Special options
+			while ( !reader.AtNewLine( ) ) {
+				reader.SkipBlankSpace( );
+				if ( reader.At( "multisamples", true ) ) {
+					reader.SkipBlankSpace( );
+					if ( reader.ReadUInt32( uintvalue ) ) {
+						Fur::uint32 xsamples = uintvalue;
+						Fur::uint32 ysamples = uintvalue;
+						reader.SkipBlankSpace( );
+						if ( reader.ReadUInt32( uintvalue ) ) {
+							ysamples = uintvalue;
+						}
+						std::default_random_engine randomengine{ };
+						command.multisampler = Multisampler( xsamples, ysamples, randomengine );
+					}
+				}
+				else if ( reader.At( "display", true ) ) {
+					command.displaywindow = true;
+				}
+				else if ( reader.At( "no-display", true ) ) {
+					command.displaywindow = false;
+				}
+				else if ( reader.At( "shadows", true ) ) {
+					command.shader.Shadows = true;
+				}
+				else if ( reader.At( "no-shadows", true ) ) {
+					command.shader.Shadows = false;
+				}
+				else if ( reader.At( "multithreading", true ) ) {
+					command.multithreading = true;
+					reader.SkipBlankSpace( );
+					if ( reader.ReadUInt32( uintvalue ) ) {
+						uintvalue = std::max<Fur::uint32>( 2, uintvalue );
+						command.threadcount = uintvalue;
+					}
+				}
+				else if ( reader.At( "no-multithreading", true ) ) {
+					command.multithreading = false;
+				}
+				else {
+					reader.Read( );
+				}
+			}
 			break;
 		default:
 			reader.SkipLine( );
 			break;
 		}
 		
-		reader.Read( );
 		if ( reader.EoF( ) ) {
 			break;
 		}
@@ -269,12 +399,12 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 
 	if ( !cameracommanded ) {
 		// Generate a default camera based on the scene
-		::BoundingBox box = scene.Bounds( );
+		Box box = scene.Bounds( );
 		cpos = box.max * static_cast<real>( 3 );
-		cdir = cpos.direction_to( box.Center( ) );
-		if ( cdir == cup || cdir == -cup )
+		cdirtarget = cpos.direction_to( box.center( ) );
+		if ( cdirtarget == cup || cdirtarget == -cup )
 			cup = vec3::Forward;
-		camera = Camera( cpos, cdir, cup, cfocal, framesize );
+		camera = Camera( cpos, cdirtarget, cup, cfocal, framesize );
 	}
 
 	return command;

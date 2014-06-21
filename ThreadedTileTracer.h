@@ -12,7 +12,7 @@
 template <std::size_t n = 16, std::size_t m = n>
 class ThreadedTileTracer {
 public:
-	typedef std::function<void( vec2u xy, rgba color, bool multisampling )> traced_fx_t;
+	typedef std::function<void( vec2u xy, RayBounce& color, bool multisampling )> traced_fx_t;
 	typedef std::function<void( Tile tile, bool multisampling )> tile_fx_t;
 
 private:
@@ -45,7 +45,9 @@ private:
 				stopcv.notify_one( );
 				return;
 			}
-
+			if ( multisampleprepcomplete )
+				return;
+			hitmap.prepare_multisample( );
 			for ( std::size_t y = 0; y < static_cast<std::size_t>( imagesize[ 1 ] ); y += m ) {
 				for ( std::size_t x = 0; x < static_cast<std::size_t>( imagesize[ 0 ] ); x += n ) {
 					if ( stopping )
@@ -62,13 +64,10 @@ private:
 			for ( std::size_t x = tile.left; x < tile.right; ++x ) {
 				if ( stopping )
 					return;
-				auto bounce = raybouncer.RayBounce( vec2( static_cast<float>( x ), static_cast<float>( y ) ), size2( hitmap.bounds( ) ), camera, scene, rayshader );
-				if ( bounce.second )
-					hitmap[ { x, y } ] = bounce.second.value( );
-				else
-					hitmap[ { x, y } ] = 0;
-				ontrace( { x, y }, bounce.first, false );
-				output( x, y, bounce.first );
+				auto bounce = raybouncer.Bounce( vec2( static_cast<float>( x ), static_cast<float>( y ) ), size2( hitmap.bounds( ) ), camera, scene, rayshader );
+				hitmap[ { x, y } ] = bounce.hitid;
+				ontrace( { x, y }, bounce, false );
+				output( x, y, bounce );
 			}
 		}
 		ontile( tile, false );
@@ -80,8 +79,7 @@ private:
 			multisampleprepcomplete = multisamplepreppatches == 0;
 			if ( !multisampleprepcomplete )
 				return;
-			if ( stopping ) {
-				multisamplecomplete = true;
+			if ( stopping && multisamplecomplete ) {
 				stopcv.notify_one( );
 			}
 		} );
@@ -93,6 +91,7 @@ private:
 				if ( !hitmap.should_multisample( { x, y } ) ) {
 					continue;
 				}
+				multisamplecomplete = false;
 				++multisamplepatches;
 				threadpool.Queue( &ThreadedTileTracer<n, m>::MultisamplePatch, std::ref( *this ), tile );
 				sampled = true;
@@ -107,7 +106,7 @@ private:
 			if ( !multisamplecomplete )
 				return;
 			// Signal if we are stopping and the MultisamplePreparePatch
-			// has already finished (otherwise, MultisamplePreparePatch will do it for it)
+			// has already finished (otherwise, MultisamplePreparePatch will do it for us)
 			if ( stopping && multisampleprepcomplete ) {
 				stopcv.notify_one( );
 			}
@@ -115,27 +114,26 @@ private:
 
 		const Multisampler& ms = *multisampler;
 		real realmssize = static_cast<real>( ms.size( ) );
-		
+		vec2 swh = imagesize;
+
 		onpretile( tile, true );
 		for ( std::size_t y = tile.top; y < tile.bottom; ++y ) {
 			for ( std::size_t x = tile.left; x < tile.right; ++x ) {
-				rgba sample;
+				vec2 xy( static_cast<real>( x ), static_cast<real>( y ) );
+				RayBounce pixelbounce{ };
 				for ( std::size_t s = 0; s < ms.size( ); ++s ) {
 					if ( stopping )
 						return;
-					const vec2& multisample = ms[ s ];
-					real sx = x + multisample.x;
-					real sy = y + multisample.y;
-					vec2 sv( sx, sy );
-					auto bounce = raybouncer.RayBounce( sv, hitmap.bounds( ), camera, scene, rayshader );
-					sample += bounce.first;
+					vec2 sxy = ms[ s ];
+					sxy += xy;
+					Ray ray = camera.Compute( sxy, swh );
+					auto bounce = raybouncer.Bounce( ray, scene, rayshader );
+					pixelbounce.accumulate( bounce );
 				}
-				sample /= realmssize;
-				ontrace( { x, y }, sample, true );
-				output( x, y, sample );
+				pixelbounce.color /= realmssize;
+				ontrace( { x, y }, pixelbounce, true );
+				output( x, y, pixelbounce );
 			}
-			if ( stopping )
-				break;
 		}
 		ontile( tile, true );
 	}
@@ -144,14 +142,13 @@ public:
 
 	ThreadedTileTracer( Furrovine::Threading::ThreadPool& pool, const vec2u& imagesize, const Camera& camera, const Scene& scene, const RayBouncer& raybouncer, const RayShader& rayshader, Fur::optional<const Multisampler&> multisampler, Output& output, tile_fx_t patchfx = nullptr, tile_fx_t prepatchfx = nullptr, traced_fx_t tracefx = nullptr )
 		: complete( true ), multisampleprepcomplete( true ), multisamplecomplete( true ), stopping( false ),
-		imagesize( imagesize ),
-		hitmap( imagesize, reinterpret_cast<uintptr_t>( std::addressof( scene.Vacuum().first ) ) ), 
+		imagesize( imagesize ), hitmap( imagesize ), 
 		scene( scene ), camera( camera ), raybouncer( raybouncer ),
 		rayshader( rayshader ), multisampler( std::move( multisampler ) ), output( output ),
 		threadpool( pool ),
 		ontile( std::move( patchfx ) ), onpretile( std::move( onpretile ) ), ontrace( std::move( tracefx ) ) {
 		if ( !ontrace ) {
-			ontrace = [ ] ( vec2u, rgba, bool ) -> void { };
+			ontrace = [ ] ( vec2u, RayBounce&, bool ) -> void { };
 		}
 		if ( !ontile ) {
 			ontile = [ ] ( Tile, bool ) -> void { };
@@ -185,8 +182,8 @@ public:
 		multisamplepreppatches = patchcount;
 		multisamplepatches = 0;
 		complete = false;
-		multisamplecomplete = !multisampler;
-		multisampleprepcomplete = !multisampler;
+		multisamplecomplete = true;
+		multisampleprepcomplete = !multisampler || multisampler->size( ) < 2;
 		
 		for ( std::size_t y = 0; y < static_cast<std::size_t>( imagesize[ 1 ] ); y += m ) {
 			for ( std::size_t x = 0; x < static_cast<std::size_t>( imagesize[ 0 ] ); x += n ) {

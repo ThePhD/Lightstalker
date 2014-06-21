@@ -3,6 +3,7 @@
 #include "PrimitiveHit.h"
 #include "rgba.h"
 #include "Light.h"
+#include "RayBounce.h"
 
 struct RayShader {
 public:
@@ -10,14 +11,14 @@ public:
 
 	RayShader( );
 
-	Fur::triple<rgba, bool, bool> Shadow( const Ray& shadowray, const Scene& scene, const PrimitiveHit& primitivehit ) const;
+	bool Shadow( RayBounce& raybounce, const Scene& scene ) const;
 
-	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit ) const;
+	void operator()( RayBounce& raybounce, const Scene& scene ) const;
 
-	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const PointLight& pointlight ) const;
+	void operator()( RayBounce& raybounce, const Scene& scene, const PointLight& pointlight ) const;
 
-	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const DirectionalLight& directionallight ) const;
+	void operator()( RayBounce& raybounce, const Scene& scene, const DirectionalLight& directionallight ) const;
 
-	std::pair<rgba, bool> operator()( const Ray& ray, const Scene& scene, const PrimitiveHit& primitivehit, const AmbientLight& ambientlight ) const;
+	void operator()( RayBounce& raybounce, const Scene& scene, const AmbientLight& ambientlight ) const;
 
 };

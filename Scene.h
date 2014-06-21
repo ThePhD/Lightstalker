@@ -5,6 +5,7 @@
 #include "rgba.h"
 #include "Light.h"
 #include "RayShader.h"
+#include "RayBounce.h"
 #include <Furrovine++/optional.h>
 #include <Furrovine++/reference_equals.h>
 #include <Furrovine++/buffer_view.h>
@@ -13,7 +14,7 @@
 
 class Scene {
 private:
-	BoundingBox box;
+	Box box;
 	Primitive vacuumprimitive;
 	Material vacuummaterial;
 	Hit vacuumhit;
@@ -79,7 +80,7 @@ public:
 		return vacuummaterial.color( vacuumprimitive, vacuumhit );
 	}
 
-	BoundingBox Bounds( ) const {
+	Box Bounds( ) const {
 		return box;
 	}
 
@@ -185,6 +186,26 @@ public:
 		return pointlights;
 	}
 
+	std::size_t MaterialCount( ) const {
+		return materials.size();
+	}
+
+	std::size_t PrimitiveCount( ) const {
+		return primitives.size();
+	}
+
+	std::size_t AmbientLightCount( ) const {
+		return ambientlights.size();
+	}
+
+	std::size_t DirectionalLightCount( ) const {
+		return directionallights.size();
+	}
+
+	std::size_t PointLightCount( ) const {
+		return pointlights.size();
+	}
+
 	/*Fur::buffer_view<const SpotLight> SpotLights( ) const {
 	return spotlights;
 	}
@@ -194,7 +215,8 @@ public:
 	}*/
 
 
-	Fur::optional<PrimitiveHit> Intersect( const Ray& ray, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
+	void Intersect( RayBounce& raybounce, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
+		const Ray& ray = raybounce.ray;
 		Fur::optional<PrimitiveHit> closesthit = Fur::nullopt;
 		
 		real t0 = std::numeric_limits<real>::max( );
@@ -203,18 +225,21 @@ public:
 			if ( ignore && Fur::reference_equals( ignore.value( ), prim ) )
 				continue;
 			auto hit = intersect( ray, prim );
+			++raybounce.primitivetests;
 			if ( !hit )
 				continue;
+			++raybounce.primitivehits;
 			if ( hit->distance0 < t0 ) {
-				closesthit = PrimitiveHit{ prim, PrecalculatedMaterial( materials[ prim.material ], prim, hit.value() ), hit.value( ) };
+				closesthit = PrimitiveHit{ prim, PrecalculatedMaterial( materials[ prim.material ], prim, hit.value( ) ), hit.value( ) };
 				t0 = hit->distance0;
+				++raybounce.overlappingprimitivehits;
 			}
 		}
 
 		if ( !closesthit )
 			closesthit = Vacuum();
 
-		return closesthit;
+		raybounce.hit = std::move( *closesthit );
 	}
 
 	/*Fur::optional<PrimitiveHit> Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {

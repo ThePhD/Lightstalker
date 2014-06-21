@@ -92,10 +92,12 @@ namespace SampleCommands {
 			RealWhite, rgba( 0.2f, 0.2f, 0.2f, 0.2f ) },
 			sphere_arg, 60.0f, vec3( 0, 120, 138.564f - 69.282f ) );
 
-		scene.Add( CheckerMaterial{ vec3( 80, 80, 80 ), Black, White, White, Transparent },
+		scene.Add( CheckerMaterial( Black, White, White, Transparent, real( 32 ), RealWhite, RealTransparent,
+			RealTransparent, Ior::Water, Absorption::Water, White, vec2( 80, 80 ) ),
 			plane_arg, -30.0f, vec3::Up );
 
-		scene.Add( CheckerMaterial{ vec3( 70, 70, 70 ), Black, Blue, White, Transparent },
+		scene.Add( CheckerMaterial( LightBlue, White, White, Transparent, real( 32 ), RealWhite, RealTransparent,
+			RealTransparent, Ior::Water, Absorption::Water, White, vec2( 70, 70 ) ),
 			plane_arg, -200.0f, vec3::Right );
 
 		scene.AddAmbientLight( rgba{ 0.04f, 0.04f, 0.04f, 0.04f } );
