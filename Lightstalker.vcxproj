@@ -93,8 +93,6 @@
     <ClInclude Include="KdTree.h" />
     <ClInclude Include="FilmSize.h" />
     <ClInclude Include="ObjLoader.h" />
-    <ClInclude Include="RDisk3.h" />
-    <ClInclude Include="RPlane.h" />
     <ClInclude Include="PrimitiveHit.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="RayBounce.h" />

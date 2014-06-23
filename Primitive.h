@@ -4,8 +4,6 @@
 #include "Ray.h"
 #include "Vacuum.h"
 #include "RMeshTriangle.h"
-#include "RPlane.h"
-#include "RDisk3.h"
 #include "Math.h"
 #include <Furrovine++/unreachable.h>
 #include <Furrovine++/optional.h>
@@ -15,6 +13,7 @@
 #include <Furrovine++/RTriangle3.h>
 #include <Furrovine++/TBoundingBox.h>
 #include <Furrovine++/intersect3.h>
+#include <Furrovine++/enclose3.h>
 #include <Furrovine++/triple.h>
 
 struct sphere_arg_t { };
@@ -50,8 +49,8 @@ struct TPrimitive {
 	union {
 		Vacuum vacuum;
 		Fur::RSphere<T> sphere;
-		RPlane<T> plane;
-		RDisk3<T> disk;
+		Fur::RPlane<T> plane;
+		Fur::RDisk3<T> disk;
 		Fur::RBoundingBox<T> box;
 		Fur::RTriangle3<T> triangle;
 		RMeshTriangle<T> meshtriangle;
@@ -61,7 +60,7 @@ struct TPrimitive {
 
 	}
 
-	TPrimitive( const RPlane<T>& plane ) : id( PrimitiveId::Plane ), material( 0 ), light( false ), plane( plane ) {
+	TPrimitive( const Fur::RPlane<T>& plane ) : id( PrimitiveId::Plane ), material( 0 ), light( false ), plane( plane ) {
 
 	}
 
@@ -73,7 +72,7 @@ struct TPrimitive {
 
 	}
 
-	TPrimitive( const RDisk3<T>& disk ) : id( PrimitiveId::Disk ), material( 0 ), light( false ), disk( disk ) {
+	TPrimitive( const Fur::RDisk3<T>& disk ) : id( PrimitiveId::Disk ), material( 0 ), light( false ), disk( disk ) {
 
 	}
 
@@ -85,8 +84,9 @@ struct TPrimitive {
 
 	}
 
-	TPrimitive( sphere_arg_t, T radius, const Fur::RVector3<T>& position ) : id( PrimitiveId::Sphere ), material( 0 ), light( false ), sphere( { radius, position } ) {
-
+	TPrimitive( sphere_arg_t, T radius, const Fur::RVector3<T>& position ) : id( PrimitiveId::Sphere ), material( 0 ), light( false ), sphere( ) {
+		sphere.radius = radius;
+		sphere.origin = position;
 	}
 
 	TPrimitive( plane_arg_t, T distance, const Fur::RVector3<T>& normal ) : id( PrimitiveId::Plane ), material( 0 ), light( false ), plane( ) {
@@ -137,7 +137,9 @@ struct TPrimitive {
 	Fur::TVector2<T> texture( const Fur::THit3<T>& hit ) {
 		switch ( id ) {
 		case PrimitiveId::Plane:
-			return plane.texture( hit );
+			return Fur::TVector2<T>( hit.contact.dot( plane.planareastaxis ), hit.contact.dot( plane.planarnorthaxis ) );
+		case PrimitiveId::Disk:
+			return Fur::TVector2<T>( hit.contact.dot( disk.planareastaxis ), hit.contact.dot( disk.planarnorthaxis ) );
 		case PrimitiveId::Sphere: {
 			Fur::TVector2<T> st(
 				( ( ( std::asin( hit.normal.x ) * 2 ) / pi<T>( ) ) + 1 ),
@@ -149,10 +151,28 @@ struct TPrimitive {
 			return hit.stu;
 		case PrimitiveId::VertexTriangle:
 			return meshtriangle.texture( hit );
-		case PrimitiveId::Disk:
-			return disk.plane;
 		case PrimitiveId::Box:
 			return hit.stu;
+		case PrimitiveId::Vacuum:
+		default:
+			return{ };
+		};
+	}
+
+	Fur::TVector3<T> origin( ) const {
+		switch ( id ) {
+		case PrimitiveId::Plane:
+			return plane.distance * plane.normal;
+		case PrimitiveId::Sphere:
+			return sphere.origin;
+		case PrimitiveId::Triangle:
+			return triangle.center( );
+		case PrimitiveId::VertexTriangle:
+			return meshtriangle.center( );
+		case PrimitiveId::Disk:
+			return disk.origin;
+		case PrimitiveId::Box:
+			return box.center( );
 		case PrimitiveId::Vacuum:
 		default:
 			return{ };
@@ -176,6 +196,28 @@ struct TPrimitive {
 		case PrimitiveId::Vacuum:
 		default:
 			return{ };
+		};
+	}
+
+	void enclose_by( Fur::RBoundingBox<T>& enclosure ) const {
+		switch ( id ) {
+		case PrimitiveId::Plane:
+			return; // Nope
+		case PrimitiveId::Sphere:
+			enclose( enclosure, sphere );
+			break;
+		case PrimitiveId::Triangle:
+			enclose( enclosure, triangle );
+			break;
+		case PrimitiveId::VertexTriangle:
+			enclose( enclosure, meshtriangle );
+		case PrimitiveId::Disk:
+			enclose( enclosure, disk );
+		case PrimitiveId::Box:
+			enclose( enclosure, box );
+		case PrimitiveId::Vacuum:
+		default:
+			return;
 		};
 	}
 
@@ -205,7 +247,31 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimiti
 	unreachable;
 }
 
-typedef RPlane<real> Plane;
+template <typename T>
+Fur::optional<Fur::THit3<T>> intersect( const Fur::RBoundingBox<T>& box, const TPrimitive<T>& target ) {
+	switch ( target.id ) {
+	case PrimitiveId::Plane:
+		return Fur::intersect( box, target.plane );
+	case PrimitiveId::Sphere:
+		return Fur::intersect( box, target.sphere );
+	case PrimitiveId::Triangle:
+		return Fur::intersect( box, target.triangle );
+	case PrimitiveId::VertexTriangle: {
+		auto i = Fur::intersect( box, target.meshtriangle );
+		if ( i )
+			i->normal = target.meshtriangle.normal( *i );
+		break; }
+	case PrimitiveId::Disk:
+		return Fur::intersect( box, target.disk );
+	case PrimitiveId::Box:
+		return Fur::intersect( box, target.box );
+	case PrimitiveId::Vacuum:
+		return Fur::THit3<T>{ };
+	}
+	unreachable;
+}
+
+typedef Fur::RPlane<real> Plane;
 typedef Fur::RTriangle3<real> Triangle;
 typedef Fur::RSphere<real> Sphere;
 typedef Fur::RDisk3<real> Disk;

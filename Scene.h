@@ -6,10 +6,11 @@
 #include "Light.h"
 #include "RayShader.h"
 #include "RayBounce.h"
+#include "KdTree.h"
 #include <Furrovine++/optional.h>
 #include <Furrovine++/reference_equals.h>
 #include <Furrovine++/buffer_view.h>
-#include <Furrovine++/BoundingBox.h>
+#include <Furrovine++/enclose3.h>
 #include <vector>
 
 class Scene {
@@ -19,42 +20,26 @@ private:
 	Material vacuummaterial;
 	Hit vacuumhit;
 	std::vector<Primitive> primitives;
+	std::vector<Primitive> unboundedprimitives;
 	std::vector<Material> materials;
 	std::vector<AmbientLight> ambientlights;
 	std::vector<PointLight> pointlights;
 	std::vector<DirectionalLight> directionallights;
 	//std::vector<SpotLight> spotlights;
+	std::unique_ptr<KdTree> kdtree;
 
 	void update_box( const Primitive& primitive ) {
-		Triangle tri;
-		switch ( primitive.id ) {
-		case PrimitiveId::VertexTriangle:
-			tri.a = primitive.meshtriangle.a.position;
-			tri.b = primitive.meshtriangle.b.position;
-			tri.c = primitive.meshtriangle.c.position;
-			box.max.max( tri.maximum( ) );
-			box.min.min( tri.minimum( ) );
-			break;
-		case PrimitiveId::Triangle:
-			box.max.max( primitive.triangle.maximum( ) );
-			box.min.min( primitive.triangle.minimum( ) );
-			break;
-		case PrimitiveId::Sphere:
-			box.max.max( primitive.sphere.maximum( ) );
-			box.min.min( primitive.sphere.minimum( ) );
-			break;
-		case PrimitiveId::Disk:
-			
-			break;
-		case PrimitiveId::Plane:
-			break;
-		}
+		primitive.enclose_by( box );
 	}
 
 public:
 
 	Scene( const rgba& background = Fur::Colors::AmbientGrey ) 
-	: vacuumprimitive( vacuum_arg ), vacuummaterial( BasicMaterial( background, RealWhite, RealTransparent, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ), vacuumhit( ) {
+	: vacuumprimitive( vacuum_arg ), 
+	vacuummaterial( BasicMaterial( background, RealWhite, RealTransparent, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ), 
+	vacuumhit( ), 
+	box(),
+	kdtree( nullptr ) {
 		vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
 		vacuumhit.normal = vec3::Zero;
 		vacuumhit.stu = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
@@ -97,9 +82,19 @@ public:
 
 	template <typename... Tn>
 	void AddPrimitive( Tn&&... argn ) {
-		primitives.emplace_back( std::forward<Tn>( argn )... );
-		primitives.back( ).material = materials.size( ) - 1;
-		update_box( primitives.back( ) );
+		Primitive primitive( std::forward<Tn>( argn )... );
+		if ( primitive.id == PrimitiveId::Plane ) {
+			unboundedprimitives.push_back( primitive );
+			Primitive& primitive = unboundedprimitives.back( );
+			primitive.material = materials.size( ) - 1;
+			update_box( primitives.back( ) );
+		}
+		else {
+			primitives.push_back( primitive );
+			Primitive& primitive = primitives.back( );
+			primitive.material = materials.size( ) - 1;
+			update_box( primitives.back( ) );
+		}
 	}
 
 	template <typename... Tn>
@@ -207,21 +202,56 @@ public:
 	}
 
 	/*Fur::buffer_view<const SpotLight> SpotLights( ) const {
-	return spotlights;
+		return spotlights;
 	}
 
 	Fur::buffer_view<SpotLight> SpotLights( ) {
 		return spotlights;
 	}*/
 
+	void Build( ) {
+		kdtree.reset( new KdTree( box, primitives ) );
+	}
 
-	void Intersect( RayBounce& raybounce, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
+	void Intersect( RayBounce& raybounce ) const {
+		const Ray& ray = raybounce.ray;
+		kdtree->Intersect( raybounce, materials );
+		for ( std::size_t p = 0; p < unboundedprimitives.size( ); ++p ) {
+			const Primitive& prim = unboundedprimitives[ p ];
+			auto hit = intersect( ray, prim );
+			++raybounce.primitivetests;
+			if ( !hit )
+				continue;
+			++raybounce.primitivehits;
+			if ( !raybounce.hit || hit->distance0 < raybounce.hit->third.distance0 ) {
+				raybounce.hit = PrimitiveHit{ prim, PrecalculatedMaterial( materials[ prim.material ], prim, hit.value( ) ), hit.value( ) };
+				++raybounce.overlappingprimitivehits;
+			}
+		}
+	}
+
+#if 0
+	// Non-kd-tree intersection
+	void Intersect( RayBounce& raybounce ) const {
 		const Ray& ray = raybounce.ray;
 		Fur::optional<PrimitiveHit> closesthit = Fur::nullopt;
 		
 		real t0 = std::numeric_limits<real>::max( );
 		for ( std::size_t p = 0; p < primitives.size( ); ++p ) {
 			const Primitive& prim = primitives[ p ];
+			auto hit = intersect( ray, prim );
+			++raybounce.primitivetests;
+			if ( !hit )
+				continue;
+			++raybounce.primitivehits;
+			if ( hit->distance0 < t0 ) {
+				closesthit = PrimitiveHit{ prim, PrecalculatedMaterial( materials[ prim.material ], prim, hit.value( ) ), hit.value( ) };
+				t0 = hit->distance0;
+				++raybounce.overlappingprimitivehits;
+			}
+		}
+		for ( std::size_t p = 0; p < unboundedprimitives.size( ); ++p ) {
+			const Primitive& prim = unboundedprimitives[ p ];
 			if ( ignore && Fur::reference_equals( ignore.value( ), prim ) )
 				continue;
 			auto hit = intersect( ray, prim );
@@ -241,42 +271,6 @@ public:
 
 		raybounce.hit = std::move( *closesthit );
 	}
-
-	/*Fur::optional<PrimitiveHit> Intersect( const Ray& ray, RayTrace& trace, Fur::optional<const Primitive&> ignore = Fur::nullopt ) const {
-		Fur::optional<PrimitiveHit> closesthit;
-		closesthit = Fur::nullopt;
-		trace.hits.clear( );
-		trace.orderedhits.clear( );
-
-		real t0 = std::numeric_limits<real>::max( );
-		for ( std::size_t p = 0; p < primitives.size( ); ++p ) {
-			const Primitive& prim = primitives[ p ];
-			if ( ignore && Fur::reference_equals( ignore.value( ), prim ) )
-				continue;
-			auto hit = intersect( ray, prim );
-			if ( !hit )
-				continue;
-			trace.hits.emplace_back( PrimitiveHit{ prim, materials[ prim.material ], hit.value( ) } );
-			if ( hit->distance0 < t0 ) {
-				closesthit = trace.hits.back();
-				t0 = hit->distance0;
-			}
-		}
-
-		if ( !closesthit )
-			closesthit = Vacuum();
-
-		trace.hits.push_back( Vacuum() );
-
-		for ( std::size_t h = 0; h < trace.hits.size( ); ++h ) {
-			trace.orderedhits.emplace_back( std::addressof( trace.hits[ h ] ) );
-		}
-		std::sort( trace.orderedhits.begin( ), trace.orderedhits.end( ), 
-		[ ] ( PrimitiveHit* left, PrimitiveHit* right ) {
-			return left->third.distance0 < right->third.distance0;
-		} );
-
-		return closesthit;
-	}*/
+#endif // Non-kd-tree
 
 };

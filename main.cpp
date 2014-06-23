@@ -53,10 +53,8 @@ Furrovine::String make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphic
 	if ( secs < 10 )
 		sstring.Prepend( "0" );
 	if ( milliseconds < 10 )
-		msstring.Prepend( "000" );
-	else if ( milliseconds < 100 )
 		msstring.Prepend( "00" );
-	else if ( milliseconds < 1000 )
+	else if ( milliseconds < 100 )
 		msstring.Prepend( "0" );
 
 	String timestring = Format( "{0}:{1}:{2}.{3}",
@@ -72,7 +70,7 @@ Furrovine::String make_coords_info( Furrovine::Graphics::Image2D& image, const v
 	using namespace Furrovine;
 	auto view = image.view<Fur::ByteColor>( );
 	const ByteColor& color = view[ coords ];
-	String coordsstring = Format( "Coordinate: {0}, {1}\nR: {2}\nG: {3}\nB: {4}",
+	String coordsstring = Format( "Pixel Coordinate\nr: {2}\ng: {3}\nb: {4}",
 		lexical_cast( coords.x ),
 		lexical_cast( coords.y ),
 		lexical_cast( static_cast<int>( color.r ) ),
@@ -94,13 +92,13 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	uint32 height = command.imagesize.y;
 	real swidth = static_cast<real>( command.imagesize.x );
 	real sheight = static_cast<real>( command.imagesize.y );
-	height += 80;
+	height += 55;
 	WindowDriver windowdriver( Fur::WindowDriverFlags::Default );
 	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", Fur::Size2u32( width, height ) ) );
 	GraphicsDevice graphics( window );
 	NymphBatch batch( graphics );
 	MessageQueue messagequeue;
-	RasterFont font = RasterFontLoader( graphics )( RasterFontDescription( "Arial", 14 ) );
+	RasterFont font = RasterFontLoader( graphics )( RasterFontDescription( "Arial", 11 ) );
 	KeyboardDevice keyboard( 0 );
 	vec2i mousepos( 0, 0 );
 	optional<vec2i> checkcoord = nullopt;
@@ -117,7 +115,6 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	bool doreload = false;
 	bool& displaywindow = command.displaywindow;
 	if ( displaywindow ) {
-		window.SetCursorVisible( true );
 		window.Show( );
 	}
 
@@ -193,6 +190,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 			output.Clear( );
 			if ( doreload ) {
 				command = std::move( RayTracerCommandLoader( )( *source ) );
+				command.scene.Build( );
 				doreload = false;
 			}
 			stopwatch.Start( );
@@ -227,8 +225,17 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		String datastring = make_info( stopwatch, image, mousepos, raytracer.Steps() );
 		batch.RenderString( font, datastring, { 0, sheight } );
 		if ( rendercoord ) {
+			auto imageview = image.view<ByteColor>( );
+			auto color = imageview[ *checkcoord ];
+			auto backcolor = color == White ? AmbientGrey : White;
+			batch.RenderGradient( Region( 318, sheight + 14, 32, 32 ), backcolor, backcolor );
+			batch.RenderGradient( Region( 319, sheight + 15, 30, 30 ), color, color );
+			
 			String coordsstring = make_coords_info( image, *checkcoord );
-			batch.RenderString( font, coordsstring, { swidth / 2, sheight } );
+			batch.RenderString( font, coordsstring, { 280, sheight } );
+		}
+		else {
+			batch.RenderString( font, "Click on a pixel...", { 280, sheight } );
 		}
 		batch.End( );
 		graphics.Present( );
@@ -273,6 +280,7 @@ int main( int argc, char* argv[] ) {
 		RayShader& shader = command.shader;
 		optional<Multisampler>& multisampler = command.multisampler;
 		vec2u& imagesize = command.imagesize;
+		scene.Build( );
 		if ( command.multithreading ) {
 			ThreadPool threadpool( command.threadcount );
 			ThreadedTileTracer<16, 16> raytracer( threadpool, imagesize, camera, 

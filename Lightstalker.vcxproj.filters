@@ -137,12 +137,6 @@
     <ClInclude Include="RayBounce.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RPlane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RDisk3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="KdTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
