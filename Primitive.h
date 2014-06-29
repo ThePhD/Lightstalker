@@ -236,7 +236,7 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimiti
 		auto i = Fur::intersect( ray, target.meshtriangle );
 		if ( i )
 			i->normal = target.meshtriangle.normal( *i );
-		break; }
+		return i; }
 	case PrimitiveId::Disk:
 		return Fur::intersect( ray, target.disk );
 	case PrimitiveId::Box:
@@ -260,7 +260,7 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::RBoundingBox<T>& box, const T
 		auto i = Fur::intersect( box, target.meshtriangle );
 		if ( i )
 			i->normal = target.meshtriangle.normal( *i );
-		break; }
+		return i; }
 	case PrimitiveId::Disk:
 		return Fur::intersect( box, target.disk );
 	case PrimitiveId::Box:

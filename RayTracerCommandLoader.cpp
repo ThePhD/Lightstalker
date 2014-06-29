@@ -34,7 +34,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 	vec3 cdirtarget( 0, 0, -1.0f );
 	vec3 cup = vec3::Up;
 	vec2 framesize = FilmSize::FullFrame;
-	float cfocal = 420.0f;
+	float cfocal = 48.0f;
 	Fur::String stringvalue = "";
 	Fur::uint32 uintvalue = 0;
 	bool cameracommanded = false;
@@ -404,7 +404,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 		cdirtarget = cpos.direction_to( box.center( ) );
 		if ( cdirtarget == cup || cdirtarget == -cup )
 			cup = vec3::Forward;
-		camera = Camera( cpos, cdirtarget, cup, cfocal, framesize );
+		camera = Camera( cpos, cdirtarget, cup );
 	}
 
 	return command;

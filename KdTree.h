@@ -55,7 +55,7 @@ private:
 				return;
 			}
 			
-			Box leftbox{ }, rightbox{ };
+			Box leftbox = minbox, rightbox = minbox;
 			std::vector<std::reference_wrapper<Primitive>> leftprimitives;
 			std::vector<std::reference_wrapper<Primitive>> rightprimitives;
 			if ( primitives.size( ) > 1 ) {
@@ -90,7 +90,9 @@ private:
 					}*/
 				}
 			}
-
+			leftbox.enclose( Box{ } );
+			rightbox.enclose( Box{ } );
+			
 			// Stop criterion: triangles are matching
 			std::size_t matchcount = 0;
 			for ( const Primitive& leftprimitive : leftprimitives ) {
@@ -113,8 +115,8 @@ private:
 				right.reset( new Node( rightbox, std::move( rightprimitives ), recursioncount + 1 ) );
 			}
 			else {
-				left.reset( new Node( Box{ }, std::vector<std::reference_wrapper<Primitive>>( 0, Fur::null_ref<Primitive>::value ), recursioncount + 1 ) );
-				right.reset( new Node( Box{ }, std::vector<std::reference_wrapper<Primitive>>( 0, Fur::null_ref<Primitive>::value ), recursioncount + 1 ) );
+				left.reset( new Node( leftbox, std::vector<std::reference_wrapper<Primitive>>( 0, Fur::null_ref<Primitive>::value ), recursioncount + 1 ) );
+				right.reset( new Node( rightbox, std::vector<std::reference_wrapper<Primitive>>( 0, Fur::null_ref<Primitive>::value ), recursioncount + 1 ) );
 			}
 			
 			// New cost is just sum of node costs
@@ -131,7 +133,8 @@ private:
 			
 			++raybounce.cullingtraversalhits;
 			
-			if ( !left->primitives.empty() || !right->primitives.empty( ) ) {
+			if ( ( left != nullptr && !left->primitives.empty() ) || 
+				( right != nullptr && !right->primitives.empty( ) ) ) {
 				left->Intersect( raybounce, materials );
 				right->Intersect( raybounce, materials );
 				return;
@@ -143,6 +146,9 @@ private:
 				++raybounce.primitivetests;
 				if ( !hit )
 					continue;
+				if ( primitive.id == PrimitiveId::Triangle ) {
+					raybounce.hitid = 0;
+				}
 				++raybounce.primitivehits;
 				if ( !raybounce.hit ) {
 					raybounce.hit = PrimitiveHit{ primitive, PrecalculatedMaterial( materials[ primitive.material ], primitive, hit.value( ) ), hit.value( ) };

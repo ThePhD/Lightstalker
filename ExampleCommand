@@ -12,7 +12,7 @@ v 0.3 0.3 0.3
 // camera is formed with several parameters, being position, direction/target
 // additional `t` specificier after 'c' tells camera to target that position, rather than read as direction
 / c [t] x y z dx dy dz focal_length sensor_size_x sensor_size_y pixel_width pixel_height
-c t 0 300 0 0 0 0 28 24 36 640 480
+/ c t 0 300 0 0 0 0 28 24 36 640 480
 // can optionally be written like this instead:
 / c 0 300 0 -1 0 0 28 24 36 640 480
 
@@ -31,7 +31,7 @@ m 1 0 0 0 0 0 32 1 1 1 0 0 0
 // -- primitive commands --
 // sphere command:
 / s x y z radius
-s 0 0 0 30
+/s 0 0 0 30
 
 // You can change materials and the next primitive will use the last material defined
 m 0 1 0 1 1 1 32
@@ -45,13 +45,18 @@ t 40 0 0  40 0 20  60 0 0
 m 0 0 1 0 0 0 32 1 1 1 0 0 0
 // box command:
 / b min_x min_y min_z max_x max_y max_z
-b -60 -20 20 -40 0 40
+b -60 20 20 -40 0 40
 
 // Yet another material
 m 0.5 0.5 0.8 0 0 0 32 1 1 1 0 0 0
 // plane command:
 / p normal_x normal_y normal_z distance_from_origin
 p 0 1 0 -40
+
+// model command:
+/ obj file_path
+// the obj command loads a Wavefront OBJ file and puts its triangles into the scene as defined
+/obj Mesh/Cube.obj
 
 // -- light commands --
 // l is light, followed by another letter to denote what kind (point, directional, ambient)

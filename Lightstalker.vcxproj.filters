@@ -39,6 +39,9 @@
     <ClCompile Include="ImageOutput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scene.h">
@@ -140,17 +143,23 @@
     <ClInclude Include="KdTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestCommand">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
-    <Text Include="commandfile" />
     <Text Include="Readme" />
+    <Text Include="ExampleCommand" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="Mesh\CubeSphere.obj" />
     <Object Include="Mesh\snake.obj" />
     <Object Include="Mesh\Teapot.obj" />
     <Object Include="Mesh\Triangle.obj" />
+    <Object Include="Mesh\Cube.obj" />
+    <Object Include="Mesh\RotatedCube.obj" />
+    <Object Include="Mesh\CenteredCube.obj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Mesh\CubeSphere.mtl" />

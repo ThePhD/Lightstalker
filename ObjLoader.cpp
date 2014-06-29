@@ -36,14 +36,14 @@ void ObjLoader::operator()( Fur::IO::TextReader& reader ) {
 			MeshTriangle meshtriangle;
 			for ( std::size_t ix = submeshdesc.IndexOffset; ix < submeshdesc.IndexCount; ix += 3 ) {
 				const vertex& va = vertices[ indices[ ix + 0 ] ];
+				const vertex& vb = vertices[ indices[ ix + 1 ] ];
+				const vertex& vc = vertices[ indices[ ix + 2 ] ];
 				meshtriangle.a.position = va.position;
 				meshtriangle.a.texture = va.texture;
 				meshtriangle.a.normal = va.normal;
-				const vertex& vb = vertices[ indices[ ix + 1 ] ];
 				meshtriangle.b.position = vb.position;
 				meshtriangle.b.texture = vb.texture;
 				meshtriangle.b.normal = vb.normal;
-				const vertex& vc = vertices[ indices[ ix + 2 ] ];
 				meshtriangle.c.position = vc.position;
 				meshtriangle.c.texture = vc.texture;
 				meshtriangle.c.normal = vc.normal;

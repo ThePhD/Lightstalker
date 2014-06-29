@@ -55,7 +55,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>FURROVINEDLL;FURROVINEDEBUG;_SCL_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FURROVINEDLL;FURROVINEDEBUG;NOKDTREE;_SCL_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -88,10 +88,14 @@
     <ClCompile Include="RayTracerCommand.cpp" />
     <ClCompile Include="rgba.cpp" />
     <ClCompile Include="RayTracerCommandLoader.cpp" />
+    <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KdTree.h" />
     <ClInclude Include="FilmSize.h" />
+    <ClInclude Include="TestCommand">
+      <FileType>Text</FileType>
+    </ClInclude>
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PrimitiveHit.h" />
     <ClInclude Include="Material.h" />
@@ -134,14 +138,26 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
-    <Text Include="commandfile">
+    <Text Include="ExampleCommand">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
     </Text>
     <Text Include="Readme" />
   </ItemGroup>
   <ItemGroup>
+    <Object Include="Mesh\CenteredCube.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Mesh\Cube.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </Object>
     <Object Include="Mesh\CubeSphere.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Mesh\RotatedCube.obj">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </Object>

@@ -69,6 +69,9 @@ private:
 			raybounce.color += raybounce.hit->second.color;
 			return;
 		}
+		
+		raybounce.color = RealWhite;
+		return;
 
 		shader( raybounce, scene );
 		raybounce.hitid += static_cast<std::uintptr_t>( raybounce.shadow );
