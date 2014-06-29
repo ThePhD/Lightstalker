@@ -24,17 +24,17 @@
 
 Furrovine::String make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphics::Image2D& image, const vec2i& mouse, RayTracerStep steps ) {
 	using namespace Furrovine;
-	String stepstring = "Finished";
+	String stepstring = "Finished\n";
 	if ( Fur::HasFlags( steps, RayTracerStep::Preliminary ) ) {
-		stepstring = "Running - Tracing Rays...";
+		stepstring = "Running\nTracing Rays...";
 	}
 	else {
 		if ( Fur::HasFlags( steps, RayTracerStep::MultisampleDetection | RayTracerStep::Multisampling ) )
-			stepstring = "Running - Tracing and Detecting Multisample Rays...";
+			stepstring = "Running\nTracing and Detecting Multisample Rays...";
 		else if ( Fur::HasFlags( steps, RayTracerStep::MultisampleDetection ) )
-			stepstring = "Running - Tracing and Detecting Multisample Rays...";
+			stepstring = "Running\nDetecting Multisample Rays...";
 		else if ( Fur::HasFlags( steps, RayTracerStep::Multisampling ) )
-			stepstring = "Running - Tracing Multisampling Rays...";
+			stepstring = "Running\nTracing Multisampling Rays...";
 	}
 
 	double elapsedmilliseconds = stopwatch.ElapsedMilliseconds( );
@@ -88,6 +88,9 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
 	using namespace Furrovine::Sys;
+	vec2 offset = { 220, 0 };
+	vec2 magoffset = { offset.x + 60, 0 };
+	vec2 magsize = { 16, 16 };
 	uint32 width = command.imagesize.x;
 	uint32 height = command.imagesize.y;
 	real swidth = static_cast<real>( command.imagesize.x );
@@ -218,6 +221,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		}
 
 		bool rendercoord = checkcoord && intersect( image.boundaries( ), TVector2<uint32>( *checkcoord ) );
+		auto imageview = image.view<ByteColor>( );
 		
 		graphics.Clear( Black );
 		graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
@@ -225,17 +229,16 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		String datastring = make_info( stopwatch, image, mousepos, raytracer.Steps() );
 		batch.RenderString( font, datastring, { 0, sheight } );
 		if ( rendercoord ) {
-			auto imageview = image.view<ByteColor>( );
 			auto color = imageview[ *checkcoord ];
 			auto backcolor = color == White ? AmbientGrey : White;
-			batch.RenderGradient( Region( 318, sheight + 14, 32, 32 ), backcolor, backcolor );
-			batch.RenderGradient( Region( 319, sheight + 15, 30, 30 ), color, color );
+			batch.RenderGradient( Region( offset.x + 28, sheight + 14, 32, 32 ), backcolor, backcolor );
+			batch.RenderGradient( Region( offset.x + 29, sheight + 15, 30, 30 ), color, color );
 			
 			String coordsstring = make_coords_info( image, *checkcoord );
-			batch.RenderString( font, coordsstring, { 280, sheight } );
+			batch.RenderString( font, coordsstring, { offset.x, sheight } );
 		}
 		else {
-			batch.RenderString( font, "Click on a pixel...", { 280, sheight } );
+			batch.RenderString( font, "Click on a pixel...", { offset.x, sheight } );
 		}
 		batch.End( );
 		graphics.Present( );
