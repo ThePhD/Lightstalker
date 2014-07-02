@@ -231,8 +231,8 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		if ( rendercoord ) {
 			auto color = imageview[ *checkcoord ];
 			auto backcolor = color == White ? AmbientGrey : White;
-			batch.RenderGradient( Region( offset.x + 28, sheight + 14, 32, 32 ), backcolor, backcolor );
-			batch.RenderGradient( Region( offset.x + 29, sheight + 15, 30, 30 ), color, color );
+			batch.RenderGradient( Region( offset.x + 33, sheight + 14, 32, 32 ), backcolor, backcolor );
+			batch.RenderGradient( Region( offset.x + 34, sheight + 15, 30, 30 ), color, color );
 			
 			String coordsstring = make_coords_info( image, *checkcoord );
 			batch.RenderString( font, coordsstring, { offset.x, sheight } );
@@ -298,12 +298,12 @@ int main( int argc, char* argv[] ) {
 			RayTrace( command, stopwatch, source, image, output, raytracer );
 		}
 	}
-	catch ( Exception& ex ) {
+	catch ( const Exception& ex ) {
 		std::cout << "Lightstalker - An unhandled Furrovine Exception has occured:\n\t"
 			<< ex.what( );
 		return 2;
 	}
-	catch ( std::exception& ex ) {
+	catch ( const std::exception& ex ) {
 		std::cout << "Lightstalker - An unhandled standard exception has occured:\n\t"
 			<< ex.what( );
 		return 2;
