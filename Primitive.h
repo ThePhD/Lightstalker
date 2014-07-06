@@ -9,9 +9,8 @@
 #include <Furrovine++/optional.h>
 #include <Furrovine++/THit3.h>
 #include <Furrovine++/RSphere.h>
-#include <Furrovine++/RBoundingBox.h>
+#include <Furrovine++/RBox.h>
 #include <Furrovine++/RTriangle3.h>
-#include <Furrovine++/TBoundingBox.h>
 #include <Furrovine++/intersect3.h>
 #include <Furrovine++/enclose3.h>
 #include <Furrovine++/triple.h>
@@ -51,7 +50,7 @@ struct TPrimitive {
 		Fur::RSphere<T> sphere;
 		Fur::RPlane<T> plane;
 		Fur::RDisk3<T> disk;
-		Fur::RBoundingBox<T> box;
+		Fur::RBox<T> box;
 		Fur::RTriangle3<T> triangle;
 		RMeshTriangle<T> meshtriangle;
 	};
@@ -76,7 +75,7 @@ struct TPrimitive {
 
 	}
 
-	TPrimitive( const Fur::RBoundingBox<T>& box ) : id( PrimitiveId::Box ), material( 0 ), light( false ), box( box ) {
+	TPrimitive( const Fur::RBox<T>& box ) : id( PrimitiveId::Box ), material( 0 ), light( false ), box( box ) {
 
 	}
 
@@ -199,7 +198,7 @@ struct TPrimitive {
 		};
 	}
 
-	void enclose_by( Fur::RBoundingBox<T>& enclosure ) const {
+	void enclose_by( Fur::RBox<T>& enclosure ) const {
 		switch ( id ) {
 		case PrimitiveId::Plane:
 			return; // Nope
@@ -248,7 +247,7 @@ Fur::optional<Fur::THit3<T>> intersect( const Fur::TRay3<T>& ray, const TPrimiti
 }
 
 template <typename T>
-Fur::optional<Fur::THit3<T>> intersect( const Fur::RBoundingBox<T>& box, const TPrimitive<T>& target ) {
+Fur::optional<Fur::THit3<T>> intersect( const Fur::RBox<T>& box, const TPrimitive<T>& target ) {
 	switch ( target.id ) {
 	case PrimitiveId::Plane:
 		return Fur::intersect( box, target.plane );
@@ -275,7 +274,7 @@ typedef Fur::RPlane<real> Plane;
 typedef Fur::RTriangle3<real> Triangle;
 typedef Fur::RSphere<real> Sphere;
 typedef Fur::RDisk3<real> Disk;
-typedef Fur::RBoundingBox<real> Box;
+typedef Fur::RBox<real> Box;
 typedef RMeshVertex<real> MeshVertex;
 typedef RMeshTriangle<real> MeshTriangle;
 typedef Fur::THit3<real> Hit;

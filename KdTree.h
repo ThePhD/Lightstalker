@@ -2,7 +2,6 @@
 
 #include "Primitive.h"
 #include "RayBounce.h"
-#include <Furrovine++/BoundingBox.h>
 #include <Furrovine++/buffer_view.h>
 #include <memory>
 #include <vector>

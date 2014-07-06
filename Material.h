@@ -184,7 +184,7 @@ struct TWavefrontMaterial {
 	}
 
 	Fur::TRgba<T> refractivity( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
-		return mat.Transmission;
+		return mat.Alpha;
 	}
 
 	Fur::TRgba<T> reflectivity( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
@@ -204,11 +204,11 @@ struct TWavefrontMaterial {
 	}
 
 	T indexofrefraction( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
-		return Ior::Glass;
+		return mat.IndexOfRefraction;
 	}
 
 	T absorption( const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) const {
-		return mat.Alpha;
+		return Absorption::Vacuum;
 	}
 
 };

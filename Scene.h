@@ -19,6 +19,7 @@ private:
 	Primitive vacuumprimitive;
 	Material vacuummaterial;
 	Hit vacuumhit;
+	real raybias;
 	std::vector<Primitive> primitives;
 	std::vector<Primitive> unboundedprimitives;
 	std::vector<Material> materials;
@@ -32,7 +33,7 @@ private:
 
 public:
 
-	Scene( const rgba& background = Fur::Colors::AmbientGrey );
+	Scene( const rgba& background = Fur::Colors::AmbientGrey, real raybias = static_cast<real>( 1e-2 ) );
 
 	PrimitiveHit Vacuum( ) const;
 
@@ -41,6 +42,8 @@ public:
 	const rgba& Background( ) const;
 
 	Box Bounds( ) const;
+
+	real Bias( ) const;
 
 	template <typename Tm, typename... Tn>
 	void Add( Tm&& material, Tn&&... argn ) {

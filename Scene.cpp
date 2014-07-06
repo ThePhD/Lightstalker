@@ -1,8 +1,5 @@
 #include "Scene.h"
 
-
-
-
 void Scene::Intersect( RayBounce& raybounce ) const {
 	const Ray& ray = raybounce.ray;
 #if NOKDTREE
@@ -156,6 +153,10 @@ Box Scene::Bounds( ) const {
 	return box;
 }
 
+real Scene::Bias( ) const {
+	return raybias;
+}
+
 const rgba& Scene::Background( ) const {
 	return vacuummaterial.color( vacuumprimitive, vacuumhit );
 }
@@ -168,14 +169,14 @@ PrimitiveHit Scene::Vacuum( ) const {
 	return PrimitiveHit{ vacuumprimitive, PrecalculatedMaterial( vacuummaterial, vacuumprimitive, vacuumhit ), vacuumhit };
 }
 
-Scene::Scene( const rgba& background /*= Fur::Colors::AmbientGrey */ ) : vacuumprimitive( vacuum_arg ),
+Scene::Scene( const rgba& background /*= Fur::Colors::AmbientGrey */, real raybias ) : raybias( raybias ), vacuumprimitive( vacuum_arg ),
 vacuummaterial( BasicMaterial( background, RealWhite, RealTransparent, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ),
 vacuumhit( ),
 box( ),
 kdtree( nullptr ) {
 	vacuumhit.distance0 = vacuumhit.distance1 = std::numeric_limits<real>::max( );
 	vacuumhit.normal = vec3::Zero;
-	vacuumhit.stu = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
+	vacuumhit.uvw = vec3::Zero;
 	vacuumhit.contact = vec3( std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ), std::numeric_limits<real>::max( ) );
 
 	primitives.reserve( 9182 );

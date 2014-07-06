@@ -92,10 +92,9 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	vec2 magoffset = { offset.x + 60, 0 };
 	vec2 magsize = { 16, 16 };
 	uint32 width = command.imagesize.x;
-	uint32 height = command.imagesize.y;
+	uint32 height = command.imagesize.y + 55;
 	real swidth = static_cast<real>( command.imagesize.x );
 	real sheight = static_cast<real>( command.imagesize.y );
-	height += 55;
 	WindowDriver windowdriver( Fur::WindowDriverFlags::Default );
 	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", Fur::Size2u32( width, height ) ) );
 	GraphicsDevice graphics( window );
@@ -192,7 +191,9 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 			raytracer.Stop( );
 			output.Clear( );
 			if ( doreload ) {
+				vec2u imagesize = command.imagesize;
 				command = std::move( RayTracerCommandLoader( )( *source ) );
+				command.imagesize = imagesize;
 				command.scene.Build( );
 				doreload = false;
 			}

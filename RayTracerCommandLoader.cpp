@@ -242,16 +242,6 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 
 			do {
 				reader.SkipBlankSpace( );
-				if ( !reader.ReadSingle( material.matrefractivity.r ) )
-					break;
-				reader.SkipBlankSpace( );
-				if ( !reader.ReadSingle( material.matrefractivity.g ) )
-					break;
-				reader.SkipBlankSpace( );
-				if ( !reader.ReadSingle( material.matrefractivity.b ) )
-					break;
-
-				reader.SkipBlankSpace( );
 				if ( !reader.ReadSingle( material.matreflectivity.r ) )
 					break;
 				reader.SkipBlankSpace( );
@@ -259,6 +249,16 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 					break;
 				reader.SkipBlankSpace( );
 				if ( !reader.ReadSingle( material.matreflectivity.b ) )
+					break;
+
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matrefractivity.r ) )
+					break;
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matrefractivity.g ) )
+					break;
+				reader.SkipBlankSpace( );
+				if ( !reader.ReadSingle( material.matrefractivity.b ) )
 					break;
 			} while ( false );
 

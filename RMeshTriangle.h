@@ -3,7 +3,7 @@
 #include "real.h"
 #include <Furrovine++/Vector2.h>
 #include <Furrovine++/Vector3.h>
-#include <Furrovine++/TVertexTriangle.h>
+#include <Furrovine++/RVertexTriangle.h>
 #include <Furrovine++/THit3.h>
 
 template <typename T>
@@ -14,7 +14,7 @@ struct RMeshVertex {
 };
 
 template <typename T>
-struct RMeshTriangle : public Fur::TVertexTriangle<RMeshVertex<T>> {
+struct RMeshTriangle : public Fur::RVertexTriangle<RMeshVertex<T>> {
 
 	Fur::RVector3<T> center( ) const {
 		Fur::RVector3<T> cent( a.position );
@@ -25,11 +25,16 @@ struct RMeshTriangle : public Fur::TVertexTriangle<RMeshVertex<T>> {
 	}
 
 	Fur::TVector3<T> normal( const Fur::THit3<T>& hit ) const {
-		return a.normal + hit.stu.s * ( b.normal - a.normal ) + hit.stu.t * ( c.normal - a.normal );
+		std::array<Fur::TVector3<T>, 3> normals = {
+			a.normal,
+			b.normal,
+			c.normal
+		};
+		return barycentric_interpolate( hit.uvw, normals );
 	}
 
 	Fur::TVector2<T> texture( const Fur::THit3<T>& hit ) const {
-		return a + hit.stu.s * ( b - a ) + hit.stu.t * ( c - a );
+		return a + hit.uvw.u * ( b - a ) + hit.uvw.v * ( c - a );
 	}
 
 };

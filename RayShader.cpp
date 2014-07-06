@@ -6,10 +6,14 @@ bool RayShader::Shadow( RayBounce& raybounce, const Scene& scene ) const {
 		return false;
 	}
 	scene.Intersect( raybounce );
-	auto& shadowophit = raybounce.hit;
-	if ( !shadowophit || shadowophit->first.id == PrimitiveId::Vacuum )
+	const Fur::optional<PrimitiveHit>& ophit = raybounce.hit;
+	if ( !ophit )
 		return false;
-	const auto& material = shadowophit->second;
+	const PrimitiveHit& primitivehit = *raybounce.hit;
+	const Primitive& primitive = primitivehit.first;
+	if ( primitive.id == PrimitiveId::Vacuum )
+		return false;
+	const PrecalculatedMaterial& material = primitivehit.second;
 	return std::all_of( material.opacity.begin( ), material.opacity.end( ),
 		real_compare<std::equal_to<>, 0>( ) );
 }
@@ -31,11 +35,13 @@ void RayShader::operator()( RayBounce& raybounce, const Scene& scene, const Dire
 	rgba color( 0, 0, 0, 0 );
 
 	vec3 directiontolight = -directionallight.direction;
-	Ray shadowray( hit.contact + ( directiontolight * static_cast<real>( 1e-2 ) ), directiontolight );
+	Ray shadowray( hit.contact + ( directiontolight * scene.Bias() ),
+		directiontolight );
 	RayBounce shadowbounce{ };
 	shadowbounce.ray = shadowray;
 	if ( Shadow( shadowbounce, scene ) ) {
 		raybounce.shadow = true;
+		raybounce.hitid += static_cast<std::uintptr_t>( 1 );
 		return;
 	}
 
@@ -54,7 +60,11 @@ void RayShader::operator()( RayBounce& raybounce, const Scene& scene, const Dire
 	}
 
 	color *= lightcontribution;
-	color.lerp( RealTransparent, material.opacity );
+	if ( shadowbounce.hit && shadowbounce.hit->first.id != PrimitiveId::Vacuum ) {
+		const PrecalculatedMaterial& shadowmaterial = shadowbounce.hit->second;
+		color.lerp( RealTransparent, shadowmaterial.opacity );
+		raybounce.hitid += static_cast<std::uintptr_t>( 1 );
+	}
 	raybounce.color += color;
 }
 
@@ -62,7 +72,7 @@ void RayShader::operator()( RayBounce& raybounce, const Scene& scene, const Poin
 	const PrimitiveHit& primitivehit = *raybounce.hit;
 	const Primitive& primitive = primitivehit.first;
 	const Hit& hit = primitivehit.third;
-	DirectionalLight directionallight( hit.contact.direction_to( pointlight.position ), pointlight.intensity );
+	DirectionalLight directionallight( pointlight.position.direction_to( hit.contact ), pointlight.intensity );
 	auto& me = *this;
 	me( raybounce, scene, directionallight );
 }
