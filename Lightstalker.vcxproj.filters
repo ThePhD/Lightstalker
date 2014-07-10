@@ -163,14 +163,49 @@
     <Object Include="Mesh\Cube.obj" />
     <Object Include="Mesh\RotatedCube.obj" />
     <Object Include="Mesh\CenteredCube.obj" />
+    <Object Include="Mesh\minigun.obj" />
+    <Object Include="Mesh\body.obj" />
+    <Object Include="Mesh\Amaterasu.obj" />
+    <Object Include="Mesh\teapot high.obj" />
+    <Object Include="Mesh\teddy.obj" />
+    <Object Include="Mesh\violin_case.obj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Mesh\CubeSphere.mtl" />
     <None Include="Mesh\snake.mtl" />
     <None Include="Mesh\Teapot.mtl" />
+    <None Include="Mesh\Amaterasu.mtl" />
+    <None Include="Mesh\minigun.mtl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Mesh\UVTest.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\Am_kao_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\Am_tex01_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\Am_tex02_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\keA_kotei_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\keA_uv_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\keBC_kotei_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\keBC_uv_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\shippo_kotei_BM.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Mesh\shippo_uv_BM.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

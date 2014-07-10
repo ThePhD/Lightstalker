@@ -18,14 +18,14 @@ v 0.3 0.3 0.3
 
 
 //  -- material command --
-/ m dr dg db sr sg sb se tr tg rb rr rg rb
+/ m dr dg db sr sg sb se rr rg rb tr tg tb
 // specification: diffuse (r g b) specular (sr sg sb) 
 // specular-exponent (se) refractivity (tr tg tb) reflectivity (rr rg rb)
 // refractivity refers to transparency - 1 is not transparent at all, 0 is transparent
 // reflectivity is how reflective the surface is - 1 is completley reflective, 0 is not reflective at all
 // if you choose, you can leave out the refractivity
 // and reflectivity parts of the arguments
-// (it will default to refractivity: 1 1 1 and reflectivity: 0 0 0)
+// (it will default to reflectivity: 1 1 1 and refraction: 0 0 0)
 m 1 0 0 0 0 0 32 1 1 1 0 0 0
 
 // -- primitive commands --

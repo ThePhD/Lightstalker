@@ -1,16 +1,17 @@
 Lightstalker - Recreated CG Milestone
-Built on top of Furrovine++ created, owned and maintained by The Phantom Derpstorm
+Built on top of Furrovine++ created, owned and maintained by JeanHeyd "The Phantom Derpstorm" Meneide
 -- Source Code Included, with libraries and shaders
 
 Interaction:
 Press Ctrl + R to retrace the scene (and reload if a command file was passed)
 Press Ctrl + S to save the image (at any point during the tracing, even multithreaded tracing)
 Press Ctrl + Q or Escape to stop the current rendering process entirely
+Right-Click to trigger the Magnifier (or just use the smaller one at the bottom)
 
 Features:
 Basic Refraction
-Jittered Multisampling - Number of samples controlled (see example file named 'commandfile')
+Jittered Multisampling - Number of samples controlled by user (see example file named 'ExampleCommand')
 Multithreading (optional - see example file named 'commandfile')
-Extended command language (camera and friends in example file named 'commandfile')
+Extended command language (camera and friends in example file named 'ExampleCommand')
 Progress Display Window - Renders using DirectX on Windows
 FileSystem Detection and Reload when already-loaded command file is changed by user

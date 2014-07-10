@@ -388,7 +388,6 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			}
 			break;
 		default:
-			reader.SkipLine( );
 			break;
 		}
 		

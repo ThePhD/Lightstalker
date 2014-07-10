@@ -45,12 +45,10 @@ void RayBouncer::Bounce( RayBounce& raybounce, const Ray& ray, const Scene& scen
 		// Things have a slight coloration to depth if they are shallow refractions.
 		// Intensity of the light drops off related to density and concentration
 		// of transparent material
-		/*rgba absorbance = material.color( primitive, hit ) * material.absorption( primitive, hit ) * -hit.distance0;
-		rgba opacity( std::exp( absorbance.r ),
-		std::exp( absorbance.g ),
-		std::exp( absorbance.b ),
-		std::exp( absorbance.a ) );*/
-		rgba color = refractionbounce.color;// *opacity;
+		rgba absorbance = material.color * material.absorption * -hit.distance0;
+		std::transform( absorbance.begin( ), absorbance.end( ), 
+			absorbance.begin( ), static_cast<real( * )( real )>( std::exp ) );
+		rgba color = refractionbounce.color * absorbance;
 		raybounce.color += color;
 		++raybounce.refractions;
 	}

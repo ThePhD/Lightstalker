@@ -4,17 +4,15 @@ v 0.7 0.7 0.7
 /c t 8 8 -13  0 0 0  28  24 36  352 240
 /c t 6 6 -11  0 0 0  28  24 36  640 480
 /c t 9 6 -11  3 0 0  28  24 36  640 480
-c t 0 200 0  0 0 0  28  24 36  352 240
+/c t 0 200 0  0 0 0  28  24 36  352 240
 
 /m  1 0 0  1 1 1  32
 
 /s 0 0 0  2
 
-/obj Mesh/RotatedCube.obj
-/obj Mesh/Teapot.obj
-/obj Mesh/Triangle.obj
-obj Mesh/CubeSphere.obj
+/obj Mesh/teapot high.obj
+obj Mesh/minigun.obj
 
-/l p 0 1000 0 1 1 1
-l d 0 -1 1 1 1 1
+l p 0 1000 0 1 1 1
+l d 0 1 1 0.5 0.5 0.5
 l a 0.04 0.04 0.04

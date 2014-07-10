@@ -12,6 +12,7 @@
 #include "RayTracerCommandLoader.h"
 #include <Furrovine++/lexical_cast.h>
 #include <Furrovine++/WindowDriver.h>
+#include <Furrovine++/Input/MouseDevice.h>
 #include <Furrovine++/Input/KeyboardDevice.h>
 #include <Furrovine++/Graphics/Window.h>
 #include <Furrovine++/Graphics/GraphicsDevice.h>
@@ -22,6 +23,20 @@
 #include <Furrovine++/Stopwatch.h>
 #include <Furrovine++/intersect2.h>
 
+Furrovine::String make_coords_info( Furrovine::Graphics::Image2D& image, const vec2i& coords ) {
+	using namespace Furrovine;
+	TVector2<uint32> ucoords( coords );
+	if ( !intersect( image.boundaries( ), ucoords ) ) {
+		return "Mouse over pixel...";
+	}
+	const Furrovine::ByteColor& color = image.view<ByteColor>()[ coords ];
+	String coordsstring = Format( "Pixel - r: {0} | g: {1} | b: {2}",
+		lexical_cast( static_cast<int>( color.r ) ),
+		lexical_cast( static_cast<int>( color.g ) ),
+		lexical_cast( static_cast<int>( color.b ) ) );
+	return coordsstring;
+}
+
 Furrovine::String make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphics::Image2D& image, const vec2i& mouse, RayTracerStep steps ) {
 	using namespace Furrovine;
 	String stepstring = "Finished\n";
@@ -30,7 +45,7 @@ Furrovine::String make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphic
 	}
 	else {
 		if ( Fur::HasFlags( steps, RayTracerStep::MultisampleDetection | RayTracerStep::Multisampling ) )
-			stepstring = "Running\nTracing and Detecting Multisample Rays...";
+			stepstring = "Running\nDetecting and Tracing Multisample Rays...";
 		else if ( Fur::HasFlags( steps, RayTracerStep::MultisampleDetection ) )
 			stepstring = "Running\nDetecting Multisample Rays...";
 		else if ( Fur::HasFlags( steps, RayTracerStep::Multisampling ) )
@@ -59,24 +74,12 @@ Furrovine::String make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphic
 
 	String timestring = Format( "{0}:{1}:{2}.{3}",
 		hstring, mstring, sstring, msstring );
-	String datastring = Format( "{2}\nMouse - x: {0} | y: {1}\nTime - {3}",
-		lexical_cast( mouse.x ), lexical_cast( mouse.y ),
+	String datastring = Format( "{0}\nMouse - x: {1} | y: {2}\n{3}\nTime - {4}",
 		stepstring,
+		lexical_cast( mouse.x ), lexical_cast( mouse.y ),
+		make_coords_info( image, mouse ),
 		timestring );
 	return datastring;
-}
-
-Furrovine::String make_coords_info( Furrovine::Graphics::Image2D& image, const vec2i& coords ) {
-	using namespace Furrovine;
-	auto view = image.view<Fur::ByteColor>( );
-	const ByteColor& color = view[ coords ];
-	String coordsstring = Format( "Pixel Coordinate\nr: {2}\ng: {3}\nb: {4}",
-		lexical_cast( coords.x ),
-		lexical_cast( coords.y ),
-		lexical_cast( static_cast<int>( color.r ) ),
-		lexical_cast( static_cast<int>( color.g ) ),
-		lexical_cast( static_cast<int>( color.b ) ) );
-	return coordsstring;
 }
 
 template <typename TTracer>
@@ -88,22 +91,25 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	using namespace Furrovine::Text;
 	using namespace Furrovine::Input;
 	using namespace Furrovine::Sys;
-	vec2 offset = { 220, 0 };
-	vec2 magoffset = { offset.x + 60, 0 };
-	vec2 magsize = { 16, 16 };
-	uint32 width = command.imagesize.x;
-	uint32 height = command.imagesize.y + 55;
-	real swidth = static_cast<real>( command.imagesize.x );
-	real sheight = static_cast<real>( command.imagesize.y );
+	uint32 bottombar = 72;
+	vec2 imagesize( static_cast<real>( command.imagesize.x ), static_cast<real>( command.imagesize.y ) );
+	Fur::Size2u32 windowsize( command.imagesize.x, command.imagesize.y + bottombar );
+	real offsetx = 220;
+	
+	vec2u magtoolsize( 32, 32 );
+	vec2u magsize( 16, 16 );
+	vec2 magpixelsize( 4, 4 );
+	vec2 magoffset( offsetx + 60, imagesize.y + ( static_cast<real>(bottombar)-( magsize.y * magpixelsize.y ) ) / 2 );
+
 	WindowDriver windowdriver( Fur::WindowDriverFlags::Default );
-	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", Fur::Size2u32( width, height ) ) );
+	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", windowsize ) );
 	GraphicsDevice graphics( window );
 	NymphBatch batch( graphics );
 	MessageQueue messagequeue;
 	RasterFont font = RasterFontLoader( graphics )( RasterFontDescription( "Arial", 11 ) );
 	KeyboardDevice keyboard( 0 );
+	MouseDevice mouse( 0 );
 	vec2i mousepos( 0, 0 );
-	optional<vec2i> checkcoord = nullopt;
 
 	FileWatcher watcher( maybe_or( source, String( "" ) ), "", false );
 	
@@ -129,18 +135,6 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		while ( opmessage = messagequeue.pop( ) ) {
 			Fur::MessageData& message = opmessage.value( );
 			switch ( message.header.id ) {
-			case Fur::MessageId::Mouse: {
-				Fur::MouseEvent& mouse = message.as<Fur::MouseEvent>( );
-				if ( !mouse.InWindow )
-					break;
-				mousepos = mouse.Relative;
-				if ( AnyFlags( mouse.Buttons, MouseButtons::Left ) ) {
-					checkcoord = mousepos;
-				}
-				if ( AnyFlags( mouse.Buttons, MouseButtons::Right ) ) {
-					checkcoord = nullopt;
-				}
-				break; }
 			case Fur::MessageId::Window: {
 				Fur::WindowEvent& windowm = message.as<Fur::WindowEvent>( );
 				quit = windowm.Signal == Fur::WindowEventSignal::Quit
@@ -152,6 +146,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		if ( quit )
 			break;
 		
+		mouse.Update( );
 		keyboard.Update( );
 		if ( keyboard.Pressed( Key::Escape ) ) {
 			quit = true;
@@ -168,6 +163,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 				output.Save( );
 			}
 		}
+		mousepos = mouse.Position( );
 
 		if ( source ) {
 			watcher.WaitForChanges( changes, watcherbuffer, Timeout( 33 ) );
@@ -221,26 +217,54 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 			continue;
 		}
 
-		bool rendercoord = checkcoord && intersect( image.boundaries( ), TVector2<uint32>( *checkcoord ) );
 		auto imageview = image.view<ByteColor>( );
 		
 		graphics.Clear( Black );
-		graphics.RenderImage( image, Region( 0, 0, swidth, sheight ) );
+		graphics.RenderImage( image, Region( 0, 0, imagesize.x, imagesize.y ) );
 		batch.Begin( );
 		String datastring = make_info( stopwatch, image, mousepos, raytracer.Steps() );
-		batch.RenderString( font, datastring, { 0, sheight } );
-		if ( rendercoord ) {
-			auto color = imageview[ *checkcoord ];
-			auto backcolor = color == White ? AmbientGrey : White;
-			batch.RenderGradient( Region( offset.x + 33, sheight + 14, 32, 32 ), backcolor, backcolor );
-			batch.RenderGradient( Region( offset.x + 34, sheight + 15, 30, 30 ), color, color );
-			
-			String coordsstring = make_coords_info( image, *checkcoord );
-			batch.RenderString( font, coordsstring, { offset.x, sheight } );
+		batch.RenderString( font, datastring, { 0, imagesize.y } );
+		auto backcolor = AmbientGrey;
+		
+		if ( mouse.Down( MouseButtons::Right ) ) {
+			vec2 backpos( mousepos );
+			backpos -= magpixelsize * static_cast<real>( 12 );
+			backpos -= static_cast<real>( 1 );
+			batch.RenderGradient( Region( backpos, size2( vec2( magtoolsize ) * magpixelsize + static_cast<real>( 2 ) ) ), backcolor );
+			for ( std::size_t y = 0; y < magtoolsize.x; ++y ) {
+				for ( std::size_t x = 0; x < magtoolsize.y; ++x ) {
+					real sx = static_cast<real>( x );
+					real sy = static_cast<real>( y );
+					vec2u pos( mousepos.x + x, mousepos.y + y );
+					pos -= magtoolsize / static_cast<std::size_t>( 2 );
+					auto color = !intersect( image.boundaries( ), pos ) ? Black : imageview[ pos ];
+					color.a = 255;
+					vec2 renderpos( static_cast<real>( mousepos.x ), static_cast<real>( mousepos.y ) );
+					renderpos -= magpixelsize * static_cast<real>( 12 );
+					renderpos += magpixelsize * vec2( sx, sy );
+					Region region( renderpos, size2( magpixelsize ) );
+					batch.RenderGradient( region, color );
+				}
+			}
 		}
 		else {
-			batch.RenderString( font, "Click on a pixel...", { offset.x, sheight } );
+			batch.RenderGradient( Region( magoffset - vec2( 1, 1 ), size2( vec2( magsize ) * magpixelsize + vec2( 2, 2 ) ) ), backcolor );
+			for ( std::size_t y = 0; y < magsize.y; ++y ) {
+				for ( std::size_t x = 0; x < magsize.x; ++x ) {
+					real sx = static_cast<real>( x );
+					real sy = static_cast<real>( y );
+					vec2u pos( mousepos.x + x, mousepos.y + y );
+					pos -= magsize / static_cast<std::size_t>( 2 );
+					auto color = !intersect( image.boundaries( ), pos ) ? Black : imageview[ pos ];
+					color.a = 255;
+					vec2 renderpos( magoffset );
+					renderpos += magpixelsize * vec2( sx, sy );
+					Region region( renderpos, size2( magpixelsize ) );
+					batch.RenderGradient( region, color );
+				}
+			}
 		}
+
 		batch.End( );
 		graphics.Present( );
 	}
@@ -268,8 +292,14 @@ int main( int argc, char* argv[] ) {
 		}
 	}
 	try {
-		if ( !output )
-			output = "output.png";
+		if ( !output ) {
+			if ( source ) {
+				output = *source + String( ".png" );
+			}
+			else {
+				output = "output.png";
+			}
+		}
 		if ( source )
 			ocommand = RayTracerCommandLoader()( *source );
 		if (!ocommand)
@@ -277,7 +307,7 @@ int main( int argc, char* argv[] ) {
 		Stopwatch stopwatch;
 		RayTracerCommand& command = *ocommand;
 		Image2D image( command.imagesize, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, ToByteSize( SurfaceFormat::Red8Green8Blue8Alpha8Normalized ), 0 );
-		ImageOutput output( image, *output );
+		ImageOutput imageoutput( image, *output );
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;
 		RayBouncer& bouncer = command.bouncer;
@@ -288,15 +318,15 @@ int main( int argc, char* argv[] ) {
 		if ( command.multithreading ) {
 			ThreadPool threadpool( command.threadcount );
 			ThreadedTileTracer<16, 16> raytracer( threadpool, imagesize, camera, 
-				scene, bouncer, shader, multisampler, output );
+				scene, bouncer, shader, multisampler, imageoutput );
 			stopwatch.Start( );
-			RayTrace( command, stopwatch, source, image, output, raytracer );
+			RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
 		}
 		else {
 			TileTracer<16, 16> raytracer( imagesize, camera,
-				scene, bouncer, shader, multisampler, output, std::chrono::milliseconds( 1500 ) );
+				scene, bouncer, shader, multisampler, imageoutput, std::chrono::milliseconds( 1500 ) );
 			stopwatch.Start( );
-			RayTrace( command, stopwatch, source, image, output, raytracer );
+			RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
 		}
 	}
 	catch ( const Exception& ex ) {

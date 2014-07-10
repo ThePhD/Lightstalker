@@ -43,13 +43,9 @@ private:
 			minbox.min = vec3::MaxValue;
 			minbox.max = vec3::MinValue;
 			// Not using SAH cost, but still leaving this here anyway
-			/*std::size_t area = static_cast<std::size_t>( 2 * bounds.volume( ) );
-			std::size_t traversalcost = 0;
-			std::size_t intersectioncost = 0;
-			cost = traversalcost + ( area * primitives.size( ) * intersectioncost );*/
 			cost = static_cast<std::size_t>( 2 * bounds.volume( ) ) + recursioncount;
-			if ( recursioncount == 20 )
-				return; // Pulled this out of nowhere, but it might work?
+			//if ( recursioncount == 20 )
+			//	return; // Pulled this out of nowhere... 
 			if ( primitives.size( ) == 0 ) {
 				return;
 			}
@@ -60,13 +56,16 @@ private:
 			if ( primitives.size( ) > 1 ) {
 				// Midpoint test to split voxels instead
 				// along axis. Probably not as great as SAH...
-				Fur::Axis axis = bounds.longest_axis( );
-				std::size_t component = static_cast<std::size_t>( axis );
 				vec3 midpoint{ };
 				for ( Primitive& primitive : primitives ) {
-					midpoint += primitive.origin( );
+					vec3 origin = primitive.origin( );
+					midpoint += origin;
 				}
-				midpoint /= static_cast<real>( primitives.size() );
+				midpoint /= static_cast<real>( primitives.size( ) );
+				
+				Fur::Axis axis = bounds.longest_axis( );
+				std::size_t component = static_cast<std::size_t>( axis );
+				
 				for ( Primitive& primitive : primitives ) {
 					vec3 origin = primitive.origin( );
 					if ( midpoint[ component ] < origin[ component ] ) {
@@ -77,25 +76,19 @@ private:
 						rightprimitives.emplace_back( primitive );
 						primitive.enclose_by( rightbox );
 					}
-					/*
-					Used in conjunction with SAH test / cost -- not computing right now
-					if ( intersect( leftbox, primitive ) ) {
-						leftprimitives.emplace_back( primitive );
-						primitive.enclose_by( leftbox );
-					}
-					if ( intersect( rightbox, primitive ) ) {
-						rightprimitives.emplace_back( primitive );
-						primitive.enclose_by( rightbox );
-					}*/
 				}
 			}
-			leftbox.enclose( Box{ } );
-			rightbox.enclose( Box{ } );
+			if ( leftprimitives.size( ) < 1 )
+				leftbox = Box{ };
+			if ( rightprimitives.size( ) < 1 )
+				rightbox = Box{ };
 			
-			// Stop criterion: triangles are matching
+			// Stop criterion: primitives are matching
 			std::size_t matchcount = 0;
-			for ( const Primitive& leftprimitive : leftprimitives ) {
-				for ( const Primitive& rightprimitive : rightprimitives ) {
+			std::vector<std::reference_wrapper<Primitive>>& leftprimitivesref = leftprimitives.empty( ) ? rightprimitives : leftprimitives;
+			std::vector<std::reference_wrapper<Primitive>>& rightprimitivesref = rightprimitives.empty( ) ? leftprimitives : rightprimitives;
+			for ( const Primitive& leftprimitive : leftprimitivesref ) {
+				for ( const Primitive& rightprimitive : rightprimitivesref ) {
 					if ( &leftprimitive == &rightprimitive )
 						matchcount++;
 				}
@@ -106,7 +99,7 @@ private:
 			std::size_t rightsize = std::max<std::size_t>( rightprimitives.size( ), 1 );
 			real leftmatchpercentage = static_cast<real>( matchcount ) / leftsize;
 			real rightmatchpercentage = static_cast<real>( matchcount ) / rightsize;
-			if ( ( leftprimitives.size() != 0 || rightprimitives.size() != 0 ) 
+			if ( &leftprimitivesref == &rightprimitivesref
 				&& leftmatchpercentage < matchthreshold 
 				&& rightmatchpercentage < matchthreshold ) {
 				// recurse down left and right sides
