@@ -29,19 +29,20 @@ void ObjLoader::operator()( Fur::IO::TextReader& reader ) {
 			IndexBufferData& ibdata = meshdesc.IndexBuffers[ submeshdesc.IndexBufferIndex ];
 			buffer_view<const vertex> vertices( static_cast<const vertex*>( vbdata.data( ) ), vbdata.original_size( ) );
 			buffer_view<const int32> indices( static_cast<const int32*>( ibdata.data( ) ), ibdata.original_size( ) );
+			std::size_t indexlimit = submeshdesc.IndexOffset + submeshdesc.IndexCount;
+			std::size_t vertexlimit = submeshdesc.VertexOffset + submeshdesc.VertexCount;
 			if ( submeshdesc.MaterialNames.empty( ) ) {
 				scene.AddMaterial( BasicMaterial( ) );
 			}
 			else {
-				//scene.AddMaterial( BasicMaterial( ) );
 				scene.AddMaterial( WavefrontMaterial( modeldesc.Materials[ submeshdesc.MaterialNames[ 0 ] ] ) );
 			}
 			MeshTriangle meshtriangle;
 			Triangle triangle;
-			for ( std::size_t ix = submeshdesc.IndexOffset; ix < submeshdesc.IndexCount; ix += 3 ) {
-				const vertex& va = vertices[ indices[ ix + 0 ] ];
-				const vertex& vb = vertices[ indices[ ix + 1 ] ];
-				const vertex& vc = vertices[ indices[ ix + 2 ] ];
+			for ( std::size_t ix = submeshdesc.IndexOffset; ix < indexlimit; ix += 3 ) {
+				const vertex& va = vertices[ submeshdesc.VertexOffset + indices[ ix + 0 ] ];
+				const vertex& vb = vertices[ submeshdesc.VertexOffset + indices[ ix + 1 ] ];
+				const vertex& vc = vertices[ submeshdesc.VertexOffset + indices[ ix + 2 ] ];
 				triangle.a = meshtriangle.a.position = va.position;
 				meshtriangle.a.texture = va.texture;
 				meshtriangle.a.normal = va.normal;
