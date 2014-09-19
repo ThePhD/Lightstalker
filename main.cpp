@@ -104,9 +104,10 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	WindowDriver windowdriver( Fur::WindowDriverFlags::Default );
 	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", windowsize ) );
 	GraphicsDevice graphics( window );
+	TextDevice text( window );
 	NymphBatch batch( graphics );
 	MessageQueue messagequeue;
-	RasterFont font = RasterFontLoader( graphics )( RasterFontDescription( "Arial", 11 ) );
+	RasterFont font = RasterFontLoader( graphics, text )( RasterFontDescription( "Arial", 10 ) );
 	KeyboardDevice keyboard( 0 );
 	MouseDevice mouse( 0 );
 	vec2i mousepos( 0, 0 );
