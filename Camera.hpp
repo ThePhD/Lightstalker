@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Math.h"
-#include "Ray.h"
-#include "FilmSize.h"
+#include "Math.hpp"
+#include "Ray.hpp"
+#include "FilmSize.hpp"
 
 struct camera_look_at_t { };
 const auto camera_look_at = camera_look_at_t{ };
@@ -16,13 +16,13 @@ private:
 	
 public:
 
-	Camera( camera_look_at_t, vec3 pos = vec3( 0, 0, real( -100 ) ), vec3 target = vec3( 0, 0, 0 ), vec3 refup = vec3::Up, 
-		real focallength = 28, vec2 framesize = FilmSize::FullFrame ) 
+	Camera( camera_look_at_t, vec3 pos = vec3( 0.0f, 0.0f, -100.0f ), vec3 target = vec3( 0.0f, 0.0f, 0.0f ), vec3 refup = vec3::Up,
+		real focallength = 28.0f, vec2 framesize = FilmSize::FullFrame )
 	: Camera( pos, pos.unnormalized_direction_to( target ), refup, focallength, framesize ) {
 
 	}
 
-	Camera( vec3 pos = vec3( 0, 0, real(-100) ), vec3 dir = vec3( 0, 0, real(-1) ), vec3 refup = vec3::Up, 
+	Camera( vec3 pos = vec3( 0.0f, 0.0f, -100.0f ), vec3 dir = vec3( 0.0f, 0.0f, -1.0f ), vec3 refup = vec3::Up,
 		real focallength = 28, vec2 framesize = FilmSize::FullFrame )
 		: position( pos ), direction( dir ), referenceup( normalize( refup ) ), sensorsize( framesize ), focallength( focallength ) {
 		target = position + dir;

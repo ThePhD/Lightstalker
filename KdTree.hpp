@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Primitive.h"
-#include "RayBounce.h"
-#include <Furrovine++/buffer_view.h>
+#include "Primitive.hpp"
+#include "RayBounce.hpp"
+#include <Furrovine++/buffer_view.hpp>
 #include <memory>
 #include <vector>
 
@@ -143,10 +143,10 @@ private:
 				}
 				++raybounce.primitivehits;
 				if ( !raybounce.hit ) {
-					raybounce.hit = PrimitiveHit{ primitive, PrecalculatedMaterial( materials[ primitive.material ], primitive, hit.value( ) ), hit.value( ) };
+					raybounce.hit = PrimitiveHit{ primitive, PrecalculatedMaterial( materials[ primitive.material ], primitive, hit.get( ) ), hit.get( ) };
 				}
 				else if ( hit->distance0 < raybounce.hit->third.distance0 ) {
-					raybounce.hit = PrimitiveHit{ primitive, PrecalculatedMaterial( materials[ primitive.material ], primitive, hit.value( ) ), hit.value( ) };
+					raybounce.hit = PrimitiveHit{ primitive, PrecalculatedMaterial( materials[ primitive.material ], primitive, hit.get( ) ), hit.get( ) };
 					++raybounce.overlappingprimitivehits;
 				}
 			}

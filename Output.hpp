@@ -1,8 +1,8 @@
 #pragma once
 
-#include "real.h"
-#include "rgba.h"
-#include "RayBounce.h"
+#include "real.hpp"
+#include "rgba.hpp"
+#include "RayBounce.hpp"
 
 class Output {
 public:

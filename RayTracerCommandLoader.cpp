@@ -1,12 +1,13 @@
-#include "RayTracerCommandLoader.h"
-#include "ObjLoader.h"
-#include "FilmSize.h"
-#include <Furrovine++/IO/FileStream.h>
-#include <Furrovine++/IO/TextReader.h>
-#include <Furrovine++/IO/File.h>
-#include <Furrovine++/Graphics/Primitives.h>
+#include "RayTracerCommandLoader.hpp"
+#include "ObjLoader.hpp"
+#include "FilmSize.hpp"
+#include <Furrovine++/IO/FileStream.hpp>
+#include <Furrovine++/IO/TextReader.hpp>
+#include <Furrovine++/IO/File.hpp>
+#include <Furrovine++/Graphics/Primitives.hpp>
+#include <Furrovine++/text_algorithm.hpp>
 
-RayTracerCommand RayTracerCommandLoader::operator()( const Fur::String& file ) {
+RayTracerCommand RayTracerCommandLoader::operator()( const Fur::string& file ) {
 	using namespace Furrovine::IO;
 	FileStream stream( file, FileMode::Open );
 	return ( *this )( stream );
@@ -14,11 +15,11 @@ RayTracerCommand RayTracerCommandLoader::operator()( const Fur::String& file ) {
 
 RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::Stream& stream ) {
 	using namespace Furrovine::IO;
-	TextReader reader( stream );
+	TextReader<> reader( stream );
 	return ( *this )( reader );
 }
 
-RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader ) {
+RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader<>& reader ) {
 	using namespace Furrovine::Graphics;
 	RayTracerCommand command{ };
 	Triangle triangle;
@@ -29,13 +30,13 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 	DirectionalLight dlight;
 	PointLight plight;
 	BasicMaterial material;
-	rgba background( RealWhite );
-	vec3 cpos( real_zero, real_zero, real(-100 ) );
-	vec3 cdirtarget( 0, 0, -1.0f );
+	rgba background( rgba::White );
+	vec3 cpos( 0.0f, 0.0f, -100.0f );
+	vec3 cdirtarget( 0.0f, 0.0f, -1.0f );
 	vec3 cup = vec3::Up;
 	vec2 framesize = FilmSize::FullFrame;
 	float cfocal = 48.0f;
-	Fur::String stringvalue = "";
+	Fur::string stringvalue = "";
 	Fur::uint32 uintvalue = 0;
 	bool cameracommanded = false;
 	bool lookat = false;
@@ -47,11 +48,11 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 	ObjLoader objloader( scene );
 
 	while ( true ) {
-		int p = reader.Peek( );
-		if ( p == -1 )
+		Fur::optional<Fur::code_point> maybep = reader.Peek( );
+		if ( !maybep )
 			break;
 		reader.Read( );
-		Fur::codepoint c = static_cast<Fur::codepoint>( p );
+		Fur::code_point c = maybep.get();
 		switch ( c ) {
 		case '/':
 			reader.SkipLine( );
@@ -146,11 +147,11 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			break;
 		case 'l':
 			reader.SkipBlankSpace( );
-			p = reader.Peek( );
-			if ( p == -1 )
+			maybep = reader.Peek( );
+			if ( !maybep )
 				break;
 			reader.Read( );
-			c = static_cast<Fur::codepoint>( p );
+			c = maybep.get();
 			switch ( c ) {
 			case 'a':
 				reader.SkipBlankSpace( );
@@ -214,8 +215,8 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			reader.ReadToNewLine( );
 			break;
 		case 'm':
-			material.matrefractivity = RealWhite;
-			material.matreflectivity = RealTransparent;
+			material.matrefractivity = rgba::White;
+			material.matreflectivity = rgba::Transparent;
 			reader.SkipBlankSpace( );
 			if ( !reader.ReadSingle( material.matcolor.r ) )
 				break;
@@ -266,10 +267,10 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			break;
 		case 'c':
 			reader.SkipBlankSpace( );
-			p = reader.Peek( );
-			if ( p == -1 )
+			maybep = reader.Peek( );
+			if ( !maybep )
 				break;
-			c = static_cast<Fur::codepoint>( p );
+			c = maybep.get();
 			if ( c == 't' ) {
 				reader.Read( );
 				reader.ReadBlankSpace( );
@@ -338,7 +339,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			if ( reader.At( "bj", true ) ) {
 				reader.SkipBlankSpace( );
 				reader.ReadToNewLine( stringvalue );
-				stringvalue.Trim( );
+				Fur::trim( stringvalue );
 				if ( Fur::IO::File::Exists( stringvalue ) )
 					objloader( stringvalue );
 				break;
@@ -391,15 +392,15 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader& reader
 			break;
 		}
 		
-		if ( reader.EoF( ) ) {
+		if ( reader.EoS( ) ) {
 			break;
 		}
 	}
 
 	if ( !cameracommanded ) {
 		// Generate a default camera based on the scene
-		Box box = scene.Bounds( );
-		cpos = box.max * static_cast<real>( 3 );
+		Box defaultbox = scene.Bounds( );
+		cpos = defaultbox.max * static_cast<real>( 3 );
 		cdirtarget = cpos.direction_to( box.center( ) );
 		if ( cdirtarget == cup || cdirtarget == -cup )
 			cup = vec3::Forward;

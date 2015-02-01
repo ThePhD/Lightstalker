@@ -1,8 +1,8 @@
 #pragma once
 
-#include "real.h"
-#include "PrimitiveHit.h"
-#include <Furrovine++/optional.h>
+#include "real.hpp"
+#include "PrimitiveHit.hpp"
+#include <Furrovine++/optional.hpp>
 
 struct RayBounce {
 	Ray ray;

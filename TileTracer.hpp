@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Output.h"
-#include "RayBouncer.h"
-#include "Camera.h"
-#include "Hitmap.h"
-#include "Multisampler.h"
-#include "Tile.h"
-#include "RayTracerStep.h"
-#include <Furrovine++/bounds_iterator.h>
-#include <Furrovine++/Stopwatch.h>
+#include "Output.hpp"
+#include "RayBouncer.hpp"
+#include "Camera.hpp"
+#include "Hitmap.hpp"
+#include "Multisampler.hpp"
+#include "Tile.hpp"
+#include "RayTracerStep.hpp"
+#include <Furrovine++/bounds_iterator.hpp>
+#include <Furrovine++/Stopwatch.hpp>
 #include <chrono>
 
 template <std::size_t n = 16, std::size_t m = n>

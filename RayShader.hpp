@@ -1,9 +1,9 @@
 #pragma once
 
-#include "PrimitiveHit.h"
-#include "rgba.h"
-#include "Light.h"
-#include "RayBounce.h"
+#include "PrimitiveHit.hpp"
+#include "rgba.hpp"
+#include "Light.hpp"
+#include "RayBounce.hpp"
 
 struct RayShader {
 public:

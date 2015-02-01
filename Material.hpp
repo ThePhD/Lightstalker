@@ -1,34 +1,34 @@
 #pragma once
 
-#include "TMaterial.h"
-#include <Furrovine++/Graphics/Material.h>
+#include "TMaterial.hpp"
+#include <Furrovine++/Graphics/Material.hpp>
 
 template <typename T>
 struct TBasicMaterial {
 
-	Fur::RRgba<T> matcolor;
-	Fur::RRgba<T> matambient;
-	Fur::RRgba<T> matdiffuse;
-	Fur::RRgba<T> matspecular;
-	Fur::RRgba<T> matrefractivity;
-	Fur::RRgba<T> matreflectivity;
-	Fur::RRgba<T> matemissive;
-	Fur::RVector2<T> matstscale;
+	Fur::TRgba<T> matcolor;
+	Fur::TRgba<T> matambient;
+	Fur::TRgba<T> matdiffuse;
+	Fur::TRgba<T> matspecular;
+	Fur::TRgba<T> matrefractivity;
+	Fur::TRgba<T> matreflectivity;
+	Fur::TRgba<T> matemissive;
+	Fur::TVector2<T> matstscale;
 	T matspecularpower;
 	T matindexofrefraction;
 	T matabsorption;
 
-	TBasicMaterial( const Fur::TRgba<T>& materialcolor = Fur::Colors::White,
-		const Fur::TRgba<T>& diffuseshade = Fur::Colors::White,
-		const Fur::TRgba<T>& specularshade = Fur::Colors::White,
+	TBasicMaterial( const Fur::TRgba<T>& materialcolor = Fur::TRgba<T>::White,
+		const Fur::TRgba<T>& diffuseshade = Fur::TRgba<T>::White,
+		const Fur::TRgba<T>& specularshade = Fur::TRgba<T>::White,
 		T specularpow = static_cast<T>( 255 ),
-		const Fur::TRgba<T>& refraction = Fur::Colors::White,
-		const Fur::TRgba<T>& reflection = Fur::Colors::Transparent,
-		const Fur::TRgba<T>& emission = Fur::Colors::Transparent,
+		const Fur::TRgba<T>& refraction = Fur::TRgba<T>::White,
+		const Fur::TRgba<T>& reflection = Fur::TRgba<T>::Transparent,
+		const Fur::TRgba<T>& emission = Fur::TRgba<T>::Transparent,
 		T indexofrefrac = Ior::Water,
 		T absorb = Absorption::Water,
-		const Fur::TRgba<T>& ambience = Fur::Colors::White,
-		const Fur::TVector2<T>& stscaling = Fur::TVector2<T>( 1, 1 ) ) {
+		const Fur::TRgba<T>& ambience = Fur::TRgba<T>::White,
+		const Fur::TVector2<T>& stscaling = Fur::TVector2<T>( static_cast<T>( 1 ), static_cast<T>( 1 ) ) ) {
 		matcolor = materialcolor;
 		matdiffuse = diffuseshade;
 		matspecular = specularshade;
@@ -91,10 +91,10 @@ struct TBasicMaterial {
 template <typename T>
 struct TGridMaterial : public TBasicMaterial<T> {
 
-	Fur::RRgba<T> offcolor;
+	Fur::TRgba<T> offcolor;
 	
 	template <typename... Tn>
-	TGridMaterial( const Fur::TRgba<T>& offcolor = Fur::Colors::White,
+	TGridMaterial( const Fur::TRgba<T>& offcolor = Fur::TRgba<T>::White,
 		Tn&&... argn ) :
 		TBasicMaterial( std::forward<Tn>( argn )... ),
 		offcolor( offcolor ) {
@@ -123,10 +123,10 @@ struct TGridMaterial : public TBasicMaterial<T> {
 template <typename T>
 struct TCheckerMaterial : public TBasicMaterial<T> {
 
-	Fur::RRgba<T> offcolor;
+	Fur::TRgba<T> offcolor;
 	
 	template <typename... Tn>
-	TCheckerMaterial( const Fur::TRgba<T>& offcolor = Fur::Colors::White,
+	TCheckerMaterial( const Fur::TRgba<T>& offcolor = Fur::TRgba<T>::White,
 		Tn&&... argn ) :
 		TBasicMaterial( std::forward<Tn>( argn )... ),
 		offcolor( offcolor ) {

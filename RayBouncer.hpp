@@ -1,11 +1,11 @@
 #pragma once
 
-#include "real.h"
-#include "rgba.h"
-#include "Camera.h"
-#include "Scene.h"
-#include "RayShader.h"
-#include "RayBounce.h"
+#include "real.hpp"
+#include "rgba.hpp"
+#include "Camera.hpp"
+#include "Scene.hpp"
+#include "RayShader.hpp"
+#include "RayBounce.hpp"
 #include <functional>
 
 class RayBouncer {

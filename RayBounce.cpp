@@ -1,4 +1,4 @@
-#include "RayBounce.h"
+#include "RayBounce.hpp"
 
 RayBounce::RayBounce( ) : ray( ), color( 0, 0, 0, 0 ), hit( ), shadow( false ), samples( 0 ), reflections( 0 ),
 cullingtraversalhits( 0 ), primitivetests( 0 ), primitivehits( 0 ), overlappingprimitivehits( 0 ),

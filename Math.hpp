@@ -1,19 +1,19 @@
 #pragma once
 
-#include "real.h"
+#include "real.hpp"
 
-#include <Furrovine++/Size2.h>
-#include <Furrovine++/Vector2.h>
-#include <Furrovine++/Vector3.h>
-#include <Furrovine++/Vector4.h>
-#include <Furrovine++/TNormal2.h>
-#include <Furrovine++/TNormal3.h>
-#include <Furrovine++/TNormal4.h>
-#include <Furrovine++/TMatrix4.h>
-#include <Furrovine++/TRectangle.h>
-#include <Furrovine++/TSpherical.h>
-#include <Furrovine++/Ray3.h>
-#include <Furrovine++/optional.h>
+#include <Furrovine++/Size2.hpp>
+#include <Furrovine++/Vector2.hpp>
+#include <Furrovine++/Vector3.hpp>
+#include <Furrovine++/Vector4.hpp>
+#include <Furrovine++/TNormal2.hpp>
+#include <Furrovine++/TNormal3.hpp>
+#include <Furrovine++/TNormal4.hpp>
+#include <Furrovine++/TMatrix4.hpp>
+#include <Furrovine++/TRectangle.hpp>
+#include <Furrovine++/TSpherical.hpp>
+#include <Furrovine++/Ray3.hpp>
+#include <Furrovine++/optional.hpp>
 
 namespace Fur = Furrovine;
 
@@ -33,13 +33,13 @@ typedef Fur::TMatrix4<real> mat4;
 
 
 template <typename T>
-Fur::TVector3<T> reflect( const Fur::RVector3<T>& incident, const Fur::RVector3<T>& normal ) {
+Fur::TVector3<T> reflect( const Fur::TVector3<T>& incident, const Fur::TVector3<T>& normal ) {
 	const T cosi = -Fur::dot( normal, incident );
 	return incident + ( static_cast<T>( 2 ) * cosi * normal );
 }
 
 template <typename T>
-Fur::optional<Fur::TVector3<T>> refract( const Fur::RVector3<T>& incident, const Fur::RVector3<T>& normal, T iorn1, T iorn2 ) {
+Fur::optional<Fur::TVector3<T>> refract( const Fur::TVector3<T>& incident, const Fur::TVector3<T>& normal, T iorn1, T iorn2 ) {
 	const T iorratio = iorn1 / iorn2;
 	const T cosi = -Fur::dot( normal, incident );
 	const T sintsquared = ( iorratio * iorratio ) * ( static_cast<T>( 1 ) - ( cosi * cosi ) );
@@ -50,7 +50,7 @@ Fur::optional<Fur::TVector3<T>> refract( const Fur::RVector3<T>& incident, const
 }
 
 template <typename T>
-std::pair<T, T> fresnel( const Fur::RVector3<T>& incident, const Fur::RVector3<T>& normal, T iorn1, T iorn2 ) {
+std::pair<T, T> fresnel( const Fur::TVector3<T>& incident, const Fur::TVector3<T>& normal, T iorn1, T iorn2 ) {
 	const T iorratio = iorn1 / iorn2;
 	const T cosi = -Fur::dot( normal, incident );
 	const T sintsquared = ( iorratio * iorratio ) * ( static_cast<T>( 1 ) - ( cosi * cosi ) );
@@ -64,7 +64,7 @@ std::pair<T, T> fresnel( const Fur::RVector3<T>& incident, const Fur::RVector3<T
 }
 
 template <typename T>
-std::pair<T, T> shlick_fresnel( const Fur::RVector3<T>& incident, const Fur::RVector3<T>& normal, T iorn1, T iorn2 ) {
+std::pair<T, T> shlick_fresnel( const Fur::TVector3<T>& incident, const Fur::TVector3<T>& normal, T iorn1, T iorn2 ) {
 	const T r0 = ( iorn1 - iorn2 ) / ( iorn1 + iorn2 );
 	r0 *= r0;
 	T cosx = -Fur::dot( normal, incident );

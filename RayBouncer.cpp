@@ -1,4 +1,4 @@
-#include "RayBouncer.h"
+#include "RayBouncer.hpp"
 
 RayBounce RayBouncer::Bounce( vec2 xy, size2 wh, const Camera& camera, const Scene& scene, const RayShader& shader ) const {
 	Ray ray = camera.Compute( xy, wh );

@@ -1,4 +1,4 @@
-#include "Scene.h"
+#include "Scene.hpp"
 
 void Scene::Intersect( RayBounce& raybounce ) const {
 	const Ray& ray = raybounce.ray;
@@ -48,7 +48,7 @@ void Scene::Intersect( RayBounce& raybounce ) const {
 			continue;
 		++raybounce.primitivehits;
 		if ( !raybounce.hit || hit->distance0 < raybounce.hit->third.distance0 ) {
-			raybounce.hit = PrimitiveHit{ prim, PrecalculatedMaterial( materials[ prim.material ], prim, hit.value( ) ), hit.value( ) };
+			raybounce.hit = PrimitiveHit{ prim, PrecalculatedMaterial( materials[ prim.material ], prim, hit.get( ) ), hit.get( ) };
 			++raybounce.overlappingprimitivehits;
 		}
 	}
@@ -162,7 +162,7 @@ const rgba& Scene::Background( ) const {
 }
 
 void Scene::SetBackground( const rgba& background ) {
-	vacuummaterial = std::move( Material( BasicMaterial( background, RealWhite, RealTransparent, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ) );
+	vacuummaterial = std::move( Material( BasicMaterial( background, rgba::White, rgba::Transparent, 0.0f, rgba::White, rgba::Transparent, rgba::Transparent, Ior::Vacuum, Absorption::Vacuum, background ) ) );
 }
 
 PrimitiveHit Scene::Vacuum( ) const {
@@ -170,7 +170,7 @@ PrimitiveHit Scene::Vacuum( ) const {
 }
 
 Scene::Scene( const rgba& background /*= Fur::Colors::AmbientGrey */, real raybias ) : raybias( raybias ), vacuumprimitive( vacuum_arg ),
-vacuummaterial( BasicMaterial( background, RealWhite, RealTransparent, 0, RealWhite, RealTransparent, RealTransparent, Ior::Vacuum, Absorption::Vacuum, background ) ),
+vacuummaterial( BasicMaterial( background, rgba::White, rgba::Transparent, 0, rgba::White, rgba::Transparent, rgba::Transparent, Ior::Vacuum, Absorption::Vacuum, background ) ),
 vacuumhit( ),
 box( ),
 kdtree( nullptr ) {

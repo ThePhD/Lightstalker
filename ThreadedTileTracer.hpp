@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Output.h"
-#include "RayBouncer.h"
-#include "Camera.h"
-#include "Hitmap.h"
-#include "Tile.h"
-#include "RayTracerStep.h"
-#include <Furrovine++/scoped_destructor.h>
-#include <Furrovine++/Threading/ThreadPool.h>
+#include "Output.hpp"
+#include "RayBouncer.hpp"
+#include "Camera.hpp"
+#include "Hitmap.hpp"
+#include "Tile.hpp"
+#include "RayTracerStep.hpp"
+#include <Furrovine++/scoped_destructor.hpp>
+#include <Furrovine++/Threading/ThreadPool.hpp>
 
 template <std::size_t n = 16, std::size_t m = n>
 class ThreadedTileTracer {
@@ -54,8 +54,8 @@ private:
 						return;
 					vec2u pos( x, y );
 					size2u siz( std::min<std::size_t>( n, imagesize[ 0 ] - x ), std::min<std::size_t>( m, imagesize[ 1 ] - y ) );
-					Tile tile( pos, siz );
-					threadpool.Queue( &ThreadedTileTracer<n, m>::MultisamplePreparePatch, std::ref( *this ), tile );
+					Tile patchtile( pos, siz );
+					threadpool.Queue( &ThreadedTileTracer<n, m>::MultisamplePreparePatch, std::ref( *this ), patchtile );
 				}
 			}
 		} );
@@ -64,7 +64,7 @@ private:
 			for ( std::size_t x = tile.left; x < tile.right; ++x ) {
 				if ( stopping )
 					return;
-				auto bounce = raybouncer.Bounce( vec2( static_cast<float>( x ), static_cast<float>( y ) ), size2( hitmap.bounds( ) ), camera, scene, rayshader );
+				auto bounce = raybouncer.Bounce( vec2( static_cast<float>( x ), static_cast<float>( y ) ), size2( hitmap.bounds( ).values( ) ), camera, scene, rayshader );
 				hitmap[ { x, y } ] = bounce.hitid;
 				ontrace( { x, y }, bounce, false );
 				output( x, y, bounce );

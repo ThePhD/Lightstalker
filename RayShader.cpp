@@ -1,5 +1,5 @@
-#include "RayShader.h"
-#include "Scene.h"
+#include "RayShader.hpp"
+#include "Scene.hpp"
 
 bool RayShader::Shadow( RayBounce& raybounce, const Scene& scene ) const {
 	if ( !Shadows ) {
@@ -62,7 +62,7 @@ void RayShader::operator()( RayBounce& raybounce, const Scene& scene, const Dire
 	color *= lightcontribution;
 	if ( shadowbounce.hit && shadowbounce.hit->first.id != PrimitiveId::Vacuum ) {
 		const PrecalculatedMaterial& shadowmaterial = shadowbounce.hit->second;
-		color.lerp( RealTransparent, shadowmaterial.opacity );
+		color.lerp( rgba::Transparent, shadowmaterial.opacity );
 		raybounce.hitid += static_cast<std::uintptr_t>( 1 );
 	}
 	raybounce.color += color;

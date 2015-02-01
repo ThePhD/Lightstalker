@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Camera.h"
-#include "Scene.h"
-#include "RayBouncer.h"
-#include "Multisampler.h"
-#include <Furrovine++/optional.h>
+#include "Camera.hpp"
+#include "Scene.hpp"
+#include "RayBouncer.hpp"
+#include "Multisampler.hpp"
+#include <Furrovine++/optional.hpp>
 #include <random>
 
 struct RayTracerCommand {

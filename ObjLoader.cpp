@@ -1,10 +1,11 @@
-#include "ObjLoader.h"
-#include <Furrovine++/Pipeline/WavefrontObjLoader.h>
-#include <Furrovine++/IO/FileStream.h>
-#include <Furrovine++/IO/TextReader.h>
-#include <Furrovine++/Graphics/Primitives.h>
+#include "ObjLoader.hpp"
+#include <Furrovine++/Pipeline/WavefrontObjLoader.hpp>
+#include <Furrovine++/IO/FileStream.hpp>
+#include <Furrovine++/IO/TextReader.hpp>
+#include <Furrovine++/Graphics/Primitives.hpp>
+#include <Furrovine++/Color.hpp>
 
-void ObjLoader::operator()( const Fur::String& file ) {
+void ObjLoader::operator()( const Fur::string& file ) {
 	using namespace Furrovine::IO;
 	FileStream stream( file, FileMode::Open );
 	( *this )( stream );
@@ -12,11 +13,11 @@ void ObjLoader::operator()( const Fur::String& file ) {
 
 void ObjLoader::operator()( Fur::IO::Stream& stream ) {
 	using namespace Furrovine::IO;
-	TextReader reader( stream );
+	TextReader<> reader( stream );
 	( *this )( reader );
 }
 
-void ObjLoader::operator()( Fur::IO::TextReader& reader ) {
+void ObjLoader::operator()( Fur::IO::TextReader<>& reader ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Pipeline;
@@ -27,8 +28,8 @@ void ObjLoader::operator()( Fur::IO::TextReader& reader ) {
 		for ( auto& submeshdesc : meshdesc.SubMeshes ) {
 			VertexBufferData& vbdata = meshdesc.VertexBuffers[ submeshdesc.VertexBufferIndex ];
 			IndexBufferData& ibdata = meshdesc.IndexBuffers[ submeshdesc.IndexBufferIndex ];
-			buffer_view<const vertex> vertices( static_cast<const vertex*>( vbdata.data( ) ), vbdata.original_size( ) );
-			buffer_view<const int32> indices( static_cast<const int32*>( ibdata.data( ) ), ibdata.original_size( ) );
+			buffer_view<const vertex> vertices( static_cast<const vertex*>( vbdata.Streams()[0].data( ) ), vbdata.Streams( )[ 0 ].size( ) );
+			buffer_view<const int32> indices( static_cast<const int32*>( ibdata.data( ) ), ibdata.size( ) );
 			std::size_t indexlimit = submeshdesc.IndexOffset + submeshdesc.IndexCount;
 			std::size_t vertexlimit = submeshdesc.VertexOffset + submeshdesc.VertexCount;
 			if ( submeshdesc.MaterialNames.empty( ) ) {

@@ -1,23 +1,23 @@
 #pragma once
 
-#include "real.h"
-#include <Furrovine++/Vector2.h>
-#include <Furrovine++/Vector3.h>
-#include <Furrovine++/RVertexTriangle.h>
-#include <Furrovine++/THit3.h>
+#include "real.hpp"
+#include <Furrovine++/Vector2.hpp>
+#include <Furrovine++/Vector3.hpp>
+#include <Furrovine++/TVertexTriangle.hpp>
+#include <Furrovine++/THit3.hpp>
 
 template <typename T>
-struct RMeshVertex {
-	Fur::RVector3<T> position;
-	Fur::RVector3<T> normal;
-	Fur::RVector2<T> texture;
+struct TMeshVertex {
+	Fur::TVector3<T> position;
+	Fur::TVector3<T> normal;
+	Fur::TVector2<T> texture;
 };
 
 template <typename T>
-struct RMeshTriangle : public Fur::RVertexTriangle<RMeshVertex<T>> {
+struct TMeshTriangle : public Fur::TVertexTriangle<TMeshVertex<T>> {
 
-	Fur::RVector3<T> center( ) const {
-		Fur::RVector3<T> cent( a.position );
+	Fur::TVector3<T> center( ) const {
+		Fur::TVector3<T> cent( a.position );
 		cent += b.position;
 		cent += c.position;
 		cent /= 3;

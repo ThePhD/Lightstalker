@@ -1,16 +1,16 @@
 #pragma once
 
-#include "PrimitiveHit.h"
-#include "Material.h"
-#include "rgba.h"
-#include "Light.h"
-#include "RayShader.h"
-#include "RayBounce.h"
-#include "KdTree.h"
-#include <Furrovine++/optional.h>
-#include <Furrovine++/reference_equals.h>
-#include <Furrovine++/buffer_view.h>
-#include <Furrovine++/enclose3.h>
+#include "PrimitiveHit.hpp"
+#include "Material.hpp"
+#include "rgba.hpp"
+#include "Light.hpp"
+#include "RayShader.hpp"
+#include "RayBounce.hpp"
+#include "KdTree.hpp"
+#include <Furrovine++/optional.hpp>
+#include <Furrovine++/reference_equals.hpp>
+#include <Furrovine++/buffer_view.hpp>
+#include <Furrovine++/enclose3.hpp>
 #include <vector>
 
 class Scene {
@@ -33,7 +33,7 @@ private:
 
 public:
 
-	Scene( const rgba& background = Fur::Colors::AmbientGrey, real raybias = static_cast<real>( 1e-2 ) );
+	Scene( const rgba& background = rgba::AmbientGrey, real raybias = static_cast<real>( 1e-2 ) );
 
 	PrimitiveHit Vacuum( ) const;
 
@@ -61,15 +61,15 @@ public:
 		Primitive primitive( std::forward<Tn>( argn )... );
 		if ( primitive.id == PrimitiveId::Plane ) {
 			unboundedprimitives.push_back( primitive );
-			Primitive& primitive = unboundedprimitives.back( );
-			primitive.material = materials.size( ) - 1;
-			update_box( unboundedprimitives.back( ) );
+			Primitive& targetprimitive = unboundedprimitives.back( );
+			targetprimitive.material = materials.size( ) - 1;
+			update_box( targetprimitive );
 		}
 		else {
 			primitives.push_back( primitive );
-			Primitive& primitive = primitives.back( );
-			primitive.material = materials.size( ) - 1;
-			update_box( primitives.back( ) );
+			Primitive& targetprimitive = primitives.back( );
+			targetprimitive.material = materials.size( ) - 1;
+			update_box( targetprimitive );
 		}
 	}
 

@@ -1,4 +1,4 @@
-#include "ImageOutput.h"
+#include "ImageOutput.hpp"
 
 void ImageOutput::operator()( std::size_t x, std::size_t y, const RayBounce& pixelbounce ) {
 	typedef Fur::ByteColor bytergba;
@@ -31,6 +31,6 @@ void ImageOutput::Clear( ) {
 	std::fill_n( rawview.data( ), rawview.size( ), 0 );
 }
 
-ImageOutput::ImageOutput( Fur::Graphics::Image2D& img, const Fur::String& name /*= "output.png" */ ) : image( std::addressof( img ) ), outputname( name ) {
+ImageOutput::ImageOutput( Fur::Graphics::Image2D& img, const Fur::string& name /*= "output.png" */ ) : image( std::addressof( img ) ), outputname( name ) {
 
 }

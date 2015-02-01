@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Furrovine++/Enums.h>
+#include <Furrovine++/Enums.hpp>
 
 enum class RayTracerStep {
 	None = 0x0,

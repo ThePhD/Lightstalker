@@ -1,6 +1,6 @@
 #pragma once
 
-#include "real.h"
+#include "real.hpp"
 
 namespace Absorption {
 

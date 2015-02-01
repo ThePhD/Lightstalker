@@ -1,5 +1,5 @@
 #pragma once
 
-#include "Math.h"
+#include "Math.hpp"
 
 typedef Fur::TRay3<real> Ray;

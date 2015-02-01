@@ -1,10 +1,9 @@
 #pragma once
 
-#include "rgba.h"
-#include "Ior.h"
-#include "Absorption.h"
-#include "Primitive.h"
-#include <Furrovine++/Colors.h>
+#include "rgba.hpp"
+#include "Ior.hpp"
+#include "Absorption.hpp"
+#include "Primitive.hpp"
 #include <memory>
 
 template <typename T>
@@ -153,21 +152,21 @@ struct TMaterial {
 template <typename T>
 struct TPrecalculatedMaterial {
 
-	Fur::RRgba<T> color;
-	Fur::RRgba<T> ambient;
-	Fur::RRgba<T> diffuse;
-	Fur::RRgba<T> specular;
-	Fur::RRgba<T> refractivity;
-	Fur::RRgba<T> opacity;
-	Fur::RRgba<T> reflectivity;
-	Fur::RRgba<T> emissive;
-	Fur::RVector2<T> stscale;
+	Fur::TRgba<T> color;
+	Fur::TRgba<T> ambient;
+	Fur::TRgba<T> diffuse;
+	Fur::TRgba<T> specular;
+	Fur::TRgba<T> refractivity;
+	Fur::TRgba<T> opacity;
+	Fur::TRgba<T> reflectivity;
+	Fur::TRgba<T> emissive;
+	Fur::TVector2<T> stscale;
 	T specularpower;
 	T indexofrefraction;
 	T absorption;
 
 	TPrecalculatedMaterial( const TMaterial<T>& material, const TPrimitive<T>& primitive, const Fur::THit3<T>& hit ) {
-		const static Fur::TRgba<T> whitepoint = Fur::Colors::White;
+		const static Fur::TRgba<T> whitepoint = Fur::TRgba<T>::White;
 		color = material.color( primitive, hit );
 		ambient = material.ambient( primitive, hit );
 		diffuse = material.diffuse( primitive, hit );

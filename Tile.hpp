@@ -1,5 +1,5 @@
 #pragma once
 
-#include <Furrovine++/Rectangle.h>
+#include <Furrovine++/Rectangle.hpp>
 
 typedef Furrovine::TRectangle<std::size_t> Tile;

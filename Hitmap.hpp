@@ -1,9 +1,9 @@
 #pragma once
 
-#include "real.h"
-#include "Primitive.h"
+#include "real.hpp"
+#include "Primitive.hpp"
+#include <Furrovine++/buffer_view.hpp>
 #include <vector>
-#include <Furrovine++/buffer_view.h>
 
 class Hitmap {
 private:

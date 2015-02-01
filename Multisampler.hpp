@@ -1,8 +1,8 @@
 #pragma once
 
-#include "real.h"
+#include "real.hpp"
+#include <Furrovine++/Sampling.hpp>
 #include <vector>
-#include <Furrovine++/Sampling.h>
 
 class Multisampler {
 private:
