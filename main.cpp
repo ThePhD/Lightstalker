@@ -204,14 +204,6 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		raytracer.Compute( );
 
 		if ( raytracer.Check( ) ) {
-			if ( !autosaved ) {
-				output.Save( );
-				autosaved = true;
-				if ( !displaywindow ) {
-					quit = true;
-					continue;
-				}
-			}
 			stopwatch.Stop( );
 		}
 
@@ -269,6 +261,18 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 
 		batch.End( );
 		graphics.Present( );
+
+		if ( raytracer.Check( ) ) {
+			if ( !autosaved ) {
+				autosaved = true;
+				// TODO: triggers a crash in release. Find out why.
+				output.Save( );
+				if ( !displaywindow ) {
+					quit = true;
+					continue;
+				}
+			}
+		}
 	}
 }
 
