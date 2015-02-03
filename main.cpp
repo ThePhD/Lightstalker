@@ -15,6 +15,7 @@
 #include <Furrovine++/WindowDriver.hpp>
 #include <Furrovine++/Input/MouseDevice.hpp>
 #include <Furrovine++/Input/KeyboardDevice.hpp>
+#include <Furrovine++/Input/InputEvents.hpp>
 #include <Furrovine++/Graphics/Window.hpp>
 #include <Furrovine++/Graphics/GraphicsDevice.hpp>
 #include <Furrovine++/Graphics/NymphBatch.hpp>
@@ -105,6 +106,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 	WindowDriver windowdriver( Fur::WindowDriverFlags::Default );
 	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", windowsize ) );
 	GraphicsDevice graphics( window );
+	InputEvents<unit> inputevents;
 	TextDevice text( window );
 	NymphBatch batch( graphics );
 	queue<Message> messagequeue;
@@ -136,6 +138,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		Fur::optional<Fur::Message> opmessage;
 		while ( opmessage = messagequeue.pop_front( ) ) {
 			Fur::Message& message = opmessage.get( );
+			inputevents.Process( message );
 			switch ( message.class_idx ) {
 			case Fur::Message::index<Fur::WindowEvent>::value: {
 				Fur::WindowEvent& windowm = message.get<Fur::WindowEvent>( );
@@ -232,7 +235,6 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 					vec2u pos( mousepos.x + x, mousepos.y + y );
 					pos -= magtoolsize / static_cast<std::size_t>( 2 );
 					auto color = !intersect( image.boundaries( ), pos ) ? rgba::Black : imageview[ pos ];
-					color.a = 255;
 					vec2 renderpos( static_cast<real>( mousepos.x ), static_cast<real>( mousepos.y ) );
 					renderpos -= magpixelsize * static_cast<real>( 12 );
 					renderpos += magpixelsize * vec2( sx, sy );
