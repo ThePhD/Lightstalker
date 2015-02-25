@@ -284,11 +284,10 @@ int main( int argc, char* argv[] ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Threading;
-	std::vector<string> arguments{ };
-	arguments.reserve( argc );
-	std::for_each( argv, argv + argc, [ &arguments ] ( const char* p ) { 
-		arguments.emplace_back( buffer_view<const char>( p, std::char_traits<char>::length( p ) ) ); 
-	} );
+	// Prevents shitty VS 2015 linker errors
+	Vector2::One;
+	Vector2::Zero;
+	std::vector<string_view> arguments( argv, argv + argc );
 	
 	optional<string> source = nullopt;
 	optional<string> output = nullopt;

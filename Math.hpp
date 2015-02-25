@@ -2,10 +2,10 @@
 
 #include "real.hpp"
 
-#include <Furrovine++/Size2.hpp>
 #include <Furrovine++/Vector2.hpp>
 #include <Furrovine++/Vector3.hpp>
 #include <Furrovine++/Vector4.hpp>
+#include <Furrovine++/Size2.hpp>
 #include <Furrovine++/TNormal2.hpp>
 #include <Furrovine++/TNormal3.hpp>
 #include <Furrovine++/TNormal4.hpp>
