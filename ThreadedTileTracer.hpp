@@ -33,6 +33,18 @@ private:
 	tile_fx_t onpretile;
 	tile_fx_t ontile;
 
+	static void SPatch(ThreadedTileTracer* t, Tile tile) {
+		t->Patch(tile);
+	}
+
+	static void SMultisamplePatch(ThreadedTileTracer* t, Tile tile) {
+		t->MultisamplePatch(tile);
+	}
+
+	static void SMultisamplePreparePatch(ThreadedTileTracer* t, Tile tile) {
+		t->MultisamplePreparePatch(tile);
+	}
+
 	void Patch( Tile tile ) {
 		auto dx = Fur::make_destructor( [ & ] {
 			--patches;
@@ -55,7 +67,10 @@ private:
 					vec2u pos( x, y );
 					size2u siz( std::min<std::size_t>( n, imagesize[ 0 ] - x ), std::min<std::size_t>( m, imagesize[ 1 ] - y ) );
 					Tile patchtile( pos, siz );
-					threadpool.Queue( &ThreadedTileTracer<n, m>::MultisamplePreparePatch, std::ref( *this ), patchtile );
+					auto work = [this, patchtile]() -> void {
+						this->MultisamplePreparePatch(patchtile);
+					};
+					threadpool.Queue( work );
 				}
 			}
 		} );
@@ -93,7 +108,10 @@ private:
 				}
 				multisamplecomplete = false;
 				++multisamplepatches;
-				threadpool.Queue( &ThreadedTileTracer<n, m>::MultisamplePatch, std::ref( *this ), tile );
+				auto work = [ this, tile ]( ) -> void {
+					this->MultisamplePatch(tile);
+				};
+				threadpool.Queue( work, tile );
 				sampled = true;
 			}
 		}
@@ -190,7 +208,10 @@ public:
 				vec2u pos( x, y );
 				size2u siz( std::min<std::size_t>( n, imagesize[ 0 ] - x ), std::min<std::size_t>( m, imagesize[ 1 ] - y ) );
 				Tile tile( pos, siz );
-				threadpool.Queue( &ThreadedTileTracer<n, m>::Patch, std::ref( *this ), tile );
+				auto work = [this, tile]() -> void {
+					this->MultisamplePatch(tile);
+				};
+				threadpool.Queue( work );
 			}
 		}
 	}

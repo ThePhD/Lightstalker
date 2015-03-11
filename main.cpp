@@ -285,8 +285,8 @@ int main( int argc, char* argv[] ) {
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Threading;
 	// Prevents shitty VS 2015 linker errors
-	Vector2::One;
 	Vector2::Zero;
+	Vector2::One;
 	std::vector<string_view> arguments( argv, argv + argc );
 	
 	optional<string> source = nullopt;
@@ -301,7 +301,7 @@ int main( int argc, char* argv[] ) {
 	try {
 		if ( !output ) {
 			if ( source ) {
-				output = *source + string( ".png" );
+				output = *source + ".png";
 			}
 			else {
 				output = "output.png";
@@ -322,10 +322,11 @@ int main( int argc, char* argv[] ) {
 		optional<Multisampler>& multisampler = command.multisampler;
 		vec2u& imagesize = command.imagesize;
 		scene.Build( );
+		// TODO: find out why this next line crashes VC++'s compiler
 		if ( command.multithreading ) {
 			ThreadPool threadpool( command.threadcount );
-			ThreadedTileTracer<16, 16> raytracer( threadpool, imagesize, camera, 
-				scene, bouncer, shader, multisampler, imageoutput );
+			ThreadedTileTracer<16, 16> raytracer(threadpool, imagesize, camera,
+				scene, bouncer, shader, multisampler, imageoutput);
 			stopwatch.Start( );
 			RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
 		}
@@ -351,5 +352,6 @@ int main( int argc, char* argv[] ) {
 		return 1;
 	}
 	std::cout << "Lightstalker - Completed without exceptions." << std::endl;
+	
 	return 0;
 }
