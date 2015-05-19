@@ -284,9 +284,7 @@ int main( int argc, char* argv[] ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Threading;
-	// Prevents shitty VS 2015 linker errors
-	Vector2::Zero;
-	Vector2::One;
+	
 	std::vector<string_view> arguments( argv, argv + argc );
 	
 	optional<string> source = nullopt;
