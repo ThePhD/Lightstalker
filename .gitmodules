@@ -1,0 +1,3 @@
+[submodule "Furrovine++"]
+	path = Furrovine++
+	url = git@github.com:ThePhD/Furrovine.git
