@@ -53,22 +53,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Furrovine\Furrovine++\Furrovine++ Directories.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Furrovine\Furrovine++\Furrovine++ Directories.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Furrovine\Furrovine++\Furrovine++ Directories.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Furrovine\Furrovine++\Furrovine++ Directories.props" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>../../Furrovine/Furrovine++/include;$(IncludePath)</IncludePath>
@@ -190,14 +174,6 @@
     <ClInclude Include="SampleCommands.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="ThreadedTileTracer.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Furrovine\Furrovine++\Furrovine++.Unicode.vcxproj">
-      <Project>{2c419993-3f86-49c6-8e69-7e7a05514ab7}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Furrovine\Furrovine++\Furrovine++.vcxproj">
-      <Project>{46eb64eb-010e-43ad-b3bc-1091df7239fa}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
