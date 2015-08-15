@@ -22,6 +22,7 @@
     <ProjectGuid>{D7794DD0-412C-4615-8497-D7C29E84B90F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Lightstalker</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -53,21 +54,33 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="Furrovine++\Furrovine++.Heart\Furrovine++ Directories.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="Furrovine++\Furrovine++.Heart\Furrovine++ Directories.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="Furrovine++\Furrovine++.Heart\Furrovine++ Directories.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="Furrovine++\Furrovine++.Heart\Furrovine++ Directories.props" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>../../Furrovine/Furrovine++/include;$(IncludePath)</IncludePath>
+    <IncludePath>Furrovine++\Furrovine++\include;Furrovine++\Furrovine++.Heart\include;Furrovine++\Furrovine++.Unicode\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>../../Furrovine/Furrovine++/include;$(IncludePath)</IncludePath>
+    <IncludePath>Furrovine++\Furrovine++\include;Furrovine++\Furrovine++.Heart\include;Furrovine++\Furrovine++.Unicode\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../../Furrovine/Furrovine++/include;$(IncludePath)</IncludePath>
+    <IncludePath>Furrovine++\Furrovine++\include;Furrovine++\Furrovine++.Heart\include;Furrovine++\Furrovine++.Unicode\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../../Furrovine/Furrovine++/include;$(IncludePath)</IncludePath>
+    <IncludePath>Furrovine++\Furrovine++\include;Furrovine++\Furrovine++.Heart\include;Furrovine++\Furrovine++.Unicode\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -358,6 +371,32 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Furrovine++\Furrovine++.Heart\Furrovine++.Heart.vcxproj">
+      <Project>{d4d6b539-dc7e-444a-9381-1ef652fe5c38}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Furrovine++\Furrovine++.Unicode\Furrovine++.Unicode.vcxproj">
+      <Project>{2c419993-3f86-49c6-8e69-7e7a05514ab7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Furrovine++\Furrovine++\Furrovine++.vcxproj">
+      <Project>{46eb64eb-010e-43ad-b3bc-1091df7239fa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Furrovine++\Furrovine++\vendor\freetype.vcxproj">
+      <Project>{78b079bd-9fc7-4b9e-b4a6-96da0f00248b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Furrovine++\Furrovine++\vendor\harfbuzz.vcxproj">
+      <Project>{d1285a1f-25ce-4e4c-95c2-d80c7fd7b213}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Furrovine++\Furrovine++\vendor\libpng.vcxproj">
+      <Project>{d6973076-9317-4ef2-a0b8-b7a18ac0713e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Furrovine++\Furrovine++\vendor\libwebp.vcxproj">
+      <Project>{714f9791-5752-416c-9a01-9cba0121be16}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Furrovine++\Furrovine++\vendor\zlib.vcxproj">
+      <Project>{a088c585-28d9-45e7-8110-ef94cefaa820}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

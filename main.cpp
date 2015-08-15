@@ -22,7 +22,7 @@
 #include <Furrovine++/Graphics/Image2D.hpp>
 #include <Furrovine++/Pipeline/TextureFontLoader.hpp>
 #include <Furrovine++/Sys/FileWatcher.hpp>
-#include <Furrovine++/Stopwatch.hpp>
+#include <Furrovine++/stopwatch.hpp>
 #include <Furrovine++/intersect2.hpp>
 
 Furrovine::string make_coords_info( Furrovine::Graphics::Image2D& image, const vec2i& coords ) {
@@ -39,7 +39,7 @@ Furrovine::string make_coords_info( Furrovine::Graphics::Image2D& image, const v
 	return coordsstring;
 }
 
-Furrovine::string make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphics::Image2D& image, const vec2i& mouse, RayTracerStep steps ) {
+Furrovine::string make_info( Furrovine::stopwatch<>& stopwatch, Furrovine::Graphics::Image2D& image, const vec2i& mouse, RayTracerStep steps ) {
 	using namespace Furrovine;
 	string stepstring = "Finished\n";
 	if ( Fur::has_flags( steps, RayTracerStep::Preliminary ) ) {
@@ -54,7 +54,7 @@ Furrovine::string make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphic
 			stepstring = "Running\nTracing Multisampling Rays...";
 	}
 
-	double elapsedmilliseconds = stopwatch.ElapsedMilliseconds( );
+	long long elapsedmilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(stopwatch.elapsed()).count();
 	int hours = static_cast<int>( elapsedmilliseconds / 1000 / 60 / 60 );
 	int minutes = static_cast<int>( ( elapsedmilliseconds / 1000 / 60 ) - ( hours * 60 ) );
 	int secs = static_cast<int>( ( elapsedmilliseconds / 1000 ) - ( hours * 60 * 60 ) - ( minutes * 60 ) );
@@ -85,7 +85,7 @@ Furrovine::string make_info( Furrovine::Stopwatch& stopwatch, Furrovine::Graphic
 }
 
 template <typename TTracer>
-void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furrovine::optional<const Furrovine::string&> source, Furrovine::Graphics::Image2D& image, ImageOutput& output, TTracer&& raytracer ) {
+void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Furrovine::optional<const Furrovine::string&> source, Furrovine::Graphics::Image2D& image, ImageOutput& output, TTracer&& raytracer ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Pipeline;
@@ -139,7 +139,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		while ( opmessage = messagequeue.pop_front( ) ) {
 			Fur::Message& message = opmessage.get( );
 			inputevents.Process( message );
-			switch ( message.class_idx ) {
+			switch ( message.class_index() ) {
 			case Fur::Message::index<Fur::WindowEvent>::value: {
 				Fur::WindowEvent& windowm = message.get<Fur::WindowEvent>( );
 				quit = windowm.Signal == Fur::WindowEventSignal::Quit
@@ -188,7 +188,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		}
 
 		if ( doreset ) {
-			stopwatch.Stop( );
+			stopwatch.stop( );
 			raytracer.Stop( );
 			output.Clear( );
 			if ( doreload ) {
@@ -198,7 +198,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 				command.scene.Build( );
 				doreload = false;
 			}
-			stopwatch.Start( );
+			stopwatch.start( );
 			raytracer.Reset( );
 			doreset = false;
 			continue;
@@ -207,7 +207,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::Stopwatch& stopwatch, Furro
 		raytracer.Compute( );
 
 		if ( raytracer.Check( ) ) {
-			stopwatch.Stop( );
+			stopwatch.stop( );
 		}
 
 		if ( !displaywindow || !graphics.Ready( ) ) {
@@ -309,7 +309,7 @@ int main( int argc, char* argv[] ) {
 			ocommand = RayTracerCommandLoader()( *source );
 		if (!ocommand)
 			ocommand = SampleCommands::MultiSphere( );
-		Stopwatch stopwatch;
+		stopwatch<> stopwatch;
 		RayTracerCommand& command = *ocommand;
 		Image2D image( command.imagesize, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, ToByteSize( SurfaceFormat::Red8Green8Blue8Alpha8Normalized ), 0 );
 		ImageOutput imageoutput( image, *output );
@@ -325,13 +325,13 @@ int main( int argc, char* argv[] ) {
 			ThreadPool threadpool( command.threadcount );
 			ThreadedTileTracer<16, 16> raytracer(threadpool, imagesize, camera,
 				scene, bouncer, shader, multisampler, imageoutput);
-			stopwatch.Start( );
+			stopwatch.start( );
 			RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
 		}
 		else {
 			TileTracer<16, 16> raytracer( imagesize, camera,
 				scene, bouncer, shader, multisampler, imageoutput, std::chrono::milliseconds( 1500 ) );
-			stopwatch.Start( );
+			stopwatch.start( );
 			RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
 		}
 	}

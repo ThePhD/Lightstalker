@@ -157,7 +157,7 @@ real Scene::Bias( ) const {
 	return raybias;
 }
 
-const rgba& Scene::Background( ) const {
+rgba Scene::Background( ) const {
 	return vacuummaterial.color( vacuumprimitive, vacuumhit );
 }
 

@@ -39,7 +39,7 @@ public:
 
 	void SetBackground( const rgba& background );
 
-	const rgba& Background( ) const;
+	rgba Background( ) const;
 
 	Box Bounds( ) const;
 

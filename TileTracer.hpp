@@ -31,13 +31,13 @@ private:
 	Output& output;
 
 	void Trace1( ) {
-		Fur::Stopwatch stopwatch;
+		Fur::stopwatch<> stopwatch;
 		const Multisampler& ms = *multisampler;
 		bool timerbreak = false;
 		vec2 swh = imagesize;
 		real realmssize = static_cast<real>( ms.size( ) );
 
-		stopwatch.Start( );
+		stopwatch.start( );
 		while ( !multitiles.empty( ) ) {
 			Tile tile = multitiles.back( );
 			for ( std::size_t y = tile.top; y < tile.bottom; ++y ) {
@@ -56,7 +56,7 @@ private:
 				}
 			}
 			multitiles.pop_back( );
-			timerbreak = ( stopwatch.ElapsedMilliseconds( ) > timelimit.count( ) );
+			timerbreak = ( stopwatch.elapsed( ) > timelimit );
 			if ( timerbreak )
 				return;
 		}
@@ -65,9 +65,9 @@ private:
 	}
 
 	void Trace1Prepare( ) {
-		Fur::Stopwatch stopwatch{ };
+		Fur::stopwatch<> stopwatch;
 
-		stopwatch.Start( );
+		stopwatch.start( );
 		while ( !multipreptiles.empty( ) ) {
 			bool tiled = false;
 			Tile tile = multipreptiles.back( );
@@ -82,7 +82,7 @@ private:
 				}
 			}
 			multipreptiles.pop_back( );
-			bool timerbreak = stopwatch.ElapsedMilliseconds( ) > timelimit.count( );
+			bool timerbreak = stopwatch.elapsed( ) > timelimit;
 			if ( timerbreak )
 				return;
 		}
@@ -91,13 +91,13 @@ private:
 	}
 
 	void Trace0( ) {
-		Fur::Stopwatch stopwatch;
+		Fur::stopwatch<> stopwatch;
 		std::size_t width = hitmap.bounds( )[ 0 ];
 		std::size_t height = hitmap.bounds( )[ 1 ];
 		real swidth = static_cast<real>( width );
 		real sheight = static_cast<real>( height );
 
-		stopwatch.Start( );
+		stopwatch.start( );
 		while ( !tiles.empty( ) ) {
 			Tile tile = tiles.back( );
 			for ( std::size_t y = tile.top; y < tile.bottom; ++y ) {
@@ -112,7 +112,7 @@ private:
 			}
 			multipreptiles.push_back( tile );
 			tiles.pop_back( );
-			bool timerbreak = stopwatch.ElapsedMilliseconds( ) > timelimit.count( );
+			bool timerbreak = stopwatch.elapsed( ) > timelimit;
 			if ( timerbreak )
 				return;
 		}
