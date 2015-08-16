@@ -16,8 +16,8 @@ public:
 	typedef std::function<void( Tile tile, bool multisampling )> tile_fx_t;
 
 private:
-	std::atomic<std::size_t> patches, multisamplepreppatches, multisamplepatches;
-	std::atomic<bool> complete, multisamplecomplete, multisampleprepcomplete, stopping;
+	std::atomic<std::ptrdiff_t> patches, multisamplepreppatches, multisamplepatches;
+	std::atomic<bool> patchcomplete, multisamplecomplete, multisampleprepcomplete, stopping;
 	std::mutex stopmutex;
 	std::condition_variable stopcv;
 	Hitmap hitmap;
@@ -33,28 +33,19 @@ private:
 	tile_fx_t onpretile;
 	tile_fx_t ontile;
 
-	static void SPatch(ThreadedTileTracer* t, Tile tile) {
-		t->Patch(tile);
-	}
-
-	static void SMultisamplePatch(ThreadedTileTracer* t, Tile tile) {
-		t->MultisamplePatch(tile);
-	}
-
-	static void SMultisamplePreparePatch(ThreadedTileTracer* t, Tile tile) {
-		t->MultisamplePreparePatch(tile);
-	}
-
 	void Patch( Tile tile ) {
 		auto dx = Fur::make_destructor( [ & ] {
 			--patches;
-			complete = patches == 0;
-			if ( !complete )
+			patchcomplete = patches <= 0;
+			if ( !patchcomplete )
 				return;
 			if ( stopping ) {
-				multisampleprepcomplete = true;
-				multisamplecomplete = true;
-				stopcv.notify_one( );
+				if ( !patchcomplete ) {
+					multisampleprepcomplete = true;
+					multisamplecomplete = true;
+					patchcomplete = true;
+					stopcv.notify_one();
+				}
 				return;
 			}
 			if ( multisampleprepcomplete )
@@ -91,7 +82,7 @@ private:
 	void MultisamplePreparePatch( Tile tile ) {
 		auto dx = Fur::make_destructor( [ & ] {
 			--multisamplepreppatches;
-			multisampleprepcomplete = multisamplepreppatches == 0;
+			multisampleprepcomplete = multisamplepreppatches <= 0;
 			if ( !multisampleprepcomplete )
 				return;
 			if ( stopping && multisamplecomplete ) {
@@ -120,9 +111,19 @@ private:
 	void MultisamplePatch( Tile tile ) {
 		auto dx = Fur::make_destructor( [ & ] ( ) {
 			--multisamplepatches;
-			multisamplecomplete = multisamplepatches == 0;
+			if ( stopping ) {
+				if ( !patchcomplete ) {
+					multisampleprepcomplete = true;
+					multisamplecomplete = true;
+					patchcomplete = true;
+					stopcv.notify_one();
+				}
+				return;
+			}
+			multisamplecomplete = multisamplepatches <= 0;
 			if ( !multisamplecomplete )
 				return;
+			patchcomplete = multisampleprepcomplete = true;
 			// Signal if we are stopping and the MultisamplePreparePatch
 			// has already finished (otherwise, MultisamplePreparePatch will do it for us)
 			if ( stopping && multisampleprepcomplete ) {
@@ -159,7 +160,7 @@ private:
 public:
 
 	ThreadedTileTracer( Furrovine::Threading::ThreadPool& pool, const vec2u& imagesize, const Camera& camera, const Scene& scene, const RayBouncer& raybouncer, const RayShader& rayshader, Fur::optional<const Multisampler&> multisampler, Output& output, tile_fx_t patchfx = nullptr, tile_fx_t prepatchfx = nullptr, traced_fx_t tracefx = nullptr )
-		: complete( true ), multisampleprepcomplete( true ), multisamplecomplete( true ), stopping( false ),
+		: patchcomplete( true ), multisampleprepcomplete( true ), multisamplecomplete( true ), stopping( false ),
 		imagesize( imagesize ), hitmap( imagesize ), 
 		scene( scene ), camera( camera ), raybouncer( raybouncer ),
 		rayshader( rayshader ), multisampler( std::move( multisampler ) ), output( output ),
@@ -198,8 +199,8 @@ public:
 		
 		patches = patchcount;
 		multisamplepreppatches = patchcount;
-		multisamplepatches = 0;
-		complete = false;
+		multisamplepatches = patchcount;
+		patchcomplete = false;
 		multisamplecomplete = true;
 		multisampleprepcomplete = !multisampler || multisampler->size( ) < 2;
 		
@@ -217,12 +218,12 @@ public:
 	}
 
 	bool Check( ) const {
-		return complete && multisampleprepcomplete && multisamplecomplete;
+		return patchcomplete && multisampleprepcomplete && multisamplecomplete;
 	}
 
 	RayTracerStep Steps( ) const {
 		return RayTracerStep::None
-			| ( !complete ? RayTracerStep::Preliminary : RayTracerStep::None )
+			| ( !patchcomplete ? RayTracerStep::Preliminary : RayTracerStep::None )
 			| ( !multisampleprepcomplete ? RayTracerStep::MultisampleDetection : RayTracerStep::None )
 			| ( !multisamplecomplete ? RayTracerStep::Multisampling : RayTracerStep::None );
 	}

@@ -349,7 +349,7 @@ int main( int argc, char* argv[] ) {
 		std::cout << "Lightstalker - A completely non-understandable exception has occurred.";
 		return 1;
 	}
-	std::cout << "Lightstalker - Completed without exceptions." << std::endl;
+	std::cout << "Lightstalker - Completed. Exiting." << std::endl;
 	
 	return 0;
 }
