@@ -1,3 +1,4 @@
+#if 0
 #include "SampleCommands.hpp"
 #include "Scene.hpp"
 #include "Multisampler.hpp"
@@ -353,3 +354,19 @@ int main( int argc, char* argv[] ) {
 	
 	return 0;
 }
+#else
+#include <Furrovine++/Graphics/Window.hpp>
+#include <Furrovine++/Graphics/GraphicsDevice.hpp>
+
+int main( int argc, char * const argv[] ) {
+	using namespace Furrovine;
+	using namespace Furrovine::Graphics;
+
+	WindowDriver wd;
+	Window w( wd );
+	GraphicsDevice g( w );
+
+
+}
+
+#endif

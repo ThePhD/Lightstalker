@@ -149,6 +149,12 @@
     <ClInclude Include="TMeshTriangle.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="config\Furrovine++\Furrovine++.Configure.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\config\Furrovine++\Furrovine++.Configure.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />
