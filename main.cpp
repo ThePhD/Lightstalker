@@ -357,6 +357,7 @@ int main( int argc, char* argv[] ) {
 #else
 #include <Furrovine++/Graphics/Window.hpp>
 #include <Furrovine++/Graphics/GraphicsDevice.hpp>
+#include <Furrovine++/Graphics/NymphBatch.hpp>
 
 int main( int argc, char * const argv[] ) {
 	using namespace Furrovine;
@@ -366,7 +367,7 @@ int main( int argc, char * const argv[] ) {
 	Window w( wd );
 	GraphicsDevice g( w );
 
-
+	NymphBatch batch( g );
 }
 
 #endif
