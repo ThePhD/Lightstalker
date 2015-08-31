@@ -13,12 +13,12 @@
 #include "RayTracerCommandLoader.hpp"
 #include <Furrovine++/lexical_cast.hpp>
 #include <Furrovine++/queue.hpp>
-#include <Furrovine++/WindowDriver.hpp>
+#include <Furrovine++/window_driver.hpp>
 #include <Furrovine++/Input/MouseDevice.hpp>
 #include <Furrovine++/Input/KeyboardDevice.hpp>
 #include <Furrovine++/Input/InputEvents.hpp>
-#include <Furrovine++/Graphics/Window.hpp>
-#include <Furrovine++/Graphics/GraphicsDevice.hpp>
+#include <Furrovine++/Graphics/window_f.hpp>
+#include <Furrovine++/Graphics/graphics_device.hpp>
 #include <Furrovine++/Graphics/NymphBatch.hpp>
 #include <Furrovine++/Graphics/Image2D.hpp>
 #include <Furrovine++/Pipeline/TextureFontLoader.hpp>
@@ -355,17 +355,17 @@ int main( int argc, char* argv[] ) {
 	return 0;
 }
 #else
-#include <Furrovine++/Graphics/Window.hpp>
-#include <Furrovine++/Graphics/GraphicsDevice.hpp>
+#include <Furrovine++/Graphics/window.hpp>
+#include <Furrovine++/Graphics/graphics_device.hpp>
 #include <Furrovine++/Graphics/NymphBatch.hpp>
 
 int main( int argc, char * const argv[] ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 
-	WindowDriver wd;
-	Window w( wd );
-	GraphicsDevice g( w );
+	window_driver wd;
+	window w( wd );
+	graphics_device g( w );
 
 	NymphBatch batch( g );
 }
