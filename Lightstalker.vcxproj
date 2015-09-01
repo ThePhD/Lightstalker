@@ -189,6 +189,7 @@
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="ThreadedTileTracer.hpp" />
     <ClInclude Include="vendor\config\Furrovine++\Furrovine++.Configure.hpp" />
+    <ClInclude Include="vendor\Furrovine++\Furrovine++.Heart\include\Furrovine++\WindowEvent.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Basic Light Equation.txt" />

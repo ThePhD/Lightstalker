@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TMaterial.hpp"
-#include <Furrovine++/Graphics/Material.hpp>
+#include <Furrovine++/Graphics/material.hpp>
 
 template <typename T>
 struct TBasicMaterial {
@@ -158,7 +158,7 @@ struct TCheckerMaterial : public TBasicMaterial<T> {
 template <typename T>
 struct TWavefrontMaterial {
 
-	Fur::Graphics::Material mat;
+	Fur::Graphics::material mat;
 	Fur::TRgba<T> matreflectivity;
 
 	template <typename... Tn>

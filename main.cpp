@@ -14,13 +14,13 @@
 #include <Furrovine++/lexical_cast.hpp>
 #include <Furrovine++/queue.hpp>
 #include <Furrovine++/window_driver.hpp>
-#include <Furrovine++/Input/MouseDevice.hpp>
+#include <Furrovine++/Input/mouse_device.hpp>
 #include <Furrovine++/Input/KeyboardDevice.hpp>
-#include <Furrovine++/Input/InputEvents.hpp>
-#include <Furrovine++/Graphics/window_f.hpp>
+#include <Furrovine++/Input/input_events.hpp>
+#include <Furrovine++/Graphics/window.hpp>
 #include <Furrovine++/Graphics/graphics_device.hpp>
 #include <Furrovine++/Graphics/NymphBatch.hpp>
-#include <Furrovine++/Graphics/Image2D.hpp>
+#include <Furrovine++/Graphics/image_2d.hpp>
 #include <Furrovine++/Pipeline/TextureFontLoader.hpp>
 #include <Furrovine++/Sys/FileWatcher.hpp>
 #include <Furrovine++/stopwatch.hpp>
