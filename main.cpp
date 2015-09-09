@@ -358,16 +358,45 @@ int main( int argc, char* argv[] ) {
 #include <Furrovine++/Graphics/window.hpp>
 #include <Furrovine++/Graphics/graphics_device.hpp>
 #include <Furrovine++/Graphics/NymphBatch.hpp>
+#include <Furrovine++/Input/input_events.hpp>
+#include <Furrovine++/queue.hpp>
 
 int main( int argc, char * const argv[] ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
+	using namespace Furrovine::Input;
 
 	window_driver wd;
 	window w( wd );
+	//w.Show();
 	graphics_device g( w );
+	input_events<unit> ipe;
+	queue<message> messagequeue;
 
 	NymphBatch batch( g );
+
+	for ( ;; ) {
+
+		wd.Push( w, messagequeue );
+		optional<message> opmessage;
+		while ( opmessage = messagequeue.pop_front() ) {
+			message& msg = opmessage.get();
+			ipe.Process( msg );
+			switch ( msg.class_index() ) {
+			case message::index<window_event>::value: {
+				window_event& windowm = msg.get<window_event>();
+				//quit = windowm.Signal == window_event_signal::Quit
+				//	|| windowm.Signal == window_event_signal::Destroy;
+				break; }
+			}
+		}
+
+		batch.Begin();
+		batch.RenderGradient( { 50.0f, 50.0f, 100.0f, 100.0f }, Color::White );
+		batch.End();
+
+		g.Present();
+	}
 }
 
 #endif

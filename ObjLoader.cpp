@@ -28,7 +28,7 @@ void ObjLoader::operator()( Fur::IO::TextReader<>& reader ) {
 		for ( auto& submeshdesc : meshdesc.SubMeshes ) {
 			vertex_buffer_data& vbdata = meshdesc.VertexBuffers[ submeshdesc.VertexBufferIndex ];
 			index_buffer_data& ibdata = meshdesc.IndexBuffers[ submeshdesc.IndexBufferIndex ];
-			buffer_view<const vertex> vertices( static_cast<const vertex*>( vbdata.Streams()[0].data( ) ), vbdata.Streams( )[ 0 ].size( ) );
+			buffer_view<const vertex> vertices( static_cast<const vertex*>( vbdata.streams()[0].data( ) ), vbdata.streams( )[ 0 ].size( ) );
 			buffer_view<const int32> indices( static_cast<const int32*>( ibdata.data( ) ), ibdata.size( ) );
 			std::size_t indexlimit = submeshdesc.IndexOffset + submeshdesc.IndexCount;
 			std::size_t vertexlimit = submeshdesc.VertexOffset + submeshdesc.VertexCount;
