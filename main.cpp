@@ -355,11 +355,14 @@ int main( int argc, char* argv[] ) {
 	return 0;
 }
 #else
+#pragma warning(disable:4503)
+
 #include <Furrovine++/Graphics/window.hpp>
 #include <Furrovine++/Graphics/graphics_device.hpp>
 #include <Furrovine++/Graphics/NymphBatch.hpp>
 #include <Furrovine++/Input/input_events.hpp>
 #include <Furrovine++/queue.hpp>
+#include <Furrovine++/Graphics/VertexPositionColor.hpp>
 
 int main( int argc, char * const argv[] ) {
 	using namespace Furrovine;
@@ -375,7 +378,66 @@ int main( int argc, char * const argv[] ) {
 
 	NymphBatch batch( g );
 
-	for ( ;; ) {
+	Color clears[] = {
+		Color::Black,
+		Color::Grey,
+		Color::SlateGrey,
+		Color::DarkGrey
+	};
+
+	Color colors[] = {
+		Color::Red,
+		Color::Blue,
+		Color::Green,
+		Color::PurpleCSS
+	};
+#ifdef FURROVINE_OPENGL
+	string_view vertexsrctext = R"(
+#version 410 core
+
+uniform mat4x4 ViewProjection;
+
+layout(location = 0) in vec4 position;
+layout(location = 1) in vec4 color;
+
+out gl_PerVertex { vec4 gl_Position; };
+out vec4 return_color;
+
+void main () {
+	gl_Position = ViewProjection * position;
+	return_color = color;
+}		
+)";
+
+	string_view pixelsrctext = R"(
+#version 410 core
+in vec4 color;
+out vec4 return_color;
+void main () {
+	return_color = color;
+}		
+)";
+
+	shader_source vertexsrc( shader_stage::vertex, vertexsrctext );
+	shader_source pixelsrc( shader_stage::pixel, pixelsrctext );
+
+	vertex_shader vertexshader( g, vertexsrc );
+	pixel_shader pixelshader( g, pixelsrc );
+#else
+
+	vertex_shader& vertexshader = *batch.default_shader()[ 0 ][ 0 ].vertex;
+	pixel_shader& pixelshader = *batch.default_shader()[ 0 ][ 0 ].pixel;
+
+#endif
+
+	Viewport viewport = g.GetViewport();
+	Matrix view = Matrix::Identity;
+	Matrix projection = CreateOrthographicProjectionOffCenter( viewport.Left(), viewport.Right(), viewport.Bottom(), viewport.Top(), viewport.mindepth, viewport.maxdepth );
+
+	shader_parameter_collection& vertexparameters = vertexshader.parameters();
+	shader_parameter_collection& pixelparameters = pixelshader.parameters();
+
+	for ( bool quit = false; !quit; ) {
 
 		wd.Push( w, messagequeue );
 		optional<message> opmessage;
@@ -385,15 +447,41 @@ int main( int argc, char * const argv[] ) {
 			switch ( msg.class_index() ) {
 			case message::index<window_event>::value: {
 				window_event& windowm = msg.get<window_event>();
-				//quit = windowm.Signal == window_event_signal::Quit
-				//	|| windowm.Signal == window_event_signal::Destroy;
+				quit = windowm.Signal == window_event_signal::Quit
+					|| windowm.Signal == window_event_signal::Destroy;
 				break; }
 			}
 		}
 
-		batch.Begin();
-		batch.RenderGradient( { 50.0f, 50.0f, 100.0f, 100.0f }, Color::White );
-		batch.End();
+		uintz target = rand() % size_of( clears );
+		const Color& clearcolor = clears[ target ];
+		const Color& trianglecolor = colors[ target ];
+		struct vertex {
+			static const vertex_declaration& declaration() {
+				const uintz Stride = sizeof( Vector4 ) + sizeof( Color );
+				static const vertex_declaration decl( Stride,
+					vertex_element( vertex_element_format::Vector4, vertex_element_usage::Position, 0 ),
+					vertex_element( vertex_element_format::Color, vertex_element_usage::Color, 0 ) );
+				return decl;
+			}
+
+			Vector4 position;
+			Color color;
+		};
+		vertex vertices[] = {
+			vertex{ { 50, 50, 0, 1 }, trianglecolor },
+			vertex{ { 50, 100, 0, 1 }, trianglecolor },
+			vertex{ { 100, 100, 0, 1 }, trianglecolor },
+		};
+
+		
+		vertexparameters[ "ViewProjection" ] = view * projection;
+		vertexshader.apply();
+		pixelshader.apply();
+
+		g.Clear( clearcolor );
+
+		g.RenderUserPrimitives( primitive_topology::Triangles, vertices->declaration(), vertices, 0, 1 );
 
 		g.Present();
 	}
