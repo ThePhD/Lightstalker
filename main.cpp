@@ -398,7 +398,8 @@ int main( int argc, char * const argv[] ) {
 uniform mat4x4 ViewProjection;
 
 layout(location = 0) in vec4 position;
-layout(location = 1) in vec4 color;
+layout(location = 1) in vec4 tex;
+layout(location = 2) in vec4 color;
 
 out gl_PerVertex { vec4 gl_Position; };
 out vec4 return_color;
@@ -414,7 +415,7 @@ void main () {
 in vec4 color;
 out vec4 return_color;
 void main () {
-	return_color = color;
+	return_color = vec4(1, 1, 0, 1);
 }		
 )";
 
@@ -424,9 +425,9 @@ void main () {
 	vertex_shader vertexshader( g, vertexsrc );
 	pixel_shader pixelshader( g, pixelsrc );
 #else
-
-	vertex_shader& vertexshader = *batch.default_shader()[ 0 ][ 0 ].vertex;
-	pixel_shader& pixelshader = *batch.default_shader()[ 0 ][ 0 ].pixel;
+	shader_pass& pass = batch.default_shader()[ 0 ][ 1 ];
+	vertex_shader& vertexshader = *pass.vertex;
+	pixel_shader& pixelshader = *pass.pixel;
 
 #endif
 
@@ -456,28 +457,18 @@ void main () {
 		uintz target = rand() % size_of( clears );
 		const Color& clearcolor = clears[ target ];
 		const Color& trianglecolor = colors[ target ];
-		struct vertex {
-			static const vertex_declaration& declaration() {
-				const uintz Stride = sizeof( Vector4 ) + sizeof( Color );
-				static const vertex_declaration decl( Stride,
-					vertex_element( vertex_element_format::Vector4, vertex_element_usage::Position, 0 ),
-					vertex_element( vertex_element_format::Color, vertex_element_usage::Color, 0 ) );
-				return decl;
-			}
-
-			Vector4 position;
-			Color color;
-		};
-		vertex vertices[] = {
-			vertex{ { 50, 50, 0, 1 }, trianglecolor },
-			vertex{ { 50, 100, 0, 1 }, trianglecolor },
-			vertex{ { 100, 100, 0, 1 }, trianglecolor },
-		};
-
 		
-		vertexparameters[ "ViewProjection" ] = view * projection;
+		VertexNymph vertices[] = {
+			{ { 50, 50, 0 }, {}, trianglecolor },
+			{ { 100, 100, 0 },{}, trianglecolor },
+			{ { 50, 100, 0 }, {}, trianglecolor },
+		};
+
+		string paramname = "ViewProjection";
+		vertexparameters[ paramname ] = view * projection;
 		vertexshader.apply();
 		pixelshader.apply();
+		g.apply_constant_buffers();
 
 		g.Clear( clearcolor );
 
