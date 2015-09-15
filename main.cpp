@@ -362,7 +362,8 @@ int main( int argc, char* argv[] ) {
 #include <Furrovine++/Graphics/NymphBatch.hpp>
 #include <Furrovine++/Input/input_events.hpp>
 #include <Furrovine++/queue.hpp>
-#include <Furrovine++/Graphics/VertexPositionColor.hpp>
+
+#include <Furrovine++/Graphics/Gl/Platform.Gl.hpp>
 
 int main( int argc, char * const argv[] ) {
 	using namespace Furrovine;
@@ -371,12 +372,12 @@ int main( int argc, char * const argv[] ) {
 
 	window_driver wd;
 	window w( wd );
-	//w.Show();
-	graphics_device g( w );
 	input_events<unit> ipe;
 	queue<message> messagequeue;
 
-	NymphBatch batch( g );
+	graphics_device g( w );
+	gl::Disable( gl::DEPTH_TEST );
+	gl::Disable( gl::CULL_FACE );
 
 	Color clears[] = {
 		Color::Black,
@@ -391,31 +392,36 @@ int main( int argc, char * const argv[] ) {
 		Color::Green,
 		Color::PurpleCSS
 	};
+
 #ifdef FURROVINE_OPENGL
 	string_view vertexsrctext = R"(
-#version 410 core
+#version 440 core
 
-uniform mat4x4 ViewProjection;
-
-layout(location = 0) in vec4 position;
-layout(location = 1) in vec4 tex;
-layout(location = 2) in vec4 color;
+layout(location = 0) in vec2 position;
+//layout(location = 0) in vec3 position;
+//layout(location = 1) in vec4 color;
 
 out gl_PerVertex { vec4 gl_Position; };
-out vec4 return_color;
+//layout(location = 0) out gl_PerVertex { vec4 gl_Position; };
+//layout(location = 1) out vec4 return_color;
 
 void main () {
-	gl_Position = ViewProjection * position;
-	return_color = color;
+	gl_Position = vec4(position.x, position.y, 0, 1);
+	//gl_Position = vec4(position, 1);
+	//return_color = color;
 }		
 )";
 
 	string_view pixelsrctext = R"(
-#version 410 core
-in vec4 color;
+#version 440 core
+
+//in vec4 color;
+
 out vec4 return_color;
+
 void main () {
-	return_color = vec4(1, 1, 0, 1);
+	return_color = vec4(1, 1, 1, 1);
+	//return_color = color;
 }		
 )";
 
@@ -425,6 +431,8 @@ void main () {
 	vertex_shader vertexshader( g, vertexsrc );
 	pixel_shader pixelshader( g, pixelsrc );
 #else
+	NymphBatch batch( g );
+
 	shader_pass& pass = batch.default_shader()[ 0 ][ 1 ];
 	vertex_shader& vertexshader = *pass.vertex;
 	pixel_shader& pixelshader = *pass.pixel;
@@ -437,7 +445,7 @@ void main () {
 
 	shader_parameter_collection& vertexparameters = vertexshader.parameters();
 	shader_parameter_collection& pixelparameters = pixelshader.parameters();
-
+	
 	for ( bool quit = false; !quit; ) {
 
 		wd.Push( w, messagequeue );
@@ -457,24 +465,82 @@ void main () {
 		uintz target = rand() % size_of( clears );
 		const Color& clearcolor = clears[ target ];
 		const Color& trianglecolor = colors[ target ];
-		
+#if 0
 		VertexNymph vertices[] = {
-			{ { 50, 50, 0 }, {}, trianglecolor },
-			{ { 100, 100, 0 },{}, trianglecolor },
-			{ { 50, 100, 0 }, {}, trianglecolor },
+			{ { -0.0f, -0.5f, 0 }, {}, trianglecolor },
+			{ {  0.5f, -0.5f, 0 }, {}, trianglecolor },
+			{ { -0.5f, -0.5f, 0 }, {}, trianglecolor },
 		};
+#else
+		struct vertex {
+			Vector2 position;
+			Vector4 color;
+		};
+		vertex vertices[] = {
+			{ { -0.0f, -0.5f }, Vector4::One },
+			{ { 0.5f, -0.5f }, Vector4::One },
+			{ { -0.5f, -0.5f }, Vector4::One },
+		};
+#endif
+		uintz verticessize = sizeof( vertices );
 
 		string paramname = "ViewProjection";
-		vertexparameters[ paramname ] = view * projection;
+
+		/*vertexparameters[ paramname ] = view * projection;
 		vertexshader.apply();
 		pixelshader.apply();
-		g.apply_constant_buffers();
+		g.apply_constant_buffers();*/
 
 		g.Clear( clearcolor );
 
-		g.RenderUserPrimitives( primitive_topology::Triangles, vertices->declaration(), vertices, 0, 1 );
+		g.SetShader( vertexshader );
+		g.SetShader( pixelshader );
+
+		GLint vertexprogram = Gl::native_handle( vertexshader );
+		GLint pixelprogram = Gl::native_handle( pixelshader );
+
+		GLuint vbuffer;
+		gl::GenBuffers( 1, &vbuffer );
+		gl::BindBuffer( gl::ARRAY_BUFFER, vbuffer );
+		gl::NamedBufferData( vbuffer, verticessize, vertices, gl::STATIC_DRAW );
+
+		GLuint vao;
+		gl::GenVertexArrays( 1, &vao );
+		gl::BindVertexArray( vao );
+
+		gl::BindFragDataLocation( pixelprogram, 0, "return_color" );
+
+		GLint posAttrib = gl::GetAttribLocation( vertexprogram, "position" );
+		GLint texAttrib = gl::GetAttribLocation( vertexprogram, "tex" );
+		GLint colAttrib = gl::GetAttribLocation( vertexprogram, "color" );
+
+		uintz offset = 0;
+		uintz stride = sizeof( vertices[ 0 ] );
+		if ( posAttrib != -1 ) {
+			const void* poffset = reinterpret_cast<const void*>(offset);
+			gl::VertexAttribPointer( posAttrib, 2, gl::FLOAT, gl::FALSE_, stride, poffset );
+			gl::EnableVertexAttribArray( posAttrib );
+			offset += sizeof( Vector2 );
+		}
+		if ( texAttrib != -1 ) {
+			const void* poffset = reinterpret_cast<const void*>(offset);
+			gl::VertexAttribPointer( texAttrib, 2, gl::FLOAT, gl::FALSE_, stride, poffset );
+			gl::EnableVertexAttribArray( texAttrib );
+			offset += sizeof( Vector2 );
+		}
+		if ( colAttrib != -1 ) {
+			const void* poffset = reinterpret_cast<const void*>(offset);
+			gl::VertexAttribPointer( colAttrib, 4, gl::UNSIGNED_BYTE, gl::TRUE_, stride, poffset );
+			gl::EnableVertexAttribArray( colAttrib );
+			offset += sizeof( Vector4 );
+		}
+		
+		gl::DrawArrays( gl::TRIANGLES, 0, 3 );
 
 		g.Present();
+
+		gl::DeleteBuffers( 1, &vbuffer );
+		gl::DeleteVertexArrays( 1, &vao );
 	}
 }
 
