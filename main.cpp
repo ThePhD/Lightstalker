@@ -371,13 +371,14 @@ int main( int argc, char * const argv[] ) {
 	using namespace Furrovine::Input;
 
 	window_driver wd;
-	window w( wd, window_description( "Furrovine", { 320, 240 } ) );
+	window w( wd, window_description( "Furrovine", { 640, 480 } ) );
 	input_events<unit> ipe;
 	queue<message> messagequeue;
 
 	graphics_device g( w );
 	gl::Disable( gl::DEPTH_TEST );
 	gl::Disable( gl::CULL_FACE );
+	NymphBatch batch( g );
 
 	Color clears[] = {
 		Color::Black,
@@ -392,60 +393,6 @@ int main( int argc, char * const argv[] ) {
 		Color::Green,
 		Color::PurpleCSS
 	};
-
-#ifdef FURROVINE_DIRECTX
-	NymphBatch batch( g );
-
-	shader_pass& pass = batch.default_shader()[ 0 ][ 1 ];
-	vertex_shader& vertexshader = *pass.vertex;
-	pixel_shader& pixelshader = *pass.pixel;
-#else
-	string_view vertexsrctext = R"(
-#version 330 core
-
-in int gl_VertexID;
-in int gl_InstanceID;
-
-out gl_PerVertex
-{
-    vec4  gl_Position;
-    float gl_PointSize;
-    float gl_ClipDistance[];
-};
-
-//out vec4 return_color;
-
-layout(location = 0) in vec2 position;
-//layout(location = 0) in vec3 position;
-//layout(location = 1) in vec2 tex;
-//layout(location = 2) in vec4 color;
-
-void main () {
-	gl_Position = vec4(position, 0, 1);
-	//gl_Position = vec4(position, 1);
-	//return_color = color;
-}		
-)";
-
-	string_view pixelsrctext = R"(
-#version 330 core
-
-//in vec4 color;
-
-out vec4 return_color;
-
-void main () {
-	return_color = vec4(1, 1, 1, 1);
-	//return_color = color;
-}		
-)";
-
-	shader_source vertexsrc( shader_stage::vertex, vertexsrctext );
-	shader_source pixelsrc( shader_stage::pixel, pixelsrctext );
-
-	vertex_shader vertexshader( g, vertexsrc );
-	pixel_shader pixelshader( g, pixelsrc );
-#endif
 
 	for ( bool quit = false; !quit; ) {
 
@@ -464,96 +411,17 @@ void main () {
 		}
 
 		uintz target = rand() % size_of( clears );
-		const Color& clearcolor = clears[ target ];
-		const Color& trianglecolor = colors[ target ];
+		const Color& clearcolor = clears[ 0 ];
+		const Color& triangle1color = colors[ 0 ];
+		const Color& triangle2color = colors[ 1 ];
 
 		g.Clear( clearcolor );
 
-		g.SetShader( vertexshader );
-		g.SetShader( pixelshader );
-
-#if FURROINE_DIRECTX
-		Viewport viewport = g.GetViewport();
-		Matrix view = Matrix::Identity;
-		Matrix projection = CreateOrthographicProjectionOffCenter( viewport.Left(), viewport.Right(), viewport.Bottom(), viewport.Top(), viewport.mindepth, viewport.maxdepth );
-		
-		shader_parameter_collection& vertexparameters = vertexshader.parameters();
-		shader_parameter_collection& pixelparameters = pixelshader.parameters();
-
-		string paramname = "ViewProjection";
-
-		vertexparameters[ paramname ] = view * projection;
-		vertexshader.apply();
-		pixelshader.apply();
-		g.apply_constant_buffers();
-
-		VertexNymph vertices[] = {
-			{ { -0.0f, -0.5f, 0 },{}, trianglecolor },
-			{ { 0.5f, -0.5f, 0 },{}, trianglecolor },
-			{ { -0.5f, -0.5f, 0 },{}, trianglecolor },
-		};
+		batch.Begin();
+		batch.RenderGradient( { 50, 50, 100, 100 }, triangle1color, triangle2color );
+		batch.End();
 
 		g.Present();
-#else
-		GLuint vertexprogram = Gl::native_handle( vertexshader );
-		GLuint pixelprogram = Gl::native_handle( pixelshader );
-		GLint posAttrib = gl::GetAttribLocation( vertexprogram, "position" );
-		GLint texAttrib = gl::GetAttribLocation( vertexprogram, "tex" );
-		GLint colAttrib = gl::GetAttribLocation( vertexprogram, "color" );
-
-#if 0
-		struct vertex {
-			Vector2 position;
-			Vector4 color;
-		};
-		static_assert(sizeof( vertex ) == sizeof( GLfloat ) * 6, "Fuck");
-		static_assert(offsetof( vertex, position ) == 0, "Fuck");
-		static_assert(offsetof( vertex, color ) == sizeof( GLfloat ) * 2, "Fuck");
-
-		vertex vertices[] = {
-			{ { -0.0f, -0.5f }, { 1, 1, 1, 1 } },
-			{ { 0.5f, -0.5f }, { 1, 1, 1, 1 } },
-			{ { -0.5f, -0.5f }, { 1, 1, 1, 1 } },
-		};
-#else
-		struct vertex {
-			Vector2 position;
-		};
-		static_assert(sizeof( vertex ) == sizeof( GLfloat ) * 2, "Fuck");
-		static_assert(offsetof( vertex, position ) == 0, "Fuck");
-		
-		vertex vertices[] = {
-			{ { -1.0f, -1.0f } },
-			{ {  1.0f,  1.0f } },
-			{ {  1.0f, -1.0f } },
-			{ { -1.0f,  1.0f } },
-		};
-#endif
-		uintz stride = sizeof( vertices[ 0 ] );
-		uintz verticessize = sizeof( vertices );
-		
-		GLuint vao;
-		gl::GenVertexArrays( 1, &vao );
-		gl::BindVertexArray( vao );
-		GLuint vbuffer;
-		gl::GenBuffers( 1, &vbuffer );
-		gl::BindBuffer( gl::ARRAY_BUFFER, vbuffer );
-		gl::BufferData( gl::ARRAY_BUFFER, verticessize, vertices, gl::STATIC_DRAW );
-		gl::VertexAttribPointer( 0, 2, gl::FLOAT, gl::FALSE_, 0, 0 );
-		gl::EnableVertexAttribArray( 0 );
-		gl::BindVertexArray( 0 );
-		gl::BindBuffer( gl::ARRAY_BUFFER, 0 );
-
-		gl::BindVertexArray( vao );
-		gl::DrawArrays( gl::TRIANGLES, 0, 3 );
-		gl::BindVertexArray( 0 );
-
-		g.Present();
-
-		gl::DeleteVertexArrays( 1, &vao );
-		gl::DeleteBuffers( 1, &vbuffer );
-#endif
-		
 	}
 }
 
