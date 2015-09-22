@@ -376,8 +376,6 @@ int main( int argc, char * const argv[] ) {
 	queue<message> messagequeue;
 
 	graphics_device g( w );
-	gl::Disable( gl::DEPTH_TEST );
-	gl::Disable( gl::CULL_FACE );
 	NymphBatch batch( g );
 
 	Color clears[] = {
