@@ -413,10 +413,11 @@ int main( int argc, char * const argv[] ) {
 		const Color& triangle1color = colors[ 0 ];
 		const Color& triangle2color = colors[ 1 ];
 
-		g.Clear( clearcolor );
+		g.clear( clearcolor );
 
 		batch.Begin();
 		batch.RenderGradient( { 50, 50, 100, 100 }, triangle1color, triangle2color );
+		batch.RenderGradient( { 60, 60, 110, 110 }, triangle1color, triangle2color );
 		batch.End();
 
 		g.Present();
