@@ -362,6 +362,7 @@ int main( int argc, char* argv[] ) {
 #include <Furrovine++/Graphics/NymphBatch.hpp>
 #include <Furrovine++/Input/input_events.hpp>
 #include <Furrovine++/Pipeline/ImageLoader.hpp>
+#include <Furrovine++/Pipeline/TextureFontLoader.hpp>
 #include <Furrovine++/Graphics/image_2d.hpp>
 #include <Furrovine++/queue.hpp>
 
@@ -377,6 +378,8 @@ int main( int argc, char * const argv[] ) {
 	queue<message> messagequeue;
 
 	graphics_device g( w );
+	text_device t( w );
+
 	NymphBatch batch( g );
 
 	Color clears[] = {
@@ -394,7 +397,10 @@ int main( int argc, char * const argv[] ) {
 	};
 
 	image_2d image = ImageLoader()(load_single, "test.wbmp");
+	texture_font font = TextureFontLoader( g, t )(texture_font_description( "Arial", 12.0f ));
+	//image_2d image2 = ImageLoader()(load_single, "black.jpg");
 	texture_2d tex( g, image );
+	//texture_2d tex2( g, image2 );
 
 	utf32_string x = "Arf";
 	utf32_string_view xview = x;
@@ -423,9 +429,11 @@ int main( int argc, char * const argv[] ) {
 		g.clear( clearcolor );
 
 		batch.Begin();
-		batch.Render( tex, none, Region( 0, 0, 50, 50 ), Color::White );
-		batch.RenderGradient( { 50, 50, 100, 100 }, triangle1color, triangle2color );
-		batch.RenderGradient( { 60, 60, 110, 110 }, triangle1color, triangle2color );
+		batch.Render( tex, none, Region( 200, 200, 300, 300 ), Color::White );
+		//batch.Render( tex2, none, Region( 260, 200, 50, 50 ), Color::White );
+		batch.RenderGradient( Region( 50, 50, 100, 100 ), triangle1color, triangle2color );
+		batch.RenderGradient( Region( 50, 100, 100, 100 ), triangle1color, triangle2color );
+		batch.RenderString( font, "We are online!", Vector2( 100, 20 ) );
 		batch.End();
 
 		g.Present();
