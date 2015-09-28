@@ -361,14 +361,15 @@ int main( int argc, char* argv[] ) {
 #include <Furrovine++/Graphics/graphics_device.hpp>
 #include <Furrovine++/Graphics/NymphBatch.hpp>
 #include <Furrovine++/Input/input_events.hpp>
+#include <Furrovine++/Pipeline/ImageLoader.hpp>
+#include <Furrovine++/Graphics/image_2d.hpp>
 #include <Furrovine++/queue.hpp>
-
-#include <Furrovine++/Graphics/Gl/Platform.Gl.hpp>
 
 int main( int argc, char * const argv[] ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Input;
+	using namespace Furrovine::Pipeline;
 
 	window_driver wd;
 	window w( wd, window_description( "Furrovine", { 640, 480 } ) );
@@ -391,6 +392,12 @@ int main( int argc, char * const argv[] ) {
 		Color::Green,
 		Color::PurpleCSS
 	};
+
+	image_2d image = ImageLoader()(load_single, "test.wbmp");
+	texture_2d tex( g, image );
+
+	utf32_string x = "Arf";
+	utf32_string_view xview = x;
 
 	for ( bool quit = false; !quit; ) {
 
@@ -416,6 +423,7 @@ int main( int argc, char * const argv[] ) {
 		g.clear( clearcolor );
 
 		batch.Begin();
+		batch.Render( tex, none, Region( 0, 0, 50, 50 ), Color::White );
 		batch.RenderGradient( { 50, 50, 100, 100 }, triangle1color, triangle2color );
 		batch.RenderGradient( { 60, 60, 110, 110 }, triangle1color, triangle2color );
 		batch.End();
