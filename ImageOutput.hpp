@@ -17,7 +17,7 @@ public:
 
 	void Clear( );
 
-	void Save( );
+	void save( );
 
 	virtual void operator()( std::size_t x, std::size_t y, const RayBounce& pixelbounce ) override;
 

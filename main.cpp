@@ -1,4 +1,3 @@
-#if 0
 #include "SampleCommands.hpp"
 #include "Scene.hpp"
 #include "Multisampler.hpp"
@@ -15,18 +14,18 @@
 #include <Furrovine++/queue.hpp>
 #include <Furrovine++/window_driver.hpp>
 #include <Furrovine++/Input/mouse_device.hpp>
-#include <Furrovine++/Input/KeyboardDevice.hpp>
+#include <Furrovine++/Input/keyboard_device.hpp>
 #include <Furrovine++/Input/input_events.hpp>
 #include <Furrovine++/Graphics/window.hpp>
 #include <Furrovine++/Graphics/graphics_device.hpp>
-#include <Furrovine++/Graphics/NymphBatch.hpp>
+#include <Furrovine++/Graphics/sprite_batch.hpp>
 #include <Furrovine++/Graphics/image_2d.hpp>
 #include <Furrovine++/Pipeline/TextureFontLoader.hpp>
-#include <Furrovine++/Sys/FileWatcher.hpp>
+#include <Furrovine++/Sys/file_watcher.hpp>
 #include <Furrovine++/stopwatch.hpp>
 #include <Furrovine++/intersect2.hpp>
 
-Furrovine::string make_coords_info( Furrovine::Graphics::Image2D& image, const vec2i& coords ) {
+Furrovine::string make_coords_info( Furrovine::Graphics::image_2d& image, const vec2i& coords ) {
 	using namespace Furrovine;
 	TVector2<uint32> ucoords( coords );
 	if ( !intersect( image.boundaries( ), ucoords ) ) {
@@ -40,18 +39,18 @@ Furrovine::string make_coords_info( Furrovine::Graphics::Image2D& image, const v
 	return coordsstring;
 }
 
-Furrovine::string make_info( Furrovine::stopwatch<>& stopwatch, Furrovine::Graphics::Image2D& image, const vec2i& mouse, RayTracerStep steps ) {
+Furrovine::string make_info( Furrovine::stopwatch<>& stopwatch, Furrovine::Graphics::image_2d& image, const vec2i& mouse, RayTracerStep steps ) {
 	using namespace Furrovine;
 	string stepstring = "Finished\n";
-	if ( Fur::has_flags( steps, RayTracerStep::Preliminary ) ) {
+	if ( has_flags( steps, RayTracerStep::Preliminary ) ) {
 		stepstring = "Running\nTracing Rays...";
 	}
 	else {
-		if ( Fur::has_flags( steps, RayTracerStep::MultisampleDetection | RayTracerStep::Multisampling ) )
+		if ( has_flags( steps, RayTracerStep::MultisampleDetection | RayTracerStep::Multisampling ) )
 			stepstring = "Running\nDetecting and Tracing Multisample Rays...";
-		else if ( Fur::has_flags( steps, RayTracerStep::MultisampleDetection ) )
+		else if ( has_flags( steps, RayTracerStep::MultisampleDetection ) )
 			stepstring = "Running\nDetecting Multisample Rays...";
-		else if ( Fur::has_flags( steps, RayTracerStep::Multisampling ) )
+		else if ( has_flags( steps, RayTracerStep::Multisampling ) )
 			stepstring = "Running\nTracing Multisampling Rays...";
 	}
 
@@ -86,7 +85,7 @@ Furrovine::string make_info( Furrovine::stopwatch<>& stopwatch, Furrovine::Graph
 }
 
 template <typename TTracer>
-void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Furrovine::optional<const Furrovine::string&> source, Furrovine::Graphics::Image2D& image, ImageOutput& output, TTracer&& raytracer ) {
+void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Furrovine::optional<const Furrovine::string&> source, Furrovine::Graphics::image_2d& image, ImageOutput& output, TTracer&& raytracer ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Pipeline;
@@ -96,7 +95,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 	using namespace Furrovine::enums::operators;
 	uint32 bottombar = 100;
 	vec2 imagesize( static_cast<real>( command.imagesize.x ), static_cast<real>( command.imagesize.y ) );
-	Fur::Size2u32 windowsize( command.imagesize.x, command.imagesize.y + bottombar );
+	Size2u32 windowsize( command.imagesize.x, command.imagesize.y + bottombar );
 	real offsetx = 220.0f;
 	
 	vec2u magtoolsize( 32, 32 );
@@ -104,47 +103,47 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 	vec2 magpixelsize( 4.0f, 4.0f );
 	vec2 magoffset( offsetx + 60.0f, imagesize.y + ( static_cast<real>(bottombar)-( magsize.y * magpixelsize.y ) ) / 2.0f );
 
-	WindowDriver windowdriver( Fur::WindowDriverFlags::Default );
-	Window window( windowdriver, Fur::WindowDescription( "Lightstalker", windowsize ) );
-	GraphicsDevice graphics( window );
-	InputEvents<unit> inputevents;
-	TextDevice text( window );
-	NymphBatch batch( graphics );
-	queue<Message> messagequeue;
-	TextureFont font = TextureFontLoader( graphics, text )( TextureFontDescription( "C:/Windows/Fonts/Arial.ttf", 10 ) );
-	KeyboardDevice keyboard( 0 );
-	MouseDevice mouse( 0 );
+	window_driver windowdriver( window_driver_flags::AlwaysReceiveInput | window_driver_flags::ManipulateInputDevices  );
+	window displaywindow( windowdriver, window_description( "Lightstalker", windowsize ) );
+	graphics_device graphics( displaywindow );
+	input_events<unit> inputevents;
+	text_device text( displaywindow );
+	sprite_batch batch( graphics );
+	queue<message> messagequeue;
+	texture_font font = TextureFontLoader( graphics, text )( texture_font_description( "C:/Windows/Fonts/Arial.ttf", 10 ) );
+	keyboard_device keyboard( 0 );
+	mouse_device mouse( 0 );
 	vec2i mousepos( 0, 0 );
 
-	FileWatcher watcher( maybe_or( source, string( "" ) ), "", false );
+	file_watcher watcher( maybe_or( source, string( "" ) ), "", false );
 	
 	std::vector<byte> watcherbuffer( 2048 * 4 );
-	std::vector<FileDelta> changes;
+	std::vector<file_delta> changes;
 	changes.reserve( 4 );
 
 	bool quit = false;
 	bool autosaved = false;
 	bool doreset = false;
 	bool doreload = false;
-	bool& displaywindow = command.displaywindow;
-	if ( displaywindow ) {
-		window.Show( );
+	bool& shoulddisplaywindow = command.displaywindow;
+	if ( shoulddisplaywindow ) {
+		displaywindow.Show( );
 	}
 
 	while ( true ) {
 		if ( quit ) {
-			windowdriver.Quit( window );
+			windowdriver.quit( displaywindow );
 		}
-		windowdriver.Push( window, messagequeue );
-		Fur::optional<Fur::Message> opmessage;
+		windowdriver.push( displaywindow, messagequeue );
+		optional<message> opmessage;
 		while ( opmessage = messagequeue.pop_front( ) ) {
-			Fur::Message& message = opmessage.get( );
-			inputevents.Process( message );
+			message& message = opmessage.get( );
+			inputevents.process( message );
 			switch ( message.class_index() ) {
-			case Fur::Message::index<Fur::WindowEvent>::value: {
-				Fur::WindowEvent& windowm = message.get<Fur::WindowEvent>( );
-				quit = windowm.Signal == Fur::WindowEventSignal::Quit
-					|| windowm.Signal == Fur::WindowEventSignal::Destroy;
+			case message::index<window_event>::value: {
+				window_event& windowm = message.get<window_event>( );
+				quit = windowm.signal == window_event_signal::quit
+					|| windowm.signal == window_event_signal::destroy;
 				break; }
 			}
 		}
@@ -152,33 +151,33 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 		if ( quit )
 			break;
 		
-		mouse.Update( );
-		keyboard.Update( );
-		if ( keyboard.Pressed( Key::Escape ) ) {
+		mouse.update( );
+		keyboard.update( );
+		if ( keyboard.pressed( Key::Escape ) ) {
 			quit = true;
 		}
-		if ( keyboard.ControlDown() ) {
-			if ( keyboard.Pressed( Key::Q ) ) {
+		if ( keyboard.control_down() ) {
+			if ( keyboard.pressed( Key::Q ) ) {
 				quit = true;
 			}
-			if ( keyboard.Pressed( Key::R ) ) {
+			if ( keyboard.pressed( Key::R ) ) {
 				doreset = true;
 				doreload = static_cast<bool>( source );
 			}
-			if ( keyboard.Pressed( Key::S ) ) {
-				output.Save( );
+			if ( keyboard.pressed( Key::S ) ) {
+				output.save( );
 			}
 		}
-		mousepos = mouse.Position( );
+		mousepos = mouse.position( );
 
 		if ( source ) {
-			watcher.WaitForChanges( changes, watcherbuffer, Timeout( 33 ) );
+			watcher.wait( changes, watcherbuffer, Timeout( 33 ) );
 			if ( changes.size( ) > 0 ) {
 				for ( auto& change : changes ) {
-					if ( change.TimedOut )
+					if ( change.timed_out )
 						continue;
-					if ( any_flags( change.Changes, FileChangeFlags::Modified | FileChangeFlags::Created )
-						|| ( any_flags( change.Changes, FileChangeFlags::Renamed ) && change.Name == *source ) ) {
+					if ( any_flags( change.changes, file_change_flags::modified | file_change_flags::created )
+						|| ( any_flags( change.changes, file_change_flags::renamed ) && change.name == *source ) ) {
 						doreset = true;
 						doreload = true;
 						break;
@@ -211,24 +210,25 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 			stopwatch.stop( );
 		}
 
-		if ( !displaywindow || !graphics.Ready( ) ) {
+		if ( !shoulddisplaywindow || !graphics.Ready( ) ) {
 			continue;
 		}
 
 		auto imageview = image.view<ByteColor>( );
-		
-		graphics.Clear( Color::Black );
-		graphics.RenderImage( image, Region( 0.0f, 0.0f, imagesize.x, imagesize.y ) );
-		batch.Begin( );
+		texture_2d imagetexture( graphics, image );
+
+		graphics.clear( Color::Black );
+		batch.begin();
+		batch.render( imagetexture, none, Region( 0.0f, 0.0f, imagesize.x, imagesize.y ), Color::White );
 		string datastring = make_info( stopwatch, image, mousepos, raytracer.Steps() );
-		batch.RenderString( font, datastring, { 0, imagesize.y } );
+		batch.render_text( font, datastring, { 0, imagesize.y } );
 		auto backcolor = rgba::AmbientGrey;
 		
-		if ( mouse.Down( MouseButton::Right ) ) {
+		if ( mouse.down( mouse_button::Right ) ) {
 			vec2 backpos( mousepos );
 			backpos -= magpixelsize * static_cast<real>( 12 );
 			backpos -= static_cast<real>( 1 );
-			batch.RenderGradient( Region( backpos, size2( vec2( magtoolsize ) * magpixelsize + static_cast<real>( 2 ) ) ), backcolor );
+			batch.render_gradient( Region( backpos, size2( vec2( magtoolsize ) * magpixelsize + static_cast<real>( 2 ) ) ), backcolor );
 			for ( std::size_t y = 0; y < magtoolsize.x; ++y ) {
 				for ( std::size_t x = 0; x < magtoolsize.y; ++x ) {
 					real sx = static_cast<real>( x );
@@ -240,12 +240,12 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 					renderpos -= magpixelsize * static_cast<real>( 12 );
 					renderpos += magpixelsize * vec2( sx, sy );
 					Region region( renderpos, size2( magpixelsize ) );
-					batch.RenderGradient( region, color );
+					batch.render_gradient( region, color );
 				}
 			}
 		}
 		else {
-			batch.RenderGradient( Region( magoffset - vec2( 1.0f, 1.0f ), size2( vec2( magsize ) * magpixelsize + vec2( 2.0f, 2.0f ) ) ), backcolor );
+			batch.render_gradient( Region( magoffset - vec2( 1.0f, 1.0f ), size2( vec2( magsize ) * magpixelsize + vec2( 2.0f, 2.0f ) ) ), backcolor );
 			for ( std::size_t y = 0; y < magsize.y; ++y ) {
 				for ( std::size_t x = 0; x < magsize.x; ++x ) {
 					real sx = static_cast<real>( x );
@@ -257,20 +257,20 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 					vec2 renderpos( magoffset );
 					renderpos += magpixelsize * vec2( sx, sy );
 					Region region( renderpos, size2( magpixelsize ) );
-					batch.RenderGradient( region, color );
+					batch.render_gradient( region, color );
 				}
 			}
 		}
 
-		batch.End( );
-		graphics.Present( );
+		batch.end( );
+		graphics.present( );
 
 		if ( raytracer.Check( ) ) {
 			if ( !autosaved ) {
 				autosaved = true;
 				// TODO: triggers a crash in release. Find out why.
-				output.Save( );
-				if ( !displaywindow ) {
+				output.save( );
+				if ( !shoulddisplaywindow ) {
 					quit = true;
 					continue;
 				}
@@ -290,51 +290,54 @@ int main( int argc, char* argv[] ) {
 	
 	optional<string> source = nullopt;
 	optional<string> output = nullopt;
-	optional<RayTracerCommand> ocommand = Fur::nullopt;
+	optional<RayTracerCommand> ocommand = nullopt;
 	if ( arguments.size( ) > 1 ) {
 		source = arguments[ 1 ];
 		if ( arguments.size( ) > 2 ) {
 			output = arguments[ 2 ];
 		}
 	}
+#ifndef _DEBUG
 	try {
-		if ( !output ) {
-			if ( source ) {
-				output = *source + ".png";
-			}
-			else {
-				output = "output.png";
-			}
-		}
-		if ( source )
-			ocommand = RayTracerCommandLoader()( *source );
-		if (!ocommand)
-			ocommand = SampleCommands::MultiSphere( );
-		stopwatch<> stopwatch;
-		RayTracerCommand& command = *ocommand;
-		Image2D image( command.imagesize, SurfaceFormat::Red8Green8Blue8Alpha8Normalized, ToByteSize( SurfaceFormat::Red8Green8Blue8Alpha8Normalized ), 0 );
-		ImageOutput imageoutput( image, *output );
-		Scene& scene = command.scene;
-		Camera& camera = command.camera;
-		RayBouncer& bouncer = command.bouncer;
-		RayShader& shader = command.shader;
-		optional<Multisampler>& multisampler = command.multisampler;
-		vec2u& imagesize = command.imagesize;
-		scene.Build( );
-		// TODO: find out why this next line crashes VC++'s compiler
-		if ( command.multithreading ) {
-			ThreadPool threadpool( command.threadcount );
-			ThreadedTileTracer<16, 16> raytracer(threadpool, imagesize, camera,
-				scene, bouncer, shader, multisampler, imageoutput);
-			stopwatch.start( );
-			RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
+#endif // Debug
+	if ( !output ) {
+		if ( source ) {
+			output = *source + ".png";
 		}
 		else {
-			TileTracer<16, 16> raytracer( imagesize, camera,
-				scene, bouncer, shader, multisampler, imageoutput, std::chrono::milliseconds( 1500 ) );
-			stopwatch.start( );
-			RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
+			output = "output.png";
 		}
+	}
+	if ( source )
+		ocommand = RayTracerCommandLoader()( *source );
+	if (!ocommand)
+		ocommand = SampleCommands::MultiSphere( );
+	stopwatch<> stopwatch;
+	RayTracerCommand& command = *ocommand;
+	image_2d image( command.imagesize, surface_format::Red8Green8Blue8Alpha8Normalized, to_byte_size( surface_format::Red8Green8Blue8Alpha8Normalized ), 0 );
+	ImageOutput imageoutput( image, *output );
+	Scene& scene = command.scene;
+	Camera& camera = command.camera;
+	RayBouncer& bouncer = command.bouncer;
+	RayShader& shader = command.shader;
+	optional<Multisampler>& multisampler = command.multisampler;
+	vec2u& imagesize = command.imagesize;
+	scene.Build( );
+	// TODO: find out why this next line crashes VC++'s compiler
+	if ( command.multithreading ) {
+		ThreadPool threadpool( command.threadcount );
+		ThreadedTileTracer<16, 16> raytracer(threadpool, imagesize, camera,
+			scene, bouncer, shader, multisampler, imageoutput);
+		stopwatch.start( );
+		RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
+	}
+	else {
+		TileTracer<16, 16> raytracer( imagesize, camera,
+			scene, bouncer, shader, multisampler, imageoutput, std::chrono::milliseconds( 1500 ) );
+		stopwatch.start( );
+		RayTrace( command, stopwatch, source, image, imageoutput, raytracer );
+	}
+#ifndef _DEBUG
 	}
 	catch ( const Exception& ex ) {
 		std::cout << "Lightstalker - An unhandled Furrovine Exception has occured:\n\t"
@@ -351,93 +354,6 @@ int main( int argc, char* argv[] ) {
 		return 1;
 	}
 	std::cout << "Lightstalker - Completed. Exiting." << std::endl;
-	
+#endif // Debug
 	return 0;
 }
-#else
-#pragma warning(disable:4503)
-
-#include <Furrovine++/Graphics/window.hpp>
-#include <Furrovine++/Graphics/graphics_device.hpp>
-#include <Furrovine++/Graphics/NymphBatch.hpp>
-#include <Furrovine++/Input/input_events.hpp>
-#include <Furrovine++/Pipeline/ImageLoader.hpp>
-#include <Furrovine++/Pipeline/TextureFontLoader.hpp>
-#include <Furrovine++/Graphics/image_2d.hpp>
-#include <Furrovine++/queue.hpp>
-
-int main( int argc, char * const argv[] ) {
-	using namespace Furrovine;
-	using namespace Furrovine::Graphics;
-	using namespace Furrovine::Input;
-	using namespace Furrovine::Pipeline;
-
-	window_driver wd;
-	window w( wd, window_description( "Furrovine", { 640, 480 } ) );
-	input_events<unit> ipe;
-	queue<message> messagequeue;
-
-	graphics_device g( w );
-	text_device t( w );
-
-	NymphBatch batch( g );
-
-	Color clears[] = {
-		Color::Black,
-		Color::Grey,
-		Color::SlateGrey,
-		Color::DarkGrey
-	};
-
-	Color colors[] = {
-		Color::Red,
-		Color::Blue,
-		Color::Green,
-		Color::PurpleCSS
-	};
-
-	image_2d image = ImageLoader()(load_single, "test.wbmp");
-	texture_font font = TextureFontLoader( g, t )(texture_font_description( "Arial", 12.0f ));
-	//image_2d image2 = ImageLoader()(load_single, "black.jpg");
-	texture_2d tex( g, image );
-	//texture_2d tex2( g, image2 );
-
-	utf32_string x = "Arf";
-	utf32_string_view xview = x;
-
-	for ( bool quit = false; !quit; ) {
-
-		wd.Push( w, messagequeue );
-		optional<message> opmessage;
-		while ( opmessage = messagequeue.pop_front() ) {
-			message& msg = opmessage.get();
-			ipe.Process( msg );
-			switch ( msg.class_index() ) {
-			case message::index<window_event>::value: {
-				window_event& windowm = msg.get<window_event>();
-				quit = windowm.Signal == window_event_signal::Quit
-					|| windowm.Signal == window_event_signal::Destroy;
-				break; }
-			}
-		}
-
-		uintz target = rand() % size_of( clears );
-		const Color& clearcolor = clears[ 0 ];
-		const Color& triangle1color = colors[ 0 ];
-		const Color& triangle2color = colors[ 1 ];
-
-		g.clear( clearcolor );
-
-		batch.Begin();
-		batch.Render( tex, none, Region( 200, 200, 300, 300 ), Color::White );
-		//batch.Render( tex2, none, Region( 260, 200, 50, 50 ), Color::White );
-		batch.RenderGradient( Region( 50, 50, 100, 100 ), triangle1color, triangle2color );
-		batch.RenderGradient( Region( 50, 100, 100, 100 ), triangle1color, triangle2color );
-		batch.RenderString( font, "We are online!", Vector2( 100, 20 ) );
-		batch.End();
-
-		g.Present();
-	}
-}
-
-#endif

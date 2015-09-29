@@ -1,8 +1,9 @@
 #include "ImageOutput.hpp"
 
 void ImageOutput::operator()( std::size_t x, std::size_t y, const RayBounce& pixelbounce ) {
-	typedef Fur::ByteColor bytergba;
-	Fur::buffer_view2<Fur::ByteColor> imagepixels = image->view<Fur::ByteColor>( );
+	using namespace Furrovine;
+	typedef ByteColor bytergba;
+	buffer_view2<bytergba> imagepixels = image->view<bytergba>( );
 
 	Fur::index<2> index( x, y );
 	bytergba& datapixel = imagepixels[ index ];
@@ -21,7 +22,7 @@ void ImageOutput::operator()( std::size_t x, std::size_t y, const RayBounce& pix
 	datapixel = clampedpixel;
 }
 
-void ImageOutput::Save( ) {
+void ImageOutput::save( ) {
 	Fur::Pipeline::PNGSaver saver{ };
 	saver( *image, outputname );
 }
