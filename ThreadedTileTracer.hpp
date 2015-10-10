@@ -7,7 +7,7 @@
 #include "Tile.hpp"
 #include "RayTracerStep.hpp"
 #include <Furrovine++/scoped_destructor.hpp>
-#include <Furrovine++/Threading/ThreadPool.hpp>
+#include <Furrovine++/Threading/thread_pool.hpp>
 
 template <std::size_t n = 16, std::size_t m = n>
 class ThreadedTileTracer {
@@ -28,7 +28,7 @@ private:
 	const RayShader& rayshader;
 	Fur::optional<const Multisampler&> multisampler;
 	Output& output;
-	Furrovine::Threading::ThreadPool& threadpool;
+	Furrovine::Threading::thread_pool& threadpool;
 	traced_fx_t ontrace;
 	tile_fx_t onpretile;
 	tile_fx_t ontile;
@@ -159,7 +159,7 @@ private:
 
 public:
 
-	ThreadedTileTracer( Furrovine::Threading::ThreadPool& pool, const vec2u& imagesize, const Camera& camera, const Scene& scene, const RayBouncer& raybouncer, const RayShader& rayshader, Fur::optional<const Multisampler&> multisampler, Output& output, tile_fx_t patchfx = nullptr, tile_fx_t prepatchfx = nullptr, traced_fx_t tracefx = nullptr )
+	ThreadedTileTracer( Furrovine::Threading::thread_pool& pool, const vec2u& imagesize, const Camera& camera, const Scene& scene, const RayBouncer& raybouncer, const RayShader& rayshader, Fur::optional<const Multisampler&> multisampler, Output& output, tile_fx_t patchfx = nullptr, tile_fx_t prepatchfx = nullptr, traced_fx_t tracefx = nullptr )
 		: patchcomplete( true ), multisampleprepcomplete( true ), multisamplecomplete( true ), stopping( false ),
 		imagesize( imagesize ), hitmap( imagesize ), 
 		scene( scene ), camera( camera ), raybouncer( raybouncer ),

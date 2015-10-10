@@ -1,28 +1,28 @@
 #include "ObjLoader.hpp"
-#include <Furrovine++/Pipeline/WavefrontObjLoader.hpp>
-#include <Furrovine++/IO/FileStream.hpp>
-#include <Furrovine++/IO/TextReader.hpp>
-#include <Furrovine++/Graphics/Primitives.hpp>
-#include <Furrovine++/Color.hpp>
+#include <Furrovine++/Pipeline/wavefront_obj_loader.hpp>
+#include <Furrovine++/IO/file_stream.hpp>
+#include <Furrovine++/IO/text_reader.hpp>
+#include <Furrovine++/Graphics/primitives.hpp>
+#include <Furrovine++/color.hpp>
 
 void ObjLoader::operator()( const Fur::string& file ) {
 	using namespace Furrovine::IO;
-	FileStream stream( file, FileMode::Open );
+	file_stream stream( file, file_mode::Open );
 	( *this )( stream );
 }
 
-void ObjLoader::operator()( Fur::IO::Stream& stream ) {
+void ObjLoader::operator()( Fur::IO::stream& source ) {
 	using namespace Furrovine::IO;
-	TextReader<> reader( stream );
+	text_reader<> reader( source );
 	( *this )( reader );
 }
 
-void ObjLoader::operator()( Fur::IO::TextReader<>& reader ) {
+void ObjLoader::operator()( Fur::IO::text_reader<>& reader ) {
 	using namespace Furrovine;
 	using namespace Furrovine::Graphics;
 	using namespace Furrovine::Pipeline;
 	typedef VertexPositionTextureNormal vertex;
-	auto modeldesc = Fur::Pipeline::WavefrontObjLoader( )( reader );
+	auto modeldesc = Fur::Pipeline::wavefront_obj_loader( )( reader );
 
 	for ( auto& meshdesc : modeldesc.Meshes ) {
 		for ( auto& submeshdesc : meshdesc.SubMeshes ) {
@@ -53,8 +53,8 @@ void ObjLoader::operator()( Fur::IO::TextReader<>& reader ) {
 				triangle.c = meshtriangle.c.position = vc.position;
 				meshtriangle.c.texture = vc.texture;
 				meshtriangle.c.normal = vc.normal;
-				WindingOrder winding = Primitives::TriangleWinding( meshtriangle.a.position, meshtriangle.b.position, meshtriangle.c.position, triangle.normal() );
-				if ( winding != WindingOrder::CounterClockwise )
+				winding_order winding = primitives::triangle_winding( meshtriangle.a.position, meshtriangle.b.position, meshtriangle.c.position, triangle.normal() );
+				if ( winding != winding_order::CounterClockwise )
 					std::swap( meshtriangle.b, meshtriangle.c );
 				scene.AddPrimitive( meshtriangle );
 			}

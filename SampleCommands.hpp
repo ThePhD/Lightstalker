@@ -8,8 +8,6 @@
 namespace SampleCommands {
 
 	RayTracerCommand Trifecta( ) {
-		using namespace Furrovine;
-		
 		RayTracerCommand command{ };
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;
@@ -36,8 +34,6 @@ namespace SampleCommands {
 	}
 
 	RayTracerCommand MultiSphere( ) {
-		using namespace Furrovine;
-
 		RayTracerCommand command{ };
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;
@@ -73,8 +69,6 @@ namespace SampleCommands {
 	}
 
 	RayTracerCommand RefractionTest( ) {
-		using namespace Furrovine;
-
 		RayTracerCommand command{ };
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;
@@ -106,8 +100,6 @@ namespace SampleCommands {
 	}
 
 	RayTracerCommand SizedSpheres( ) {
-		using namespace Furrovine;
-
 		RayTracerCommand command{ };
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;
@@ -136,8 +128,6 @@ namespace SampleCommands {
 	}
 
 	RayTracerCommand Complex( ) {
-		using namespace Furrovine;
-
 		RayTracerCommand command{ };
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;
@@ -187,8 +177,6 @@ namespace SampleCommands {
 	}
 
 	RayTracerCommand ObjScene( ) {
-		using namespace Furrovine;
-
 		RayTracerCommand command{ };
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;
@@ -206,8 +194,6 @@ namespace SampleCommands {
 	}
 
 	RayTracerCommand SimpleObjScene( ) {
-		using namespace Furrovine;
-		
 		RayTracerCommand command{ };
 		Scene& scene = command.scene;
 		Camera& camera = command.camera;

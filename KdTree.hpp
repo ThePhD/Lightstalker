@@ -63,7 +63,7 @@ private:
 				}
 				midpoint /= static_cast<real>( primitives.size( ) );
 				
-				Fur::Axis axis = bounds.longest_axis( );
+				Furrovine::axis axis = bounds.longest_axis( );
 				std::size_t component = static_cast<std::size_t>( axis );
 				
 				for ( Primitive& primitive : primitives ) {

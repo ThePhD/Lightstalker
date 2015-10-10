@@ -3,7 +3,7 @@
 #include "Output.hpp"
 #include <Furrovine++/Graphics/image_2d.hpp>
 #include <Furrovine++/ByteColor.hpp>
-#include <Furrovine++/Pipeline/PNGSaver.hpp>
+#include <Furrovine++/Pipeline/png_saver.hpp>
 #include <Furrovine++/string.hpp>
 
 class ImageOutput : public Output {

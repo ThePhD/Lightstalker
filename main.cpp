@@ -20,7 +20,7 @@
 #include <Furrovine++/Graphics/graphics_device.hpp>
 #include <Furrovine++/Graphics/sprite_batch.hpp>
 #include <Furrovine++/Graphics/image_2d.hpp>
-#include <Furrovine++/Pipeline/TextureFontLoader.hpp>
+#include <Furrovine++/Pipeline/texture_font_loader.hpp>
 #include <Furrovine++/Sys/file_watcher.hpp>
 #include <Furrovine++/stopwatch.hpp>
 #include <Furrovine++/intersect2.hpp>
@@ -110,7 +110,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 	text_device text( displaywindow );
 	sprite_batch batch( graphics );
 	queue<message> messagequeue;
-	texture_font font = TextureFontLoader( graphics, text )( texture_font_description( "C:/Windows/Fonts/Arial.ttf", 10 ) );
+	texture_font font = texture_font_loader( graphics, text )( texture_font_description( "C:/Windows/Fonts/Arial.ttf", 10 ) );
 	keyboard_device keyboard( 0 );
 	mouse_device mouse( 0 );
 	vec2i mousepos( 0, 0 );
@@ -217,12 +217,12 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 		auto imageview = image.view<ByteColor>( );
 		texture_2d imagetexture( graphics, image );
 
-		graphics.clear( Color::Black );
+		graphics.clear( color::Black );
 		batch.begin();
-		batch.render( imagetexture, none, Region( 0.0f, 0.0f, imagesize.x, imagesize.y ), Color::White );
+		batch.render( imagetexture, none, Region( 0.0f, 0.0f, imagesize.x, imagesize.y ), color::White );
 		string datastring = make_info( stopwatch, image, mousepos, raytracer.Steps() );
 		batch.render_text( font, datastring, { 0, imagesize.y } );
-		auto backcolor = rgba::AmbientGrey;
+		auto backcolor = ::rgba::AmbientGrey;
 		
 		if ( mouse.down( mouse_button::Right ) ) {
 			vec2 backpos( mousepos );
@@ -235,7 +235,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 					real sy = static_cast<real>( y );
 					vec2u pos( mousepos.x + x, mousepos.y + y );
 					pos -= magtoolsize / static_cast<std::size_t>( 2 );
-					auto color = !intersect( image.boundaries( ), pos ) ? rgba::Black : imageview[ pos ];
+					auto color = !intersect( image.boundaries( ), pos ) ? ::rgba::Black : imageview[ pos ];
 					vec2 renderpos( static_cast<real>( mousepos.x ), static_cast<real>( mousepos.y ) );
 					renderpos -= magpixelsize * static_cast<real>( 12 );
 					renderpos += magpixelsize * vec2( sx, sy );
@@ -252,7 +252,7 @@ void RayTrace( RayTracerCommand& command, Furrovine::stopwatch<>& stopwatch, Fur
 					real sy = static_cast<real>( y );
 					vec2u pos( mousepos.x + x, mousepos.y + y );
 					pos -= magsize / static_cast<std::size_t>( 2 );
-					auto color = !intersect( image.boundaries( ), pos ) ? rgba::Black : imageview[ pos ];
+					auto color = !intersect( image.boundaries( ), pos ) ? ::rgba::Black : imageview[ pos ];
 					color.a = 1.0f;
 					vec2 renderpos( magoffset );
 					renderpos += magpixelsize * vec2( sx, sy );
@@ -325,7 +325,7 @@ int main( int argc, char* argv[] ) {
 	scene.Build( );
 	// TODO: find out why this next line crashes VC++'s compiler
 	if ( command.multithreading ) {
-		ThreadPool threadpool( command.threadcount );
+		thread_pool threadpool( command.threadcount );
 		ThreadedTileTracer<16, 16> raytracer(threadpool, imagesize, camera,
 			scene, bouncer, shader, multisampler, imageoutput);
 		stopwatch.start( );
@@ -339,7 +339,7 @@ int main( int argc, char* argv[] ) {
 	}
 #ifndef _DEBUG
 	}
-	catch ( const Exception& ex ) {
+	catch ( const error& ex ) {
 		std::cout << "Lightstalker - An unhandled Furrovine Exception has occured:\n\t"
 			<< ex.what( );
 		return 2;

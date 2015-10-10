@@ -1,4 +1,5 @@
 #include "ImageOutput.hpp"
+#include <Furrovine++/color.hpp>
 
 void ImageOutput::operator()( std::size_t x, std::size_t y, const RayBounce& pixelbounce ) {
 	using namespace Furrovine;
@@ -16,15 +17,15 @@ void ImageOutput::operator()( std::size_t x, std::size_t y, const RayBounce& pix
 	bytecolor.a = 255;
 	datapixel = bytecolor;*/
 
-	rgba pixel = pixelbounce.color;
-	rgba clampedpixel = Fur::clamp( pixel );
+	::rgba pixel = pixelbounce.color;
+	::rgba clampedpixel = Fur::clamp( pixel );
 	clampedpixel.a = 1.0f;
 	datapixel = clampedpixel;
 }
 
 void ImageOutput::save( ) {
-	Fur::Pipeline::PNGSaver saver{ };
-	saver( *image, outputname );
+	Fur::Pipeline::png_saver saver{ };
+	saver( outputname, *image );
 }
 
 void ImageOutput::Clear( ) {

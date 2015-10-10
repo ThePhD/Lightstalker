@@ -1,25 +1,25 @@
 #include "RayTracerCommandLoader.hpp"
 #include "ObjLoader.hpp"
 #include "FilmSize.hpp"
-#include <Furrovine++/IO/FileStream.hpp>
-#include <Furrovine++/IO/TextReader.hpp>
-#include <Furrovine++/IO/File.hpp>
-#include <Furrovine++/Graphics/Primitives.hpp>
+#include <Furrovine++/IO/file_stream.hpp>
+#include <Furrovine++/IO/text_reader.hpp>
+#include <Furrovine++/IO/file.hpp>
+#include <Furrovine++/Graphics/primitives.hpp>
 #include <Furrovine++/text_algorithm.hpp>
 
 RayTracerCommand RayTracerCommandLoader::operator()( const Fur::string& file ) {
 	using namespace Furrovine::IO;
-	FileStream stream( file, FileMode::Open );
+	file_stream stream( file, file_mode::Open );
 	return ( *this )( stream );
 }
 
-RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::Stream& stream ) {
+RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::stream& stream ) {
 	using namespace Furrovine::IO;
-	TextReader<> reader( stream );
+	text_reader<> reader( stream );
 	return ( *this )( reader );
 }
 
-RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader<>& reader ) {
+RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::text_reader<>& reader ) {
 	using namespace Furrovine::Graphics;
 	RayTracerCommand command{ };
 	Triangle triangle;
@@ -40,7 +40,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader<>& read
 	Fur::uint32 uintvalue = 0;
 	bool cameracommanded = false;
 	bool lookat = false;
-	Furrovine::Graphics::WindingOrder order = WindingOrder::Collinear;
+	Furrovine::Graphics::winding_order order = winding_order::Collinear;
 
 	Scene& scene = command.scene;
 	RayShader& shader = command.shader;
@@ -100,7 +100,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader<>& read
 			reader.SkipBlankSpace( );
 			if ( !reader.ReadSingle( triangle.c.z ) )
 				break;
-			order = Fur::Graphics::Primitives::TriangleWinding( triangle.a, triangle.b, triangle.c, triangle.normal( ) );
+			order = Fur::Graphics::primitives::triangle_winding( triangle.a, triangle.b, triangle.c, triangle.normal( ) );
 			scene.AddPrimitive( triangle );
 			break;
 		case 'b':
@@ -340,7 +340,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader<>& read
 				reader.SkipBlankSpace( );
 				reader.ReadToNewLine( stringvalue );
 				Fur::trim( stringvalue );
-				if ( Fur::IO::File::Exists( stringvalue ) )
+				if ( Fur::IO::file::Exists( stringvalue ) )
 					objloader( stringvalue );
 				break;
 			}
@@ -392,7 +392,7 @@ RayTracerCommand RayTracerCommandLoader::operator()( Fur::IO::TextReader<>& read
 			break;
 		}
 		
-		if ( reader.EoS( ) ) {
+		if ( reader.eos( ) ) {
 			break;
 		}
 	}
